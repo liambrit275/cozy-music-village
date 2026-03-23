@@ -1,0 +1,135 @@
+{
+  "_comment": "Asset manifest for 2D Music Theory Game. Edit this file to swap assets — update the path here and in BootScene.js.",
+
+  "inUse": {
+    "characters": [
+      {
+        "gameKey": "adventurer",
+        "label": "Adventurer (Hero)",
+        "sheets": {
+          "idle":   { "path": "assets/characters/adventurer-idle.png",   "frameWidth": 128, "frameHeight": 96, "frames": 4  },
+          "run":    { "path": "assets/characters/adventurer-run.png",    "frameWidth": 128, "frameHeight": 96, "frames": 8  },
+          "jump":   { "path": "assets/characters/adventurer-jump.png",   "frameWidth": 128, "frameHeight": 96, "frames": 3  },
+          "attack": { "path": "assets/characters/adventurer-attack.png", "frameWidth": 128, "frameHeight": 96, "frames": 8  }
+        }
+      },
+      {
+        "gameKey": "knight",
+        "label": "Knight",
+        "sheets": {
+          "idle":   { "path": "assets/characters/knight-idle.png",   "frameWidth": 128, "frameHeight": 96, "frames": 4 },
+          "run":    { "path": "assets/characters/knight-run.png",    "frameWidth": 128, "frameHeight": 96, "frames": 8 },
+          "jump":   { "path": "assets/characters/knight-jump.png",   "frameWidth": 128, "frameHeight": 96, "frames": 4 },
+          "attack": { "path": "assets/characters/knight-attack.png", "frameWidth": 128, "frameHeight": 96, "frames": 6 },
+          "hurt":   { "path": "assets/characters/knight-hurt.png",   "frameWidth": 128, "frameHeight": 96, "frames": 3 }
+        }
+      },
+      {
+        "gameKey": "bunny",
+        "label": "Bunny",
+        "sheets": {
+          "idle": { "path": "assets/characters/bunny.png", "frameWidth": 24, "frameHeight": 42, "frames": 4 }
+        }
+      },
+      {
+        "gameKey": "dragon",
+        "label": "Dragon",
+        "sheets": {
+          "idle": { "path": "assets/characters/dragon.png", "frameWidth": 192, "frameHeight": 176, "frames": 9 }
+        }
+      },
+      {
+        "gameKey": "mushroom",
+        "label": "Mushroom",
+        "sheets": {
+          "idle": { "path": "assets/characters/mushroom.png", "frameWidth": 41, "frameHeight": 30, "frames": 10 }
+        }
+      },
+      {
+        "gameKey": "froggy",
+        "label": "Froggy",
+        "sheets": {
+          "idle": { "path": "assets/characters/froggy.png", "frameWidth": 42, "frameHeight": 38, "frames": 10 }
+        }
+      }
+    ],
+
+    "monsters": [
+      { "gameKey": "monster-slime",        "label": "Slime",          "zone": "forest",  "path": "assets/monsters/slime.png",      "frameWidth": 118, "frameHeight": 79,  "frames": 4  },
+      { "gameKey": "monster-frog",         "label": "Frog",           "zone": "forest",  "path": "assets/monsters/frog.png",       "frameWidth": 63,  "frameHeight": 68,  "frames": 6  },
+      { "gameKey": "monster-glowWisp",     "label": "Glow Wisp",      "zone": "forest",  "path": "assets/monsters/glow-wisp.png",  "frameWidth": 48,  "frameHeight": 48,  "frames": 8  },
+      { "gameKey": "monster-mutantToad",   "label": "Mutant Toad",    "zone": "forest",  "path": "assets/monsters/mutant-toad.png","frameWidth": 80,  "frameHeight": 64,  "frames": 4  },
+      { "gameKey": "monster-wanderingBard","label": "Centaur Bard",   "zone": "village", "path": "assets/monsters/centaur.png",    "frameWidth": 112, "frameHeight": 144, "frames": 4  },
+      { "gameKey": "monster-scrollKeeper", "label": "Ghost",          "zone": "village", "path": "assets/monsters/ghost.png",      "frameWidth": 64,  "frameHeight": 80,  "frames": 4  },
+      { "gameKey": "monster-hellHound",    "label": "Hell Hound",     "zone": "caves",   "path": "assets/monsters/hell-hound.png", "frameWidth": 64,  "frameHeight": 48,  "frames": 11 },
+      { "gameKey": "monster-shadowCrow",   "label": "Shadow Crow",    "zone": "caves",   "path": "assets/monsters/crow.png",       "frameWidth": 48,  "frameHeight": 48,  "frames": 4  },
+      { "gameKey": "monster-ogre",         "label": "Ogre",           "zone": "caves",   "path": "assets/monsters/ogre.png",       "frameWidth": 144, "frameHeight": 80,  "frames": 4  },
+      { "gameKey": "monster-guardCaptain", "label": "Treant Guard",   "zone": "castle",  "path": "assets/monsters/treant.png",     "frameWidth": 80,  "frameHeight": 84,  "frames": 4  },
+      { "gameKey": "monster-werewolf",     "label": "Werewolf",       "zone": "tower",   "path": "assets/monsters/werewolf.png",   "frameWidth": 96,  "frameHeight": 76,  "frames": 5  }
+    ],
+
+    "backgrounds": [
+      { "gameKey": "bg-forest",       "label": "Mist Forest",        "zone": "forest",    "path": "assets/backgrounds/forest.png"       },
+      { "gameKey": "bg-forest-trees", "label": "Forest Trees Layer", "zone": "forest",    "path": "assets/backgrounds/forest-trees.png" },
+      { "gameKey": "bg-village",      "label": "Night Town",         "zone": "village",   "path": "assets/backgrounds/village.png"      },
+      { "gameKey": "bg-caves",        "label": "Caverns",            "zone": "caves",     "path": "assets/backgrounds/caves.png"        },
+      { "gameKey": "bg-castle",       "label": "Gothic Castle",      "zone": "castle",    "path": "assets/backgrounds/castle.png"       },
+      { "gameKey": "bg-underworld",   "label": "Graveyard",          "zone": "underworld","path": "assets/backgrounds/underworld.png"   },
+      { "gameKey": "bg-tower",        "label": "Dark Castle Interior","zone": "tower",    "path": "assets/backgrounds/tower.png"        }
+    ],
+
+    "effects": [
+      { "gameKey": "hit-effect", "label": "Hit Spark", "path": "assets/effects/hit.png", "frameWidth": 31, "frameHeight": 32, "frames": 3 }
+    ]
+  },
+
+  "available": {
+    "_note": "Assets in Legacy Collection not yet used. To add one: copy the file to assets/, add a load call in BootScene.js, and update this manifest.",
+
+    "characters": [
+      { "label": "Bridge Heroine",       "legacyPath": "Legacy Collection/Assets/Characters/Bridge Heroine/Heroine base/Spritesheets/", "sheets": ["idle.png (8f 64×64)", "run.png (14f)", "jump.png (8f)", "attack.png (10f)"] },
+      { "label": "Brawler Girl",         "legacyPath": "Legacy Collection/Assets/Packs/Streets of Fight/Spritesheets/Brawler Girl/",    "sheets": ["idle.png (4f 96×63)", "walk.png (10f)", "punch.png (3f)", "hurt.png (2f)"] },
+      { "label": "Cyberpunk Detective",  "legacyPath": "Legacy Collection/Assets/Characters/cyberpunk-detective/spritesheets/",          "sheets": ["walk.png (6f 32×32)", "punch.png (4f)"] },
+      { "label": "Dancing Girl",         "legacyPath": "Legacy Collection/Assets/Characters/Dancing Girl Files/",                        "sheets": ["(explore for sheets)"] },
+      { "label": "Fire Skull",           "legacyPath": "Legacy Collection/Assets/Characters/Fire-Skull-Files/",                          "sheets": ["(explore for sheets — 96×112 8f)"] },
+      { "label": "Hell Beast",           "legacyPath": "Legacy Collection/Assets/Characters/Hell-Beast-Files/",                          "sheets": ["(explore for sheets — 80×160 6f)"] },
+      { "label": "Nightmare",            "legacyPath": "Legacy Collection/Assets/Characters/Nightmare-Files/",                           "sheets": ["(explore for sheets — 160×96 4f)"] },
+      { "label": "Demon",                "legacyPath": "Legacy Collection/Assets/Characters/demon-Files/",                               "sheets": ["(explore for sheets — 160×144 6f)"] },
+      { "label": "Vampire",              "legacyPath": "Legacy Collection/Assets/Characters/Battle Sprites/",                            "sheets": ["(explore vampire sheet — 121×110 4f)"] },
+      { "label": "Witch",                "legacyPath": "Legacy Collection/Assets/Characters/Battle Sprites/",                            "sheets": ["(explore witch sheet — 55×93 5f)"] },
+      { "label": "Space Marine",         "legacyPath": "Legacy Collection/Assets/Characters/space-marine/",                              "sheets": ["(explore for sheets)"] },
+      { "label": "Mech Unit",            "legacyPath": "Legacy Collection/Assets/Characters/mech-unit/",                                 "sheets": ["(explore for sheets)"] },
+      { "label": "Grotto Dragon",        "legacyPath": "Legacy Collection/Assets/Characters/Grotto-escape-2-boss-dragon/",               "sheets": ["(explore for sheets)"] },
+      { "label": "Alien Flying Enemy",   "legacyPath": "Legacy Collection/Assets/Characters/alien-flying-enemy/",                        "sheets": ["(explore for sheets)"] },
+      { "label": "Alien Walking Enemy",  "legacyPath": "Legacy Collection/Assets/Characters/alien-walking-enemy/",                       "sheets": ["(explore for sheets)"] }
+    ],
+
+    "environments": [
+      { "label": "Gothic Horror",        "legacyPath": "Legacy Collection/Assets/Environments/Gothic-Horror-Files/" },
+      { "label": "Haunted Forest",       "legacyPath": "Legacy Collection/Assets/Environments/HauntedForest/" },
+      { "label": "Mountain Dusk",        "legacyPath": "Legacy Collection/Assets/Environments/Mountain Dusk/" },
+      { "label": "Ocean View",           "legacyPath": "Legacy Collection/Assets/Environments/Ocean View Files/" },
+      { "label": "Rocky Beach",          "legacyPath": "Legacy Collection/Assets/Environments/Rocky Beach environment/" },
+      { "label": "Scifi Lab",            "legacyPath": "Legacy Collection/Assets/Environments/Scifi lab Files/" },
+      { "label": "Synth City",           "legacyPath": "Legacy Collection/Assets/Environments/Synth City/" },
+      { "label": "Warped Zone",          "legacyPath": "Legacy Collection/Assets/Environments/Warped Zone 202/" },
+      { "label": "Junk Wastelands",      "legacyPath": "Legacy Collection/Assets/Environments/Junk Wastelands Files/" },
+      { "label": "Underwater Fantasy",   "legacyPath": "Legacy Collection/Assets/Environments/Underwater Fantasy/" },
+      { "label": "Cyberpunk Corridor",   "legacyPath": "Legacy Collection/Assets/Environments/cyberpunk-corridor-files/" },
+      { "label": "Urban Landscape",      "legacyPath": "Legacy Collection/Assets/Environments/Urban-landscape-files/" }
+    ],
+
+    "packs": [
+      { "label": "Gothicvania Town",     "legacyPath": "Legacy Collection/Assets/Packs/GothicVania-town-files/",   "note": "full town tileset + characters" },
+      { "label": "Gothicvania Church",   "legacyPath": "Legacy Collection/Assets/Packs/Gothicvania Church/",       "note": "church tileset + characters" },
+      { "label": "Gothicvania Swamp",    "legacyPath": "Legacy Collection/Assets/Packs/Gothicvania Swamp files/",  "note": "swamp tileset + characters" },
+      { "label": "Miami Synth",          "legacyPath": "Legacy Collection/Assets/Packs/Miami-synth-files/",        "note": "cyberpunk city tileset" },
+      { "label": "Sewers Pack",          "legacyPath": "Legacy Collection/Assets/Packs/Sewers pack files/",        "note": "sewer tileset + characters" },
+      { "label": "Warped City",          "legacyPath": "Legacy Collection/Assets/Packs/Warped City/",              "note": "neon city tileset" },
+      { "label": "Stranger Forest",      "legacyPath": "Legacy Collection/Assets/Packs/Stranger Forest/",          "note": "dark forest tileset" },
+      { "label": "Beach Area",           "legacyPath": "Legacy Collection/Assets/Packs/Beach Area/",               "note": "beach tileset + characters" },
+      { "label": "Tiny RPG Forest",      "legacyPath": "Legacy Collection/Assets/Packs/tiny-RPG-forest-files/",    "note": "small-format RPG assets" },
+      { "label": "Tiny RPG Town",        "legacyPath": "Legacy Collection/Assets/Packs/tiny-rpg-town-files/",      "note": "small-format RPG assets" }
+    ]
+  }
+}

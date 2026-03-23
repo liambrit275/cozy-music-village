@@ -1,0 +1,13 @@
+# Large asset library — not needed in git (used assets are copied to assets/)
+Legacy Collection/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+
+# Misc
+*.mxl
+Gemini_Generated_Image_*

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \":*)",
+      "Bash(/dev/null ls:*)",
+      "Bash(find '/Users/liambritten/Documents/Visual Studio Code/2d music theory game/Legacy Collection/Assets/Characters/space-marine' -name *.png)",
+      "Bash(head -10 find '/Users/liambritten/Documents/Visual Studio Code/2d music theory game/Legacy Collection/Assets/Characters/mech-unit' -name *.png)",
+      "Bash(head -10 find '/Users/liambritten/Documents/Visual Studio Code/2d music theory game/Legacy Collection/Assets/Characters/bipedal-Unit' -name *.png)",
+      "Bash(find '/Users/liambritten/Documents/Visual Studio Code/2d music theory game/Legacy Collection/Assets/Packs/Streets of Fight' -name *.png)",
+      "Bash(head -15 find '/Users/liambritten/Documents/Visual Studio Code/2d music theory game/Legacy Collection/Assets/Characters/Dancing Girl Files' -name *.png)",
+      "Read(//Users/liambritten/Documents/**)",
+      "Bash(ls -d \"/Users/liambritten/Documents/Visual Studio Code/2d music theory game/Legacy Collection\"/*)",
+      "Bash(for dir:*)",
+      "Bash(/dev/null echo:*)",
+      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== full version/**)",
+      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== town full/**)",
+      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== Character v.2/**)",
+      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== fishing_full/**)",
+      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/**)"
+    ]
+  }
+}

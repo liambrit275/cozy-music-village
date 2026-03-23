@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Theory Monster Battle</title>
+    <!-- Bravura: SMuFL music font for treble/bass clef glyphs (U+1D11E, U+1D122) -->
+    <style>
+        @font-face {
+            font-family: 'Bravura';
+            src: url('https://cdn.jsdelivr.net/gh/steinbergmedia/bravura@master/redist/woff2/Bravura.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/gh/steinbergmedia/bravura@master/redist/woff/Bravura.woff')  format('woff');
+            font-display: swap;
+        }
+    </style>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-container { image-rendering: pixelated; }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4/build/cjs/vexflow.js"></script>
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

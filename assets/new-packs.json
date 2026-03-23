@@ -1,0 +1,287 @@
+{
+  "_info": "New asset packs added to the project root. All are 'shubibubi Cozy' series — top-down RPG/farming art style, 16px tile grid (characters use 32×32). Not yet loaded into the game.",
+
+  "packs": [
+
+    {
+      "id": "cozy-character",
+      "folderName": "Character v.2",
+      "title": "Cozy Character v.2",
+      "creator": "shubibubi",
+      "style": "top-down RPG",
+      "tileGrid": "32×32 px per cell",
+      "summary": "Fully customizable top-down player character. 8 base sprites with separate animation sheets. Mix and match hair, eyes, clothes.",
+      "potentialUse": ["overworld player", "NPC villagers", "character creation screen"],
+      "contents": {
+        "characterBases": {
+          "description": "8 distinct character sprites (char1–char8), each as a full merged sheet 256×1568",
+          "files": {
+            "individual": "Character v.2/characters/char1.png … char8.png  (256×1568 each)",
+            "combined":   "Character v.2/characters/char_all.png  (2048×1568)"
+          },
+          "animations_per_character": [
+            { "action": "walk",    "cellSize": "256×128", "frameRate": "100ms", "directions": "up/down/left/right" },
+            { "action": "carry",   "cellSize": "256×128", "frameRate": "100ms", "note": "char moved up 1px" },
+            { "action": "jump",    "cellSize": "160×128", "frameRate": "100;200;100;120;100ms" },
+            { "action": "pickup",  "cellSize": "160×128", "frameRate": "150;150;100;100;150ms" },
+            { "action": "sword",   "cellSize": "128×128", "frameRate": "100;200;80;100ms" },
+            { "action": "axe/pickaxe", "cellSize": "160×128", "frameRate": "100;100;250;60;100ms" },
+            { "action": "hoe",     "cellSize": "160×128", "frameRate": "200;150;200;200;200ms" },
+            { "action": "fish",    "cellSize": "160×128", "frameRate": "100;100;250;60;100ms (L/R), 100;250;60;100;100ms (U/D)" },
+            { "action": "water",   "cellSize": "64×128",  "frameRate": "300;600ms" },
+            { "action": "block",   "cellSize": "32×128" },
+            { "action": "hurt",    "cellSize": "32×128" },
+            { "action": "die",     "cellSize": "64×32",   "frameRate": "500ms" }
+          ]
+        },
+        "separateSheets": {
+          "description": "Each action also available as separate PNGs per character in Character v.2/separate/{action}/",
+          "actions": ["walk", "jump", "sword", "carry", "pickup", "hurt", "die", "axe", "pickaxe", "fish", "hoe", "water", "block"]
+        },
+        "customization": {
+          "hair":   { "count": 14, "colors": ["black","blonde","brown","brown light","copper","emerald","green","grey","lilac","navy","pink","purple","red","turquoise"], "folder": "Character v.2/hair/" },
+          "eyes":   { "count": 14, "colors": ["black","blue","blue light","brown","brown dark","brown light","green","green dark","green light","grey","grey light","pink","pink light","red"], "folder": "Character v.2/eyes/" },
+          "clothes":{ "count": 18, "styles": ["basic","clown","dress","floral","overalls","pants","pants_suit","pumpkin","sailor","sailor_bow","shoes","skirt","skull","spaghetti","spooky","sporty","stripe","suit","witch"], "folder": "Character v.2/clothes/" },
+          "accessories": "Character v.2/acc/",
+          "greyscale":   "Character v.2/greyscale/  (base layers for tinting)"
+        }
+      }
+    },
+
+    {
+      "id": "cozy-farm",
+      "folderName": "full version",
+      "title": "Cozy Farm (Full Version)",
+      "creator": "shubibubi",
+      "style": "top-down farming RPG",
+      "tileGrid": "16×16 px",
+      "summary": "Complete farming game asset pack. Includes a full global tileset, farm animals with animations, enemies, buildings, crops, tools, and UI.",
+      "potentialUse": ["overworld map tiles", "farm zone", "new enemy types (slimes/bats/ghost)", "UI elements", "farming mini-game"],
+      "contents": {
+        "globalTileset": {
+          "file": "full version/global.png",
+          "size": "2368×1136",
+          "note": "Main tileset — all terrain, objects, and decorations in one sheet"
+        },
+        "animals": {
+          "folder": "full version/animals/",
+          "gridSize": { "turkey": "17×17", "sheep": "17×17", "goat_baby": "16×16", "sheep_baby": "16×16", "pig_baby": "16×16", "pig": "20×20", "cow_baby": "21×21", "bunny": "17×17", "baby_bunny": "16×16", "goat": "19×19", "cow": "24×24", "chicken": "16×16", "chicken_baby": "16×16" },
+          "variants": "Most animals have 2–4 color variants (e.g. cow, cow_black, cow_brown)",
+          "animations": "walk + sleep, frameRate: walk=200ms sleep=300;500;300;700ms",
+          "files": ["bunny_animations.png","bunny_baby animation.png","chicken animation.png","cow animation.png","goat animation.png","pig animation.png","sheep animation.png","turkey animation.png","+ babies and color variants"]
+        },
+        "enemies": {
+          "folder": "full version/enemies/",
+          "types": [
+            { "name": "Slime", "variants": 8, "colors": ["green","blue","red","orange","pink","purple","yellow","black","rainbow"], "animations": "idle/walk/attack/die × 4 directions (GIFs)", "sheet": "full version/enemies/slime_all.png (720×256)" },
+            { "name": "Bat",   "variants": 3, "colors": ["black","purple","red"], "animations": "GIF animations per direction", "sheet": "full version/enemies/bat_all.png" },
+            { "name": "Ghost", "variants": 1, "animations": "single sheet", "sheet": "full version/enemies/ghost_all.png" }
+          ]
+        },
+        "farming": {
+          "folder": "full version/farming/",
+          "contents": ["crops.png (all growth stages)", "crops_wet.png", "crops_winter.png", "seeds.png", "tools.png", "scarecrows.png", "crafting machines (GIFs): butterchurn, clothmaker, mayomaker, cheese press, spindle"]
+        },
+        "buildings": {
+          "folder": "full version/buildings/",
+          "file": "buildings.png + gifs folder"
+        },
+        "ui": {
+          "folder": "full version/ui/",
+          "files": ["UI.png", "UI_all.png", "inventory.png", "items.png", "button maker.png", "logo maker.png"]
+        }
+      }
+    },
+
+    {
+      "id": "cozy-town",
+      "folderName": "town full",
+      "title": "Cozy Town (Full Version)",
+      "creator": "shubibubi",
+      "style": "top-down town RPG",
+      "tileGrid": "16×16 px",
+      "summary": "Full town environment pack. Large global tileset, town buildings, interior rooms (pub, school, arcade, cinema, etc.), town animals, and train assets.",
+      "potentialUse": ["town/village zone overworld", "interior battle backgrounds", "NPC animals", "arcade mini-game room"],
+      "contents": {
+        "globalTileset": {
+          "file": "town full/global.png",
+          "size": "4224×1712",
+          "note": "Largest sheet — full town terrain, roads, objects"
+        },
+        "tiles": {
+          "folder": "town full/tiles/",
+          "files": ["tiles.png", "gifs/"]
+        },
+        "buildings": {
+          "folder": "town full/buildings/",
+          "files": ["buildings_all.png", "buildings_gifs/", "SUPAM gifs/"]
+        },
+        "interiors": {
+          "folder": "town full/interior/",
+          "rooms": ["pub", "school", "cinema", "blacksmith", "community center", "arcade"],
+          "mainSheet": "town full/interior/interior.png",
+          "note": "Each room has animated GIFs for interactive elements"
+        },
+        "animals": {
+          "folder": "town full/animals/",
+          "types": [
+            { "name": "Robin Bird",    "file": "bird_robin_animations.png" },
+            { "name": "Black Bird",    "file": "bird_common_black_animations.png" },
+            { "name": "Rat",          "file": "rat_animations.png" },
+            { "name": "White Rat",    "file": "rat_white_animations.png" },
+            { "name": "Squirrel",     "file": "squirrel_animations.png" },
+            { "name": "Grey Squirrel","file": "squirrel_grey_animations.png" }
+          ]
+        },
+        "train": {
+          "folder": "town full/train/",
+          "note": "Train vehicle and track assets"
+        },
+        "items": {
+          "file": "town full/items_inventory.png"
+        }
+      }
+    },
+
+    {
+      "id": "cozy-fishing",
+      "folderName": "fishing_full",
+      "title": "Cozy Fishing (Full Version)",
+      "creator": "shubibubi",
+      "style": "top-down fishing/beach",
+      "tileGrid": "16×16 px",
+      "summary": "Beach and fishing themed pack. Includes beach tiles, fish shops, fish sprites sorted by season, sea creatures, forage items, seagull NPC.",
+      "potentialUse": ["beach/coastal zone", "fishing mini-game", "seasonal fish items", "beach building backgrounds"],
+      "contents": {
+        "globalTileset": {
+          "file": "fishing_full/global.png",
+          "size": "896×480"
+        },
+        "tiles": {
+          "folder": "fishing_full/Tiles/",
+          "files": ["tiles.png", "tiles_all.png", "deco_tiles.png", "GM2 autotiles/"]
+        },
+        "buildings": {
+          "folder": "fishing_full/Buildings/",
+          "types": [
+            { "name": "Beach Bar", "variants": 3, "files": ["beachbar1.png","beachbar2.png","beachbar3.png"] },
+            { "name": "Fish Shop", "variants": 3, "files": ["fishshop1.png","fishshop2.png","fishshop3.png"] }
+          ],
+          "combined": "buildings_all.png"
+        },
+        "fish": {
+          "folder": "fishing_full/Fish Forage Items/",
+          "bySeasonFolder": "fish seasons/",
+          "seasons": ["spring","summer","fall","winter","allseasons"],
+          "types": ["ocean_fish", "ocean_creature"],
+          "combined": "fish_all.png",
+          "shadow": "fish_shadow.png",
+          "inventoryIcons": "inv_fish_shadow.png, inv_items.png",
+          "listFile": "Fish Forage Items/fish list.txt"
+        },
+        "forage": {
+          "combined": "fishing_full/Fish Forage Items/forage_all.png",
+          "listFile": "fishing_full/Fish Forage Items/forage list.txt"
+        },
+        "npcs": {
+          "seagull": { "frameSize": "18×18 px", "frameRate": "100ms", "note": "flying NPC" }
+        }
+      }
+    },
+
+    {
+      "id": "nature-full",
+      "folderName": "nature full",
+      "title": "Cozy Nature (Full Version)",
+      "creator": "shubibubi",
+      "style": "top-down nature/overworld",
+      "tileGrid": "16×16 px",
+      "summary": "Nature decoration pack. 10 tree types with seasons, fallen leaves, nuts, and bushes. Small compact sheet.",
+      "potentialUse": ["forest/overworld decoration", "world map trees", "seasonal variation"],
+      "contents": {
+        "globalTileset": {
+          "file": "nature full/global.png",
+          "size": "160×208"
+        },
+        "shadowSheet": "nature full/global_shadow.png",
+        "glowSheet":   "nature full/glow.png",
+        "trees": {
+          "count": 10,
+          "types": ["Apple","Orange","Birch","Pine","Plum","Pear","Dragon","Cherry Blossom","Cursed","Dead Old Oak"]
+        },
+        "leaves": { "count": 10, "includes": "autumn variants" },
+        "nuts":   { "count": 10, "types": ["Hazelnut","Walnut","Almond","Cashew","Macadamia","Peanut","Pecan","Brazil Nut","Pistachio","Pine Nut"] },
+        "bushes": ["Raspberry Bush","Winter Creeper"],
+        "listFile": "nature full/list.txt"
+      }
+    },
+
+    {
+      "id": "interior-free",
+      "folderName": "interior free",
+      "title": "Cozy Interior (Free Sample)",
+      "creator": "shubibubi",
+      "style": "top-down interior",
+      "tileGrid": "16×16 px",
+      "summary": "Free sample of interior tileset. Small sheet, good for testing room layouts. Full version available in 'town full/interior/'.",
+      "potentialUse": ["quick indoor room prototype"],
+      "contents": {
+        "sheet": {
+          "file": "interior free/interior free.png",
+          "size": "160×80",
+          "note": "Sample only — full interior tileset is in 'town full/interior/interior.png'"
+        }
+      }
+    },
+
+    {
+      "id": "winter-full",
+      "folderName": "winter full",
+      "title": "100 Winter Things",
+      "creator": "shubibubi",
+      "style": "top-down winter/holiday decorations",
+      "tileGrid": "16×16 px",
+      "summary": "100 winter and holiday themed decoration sprites. Snowmen, ornaments, festival market stands, animated lights.",
+      "potentialUse": ["winter zone decorations", "holiday event", "festival/market background"],
+      "contents": {
+        "globalTileset": {
+          "file": "winter full/winter_global.png",
+          "size": "576×512"
+        },
+        "shadowSheet": "winter full/winter_global_shadow.png",
+        "animated": {
+          "streetlights": { "frameRate": "100;100;200;100;100;100;100;900ms" },
+          "lightTree":    { "frameRate": "250ms" },
+          "lightDeer":    { "frameRate": "250ms" },
+          "festivalStands":    { "frameRate": "150ms" },
+          "holidayPyramid":    { "frameRate": "250ms" },
+          "iceRing":      { "frameRate": "250ms" },
+          "cookiesDecorate": "winter full/cookies_decorate_self.png",
+          "gifFolder": "winter full/gifs/"
+        },
+        "snowmen": {
+          "count": 10,
+          "types": ["Small","With Gloves","With Top Hat","With Beanie","Santa","Messed Up","Snow Cat","Snow Dog","Melting","Melted"]
+        },
+        "decorations": {
+          "count": 13,
+          "items": ["Streetlight Empty","Streetlight Wreath","Wreath Bow","Wreath Star","Candle","Holiday Stocking","Stocking mounted","Light Tree","Light Reindeer","Small Green Ornament","Medium Red Ornament","Big Golden Ornament","Combined Ornaments"]
+        },
+        "festivalStands": {
+          "count": 10,
+          "items": ["Gingerbread Heart","Mulled Wine & Hot Chocolate","Roasted Almonds","Jewelry","Decorations","Sausage","Candy Apple & Gingerbread Men","Pretzel","Cotton Candy","Flower"]
+        },
+        "listFile": "winter full/list.txt"
+      }
+    }
+
+  ],
+
+  "usageNotes": {
+    "artStyle": "All shubibubi packs share a consistent 16px top-down 'Cozy' art style. They are designed to work together.",
+    "tileGrid": "16×16 px base grid for all tiles/environments. Characters use 32×32.",
+    "loadingPattern": "To use in Phaser: copy the specific .png to assets/, add a this.load.spritesheet() or this.load.image() call in BootScene.js, and add to assets/manifest.json.",
+    "enemiesNote": "Cozy Farm enemies (slime, bat, ghost) are provided as GIF sequences — you would need to extract frames into a spritesheet PNG to use in Phaser. Alternatively the slime_all.png sheet (720×256) can be sliced.",
+    "characterNote": "Cozy Character uses a large merged sheet format (256×1568 per character) — each animation row is a strip within this sheet. Requires careful frame index math when creating Phaser animations."
+  }
+}

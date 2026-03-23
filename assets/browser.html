@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Asset Browser</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d1a; color: #ccc; font-family: monospace; font-size: 13px; }
+
+  header { background: #111128; padding: 14px 20px; border-bottom: 1px solid #223; display: flex; align-items: center; gap: 16px; }
+  header h1 { color: #ffaa00; font-size: 18px; }
+  header p  { color: #667; font-size: 12px; }
+
+  nav { display: flex; gap: 6px; padding: 10px 20px; background: #0a0a18; border-bottom: 1px solid #223; flex-wrap: wrap; }
+  nav button { background: #1a1a30; border: 1px solid #334; color: #88aacc; padding: 5px 14px; cursor: pointer; border-radius: 3px; font-family: monospace; font-size: 12px; }
+  nav button.active { background: #2a3a5a; border-color: #5588cc; color: #aaddff; }
+
+  #search { margin-left: auto; padding: 5px 10px; background: #1a1a30; border: 1px solid #334; color: #ccc; font-family: monospace; font-size: 12px; border-radius: 3px; width: 200px; }
+
+  main { padding: 16px 20px; }
+
+  .section-title { color: #ffaa00; font-size: 14px; margin: 16px 0 10px; padding-bottom: 4px; border-bottom: 1px solid #223; }
+
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+
+  .card {
+    background: #111128; border: 1px solid #223; border-radius: 5px;
+    width: 160px; cursor: pointer; transition: border-color 0.15s;
+    overflow: hidden; position: relative;
+  }
+  .card:hover { border-color: #5588cc; }
+  .card.selected { border-color: #ffaa00; background: #1a1808; }
+
+  .card .preview {
+    width: 100%; height: 90px; background: #0a0a20;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+  }
+  .card .preview img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+    image-rendering: pixelated;
+  }
+  .card .preview .no-img { color: #334; font-size: 11px; text-align: center; padding: 8px; }
+
+  .card .info { padding: 6px 8px; }
+  .card .info .label { color: #eee; font-size: 12px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .info .key   { color: #5588cc; font-size: 10px; margin-top: 2px; word-break: break-all; }
+  .card .info .meta  { color: #556; font-size: 10px; margin-top: 2px; }
+  .card .info .zone  { display: inline-block; font-size: 10px; padding: 1px 5px; border-radius: 2px; margin-top: 3px; }
+
+  .zone-forest    { background: #0a2a0a; color: #4a8; }
+  .zone-village   { background: #2a1a0a; color: #a84; }
+  .zone-caves     { background: #1a1a0a; color: #886; }
+  .zone-castle    { background: #1a0a2a; color: #88a; }
+  .zone-tower     { background: #2a0a0a; color: #a66; }
+  .zone-underworld{ background: #0a0a2a; color: #66a; }
+
+  .badge-inuse     { background: #0a2a0a; color: #4a8; font-size: 9px; padding: 1px 5px; border-radius: 2px; }
+  .badge-available { background: #1a1a2a; color: #668; font-size: 9px; padding: 1px 5px; border-radius: 2px; }
+
+  #detail {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 300px;
+    background: #0d0d20; border-left: 1px solid #334;
+    padding: 16px; overflow-y: auto;
+    transform: translateX(100%); transition: transform 0.2s;
+    z-index: 10;
+  }
+  #detail.open { transform: translateX(0); }
+  #detail h2 { color: #ffaa00; font-size: 15px; margin-bottom: 10px; }
+  #detail .close { float: right; cursor: pointer; color: #668; font-size: 16px; }
+  #detail .close:hover { color: #aaa; }
+  #detail .detail-img { width: 100%; background: #0a0a20; padding: 10px; margin-bottom: 10px; border-radius: 4px; text-align: center; }
+  #detail .detail-img img { max-width: 100%; image-rendering: pixelated; }
+  #detail table { width: 100%; border-collapse: collapse; }
+  #detail td { padding: 4px 0; border-bottom: 1px solid #1a1a30; vertical-align: top; }
+  #detail td:first-child { color: #668; width: 90px; padding-right: 8px; }
+  #detail td:last-child  { color: #ccc; word-break: break-all; }
+  #detail .copy-hint { margin-top: 12px; background: #0a0a18; border: 1px solid #223; border-radius: 3px; padding: 8px; font-size: 11px; color: #668; }
+  #detail .copy-hint code { color: #88aacc; display: block; margin-top: 4px; white-space: pre-wrap; word-break: break-all; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Asset Browser</h1>
+    <p>Open at <strong>http://localhost:8080/assets/browser.html</strong> &nbsp;·&nbsp; Click a card to see details &amp; BootScene snippet</p>
+  </div>
+  <input id="search" type="text" placeholder="Search…" oninput="filterCards()">
+</header>
+
+<nav id="tabs">
+  <button class="active" onclick="setTab('all')">All</button>
+  <button onclick="setTab('inuse')">In Use</button>
+  <button onclick="setTab('characters')">Characters</button>
+  <button onclick="setTab('monsters')">Monsters</button>
+  <button onclick="setTab('backgrounds')">Backgrounds</button>
+  <button onclick="setTab('effects')">Effects</button>
+  <button onclick="setTab('available')">Available (not loaded)</button>
+</nav>
+
+<main id="main"></main>
+
+<div id="detail">
+  <span class="close" onclick="closeDetail()">✕</span>
+  <h2 id="d-title"></h2>
+  <div class="detail-img"><img id="d-img" src="" alt=""></div>
+  <table id="d-table"></table>
+  <div class="copy-hint">
+    BootScene load call:<br>
+    <code id="d-snippet"></code>
+  </div>
+</div>
+
+<script>
+let manifest = null;
+let allCards = [];
+let currentTab = 'all';
+
+async function init() {
+  const res = await fetch('/assets/manifest.json');
+  manifest = await res.json();
+  renderAll();
+}
+
+function renderAll() {
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  allCards = [];
+
+  // ── IN USE ─────────────────────────────────────────────────────────────────
+  renderSection('Characters (playable)', manifest.inUse.characters, 'character', true);
+  renderSection('Monsters', manifest.inUse.monsters, 'monster', true);
+  renderSection('Backgrounds', manifest.inUse.backgrounds, 'background', true);
+  renderSection('Effects', manifest.inUse.effects, 'effect', true);
+
+  // ── AVAILABLE ──────────────────────────────────────────────────────────────
+  renderSection('Available Characters', manifest.available.characters, 'available-character', false);
+  renderSection('Available Environments', manifest.available.environments, 'available-environment', false);
+  renderSection('Available Packs', manifest.available.packs, 'available-pack', false);
+}
+
+function renderSection(title, items, type, inUse) {
+  if (!items || items.length === 0) return;
+  const main = document.getElementById('main');
+
+  const h = document.createElement('div');
+  h.className = 'section-title';
+  h.textContent = title;
+  h.dataset.section = type;
+  main.appendChild(h);
+
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  grid.dataset.section = type;
+  main.appendChild(grid);
+
+  items.forEach(item => {
+    const card = buildCard(item, type, inUse);
+    grid.appendChild(card);
+    allCards.push({ el: card, item, type, inUse });
+  });
+}
+
+function buildCard(item, type, inUse) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.type = type;
+  card.dataset.inuse = inUse ? '1' : '0';
+  card.dataset.label = (item.label || item.gameKey || '').toLowerCase();
+
+  // Preview image
+  const preview = document.createElement('div');
+  preview.className = 'preview';
+
+  let imgPath = null;
+  if (item.path) imgPath = '/' + item.path;
+  else if (item.sheets && item.sheets.idle) imgPath = '/' + item.sheets.idle.path;
+  else if (item.legacyPath) imgPath = '/' + item.legacyPath.replace(/\/$/, '');
+
+  if (imgPath && !imgPath.endsWith('/')) {
+    const img = document.createElement('img');
+    img.src = imgPath;
+    img.alt = item.label || '';
+    img.onerror = () => { preview.innerHTML = '<div class="no-img">no preview</div>'; };
+    preview.appendChild(img);
+  } else {
+    preview.innerHTML = '<div class="no-img">directory<br>(click for details)</div>';
+  }
+
+  card.appendChild(preview);
+
+  // Info
+  const info = document.createElement('div');
+  info.className = 'info';
+
+  const label = document.createElement('div');
+  label.className = 'label';
+  label.textContent = item.label || item.gameKey || '—';
+  info.appendChild(label);
+
+  if (item.gameKey) {
+    const key = document.createElement('div');
+    key.className = 'key';
+    key.textContent = item.gameKey;
+    info.appendChild(key);
+  }
+
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  if (item.frameWidth) meta.textContent = `${item.frameWidth}×${item.frameHeight} · ${item.frames}f`;
+  else if (item.sheets) {
+    const s = Object.values(item.sheets)[0];
+    if (s && s.frameWidth) meta.textContent = `${s.frameWidth}×${s.frameHeight}`;
+  }
+  if (meta.textContent) info.appendChild(meta);
+
+  if (item.zone) {
+    const zone = document.createElement('span');
+    zone.className = `zone zone-${item.zone}`;
+    zone.textContent = item.zone;
+    info.appendChild(zone);
+  }
+
+  const badge = document.createElement('span');
+  badge.className = inUse ? 'badge-inuse' : 'badge-available';
+  badge.textContent = inUse ? '● in use' : '○ available';
+  badge.style.display = 'block';
+  badge.style.marginTop = '4px';
+  info.appendChild(badge);
+
+  card.appendChild(info);
+  card.addEventListener('click', () => showDetail(item, type, inUse, imgPath));
+  return card;
+}
+
+function showDetail(item, type, inUse, imgPath) {
+  document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+
+  document.getElementById('d-title').textContent = item.label || item.gameKey || 'Asset';
+
+  const img = document.getElementById('d-img');
+  if (imgPath && !imgPath.endsWith('/')) {
+    img.src = imgPath;
+    img.style.display = '';
+  } else {
+    img.style.display = 'none';
+  }
+
+  const table = document.getElementById('d-table');
+  const rows = [];
+  if (item.gameKey)     rows.push(['Game key', item.gameKey]);
+  if (item.path)        rows.push(['Path', item.path]);
+  if (item.legacyPath)  rows.push(['Legacy path', item.legacyPath]);
+  if (item.zone)        rows.push(['Zone', item.zone]);
+  if (item.frameWidth)  rows.push(['Frame size', `${item.frameWidth}×${item.frameHeight}`]);
+  if (item.frames)      rows.push(['Frames', item.frames]);
+  if (item.note)        rows.push(['Note', item.note]);
+  if (item.sheets) {
+    Object.entries(item.sheets).forEach(([action, s]) => {
+      if (typeof s === 'string') rows.push([action, s]);
+      else rows.push([action, `${s.path.split('/').pop()} · ${s.frameWidth}×${s.frameHeight} · ${s.frames}f`]);
+    });
+  }
+  table.innerHTML = rows.map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+
+  // Snippet
+  let snippet = '';
+  if (item.gameKey && item.path && item.frameWidth) {
+    snippet = `this.load.spritesheet('${item.gameKey}',\n  '${item.path}',\n  { frameWidth: ${item.frameWidth}, frameHeight: ${item.frameHeight} });`;
+  } else if (item.gameKey && item.path) {
+    snippet = `this.load.image('${item.gameKey}', '${item.path}');`;
+  } else if (item.legacyPath) {
+    snippet = `// 1. Copy file to assets/\n// 2. Add load call here\nthis.load.spritesheet('my-key',\n  'assets/.../${item.label.toLowerCase().replace(/ /g,'-')}.png',\n  { frameWidth: ?, frameHeight: ? });`;
+  }
+  document.getElementById('d-snippet').textContent = snippet;
+
+  document.getElementById('detail').classList.add('open');
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('open');
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('nav button').forEach((b, i) => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(tab) || (tab === 'all' && b.textContent === 'All'));
+  });
+  filterCards();
+}
+
+function filterCards() {
+  const query = document.getElementById('search').value.toLowerCase();
+
+  allCards.forEach(({ el, item, type, inUse }) => {
+    const label = (item.label || item.gameKey || '').toLowerCase();
+    const key   = (item.gameKey || '').toLowerCase();
+    const matchSearch = !query || label.includes(query) || key.includes(query);
+
+    let matchTab = true;
+    if (currentTab === 'inuse')       matchTab = inUse;
+    if (currentTab === 'available')   matchTab = !inUse;
+    if (currentTab === 'characters')  matchTab = type === 'character';
+    if (currentTab === 'monsters')    matchTab = type === 'monster';
+    if (currentTab === 'backgrounds') matchTab = type === 'background';
+    if (currentTab === 'effects')     matchTab = type === 'effect';
+
+    el.classList.toggle('hidden', !(matchSearch && matchTab));
+  });
+
+  // Hide empty section headers
+  document.querySelectorAll('.section-title').forEach(h => {
+    const section = h.dataset.section;
+    const grid = document.querySelector(`.grid[data-section="${section}"]`);
+    const hasVisible = grid && [...grid.children].some(c => !c.classList.contains('hidden'));
+    h.classList.toggle('hidden', !hasVisible);
+    if (grid) grid.classList.toggle('hidden', !hasVisible);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
