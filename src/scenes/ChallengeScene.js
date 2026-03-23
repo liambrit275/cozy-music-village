@@ -169,18 +169,13 @@ export class ChallengeScene extends Phaser.Scene {
         // ── Cozy background (same for overlay and full-scene modes) ──
         this._drawCozyBackground(width, height);
 
-        // Player sprite — hidden in overlay mode, visible in full scene
-        if (this.isSidescrollMode) {
-            this.playerSprite = this.add.sprite(-100, -100, `player-${charKey}`, 0);
-            this.playerSprite.setVisible(false);
-        } else {
-            this.playerSprite = this.add.sprite(PLAYER_X, GROUND_Y, `player-${charKey}`, 0);
-            this.playerSprite.setOrigin(0.5, 1);
-            this.playerSprite.setScale(2.5 * (this.playerData.characterScale || 1.0));
-            this.playerSprite.setFlipX(this.playerData.characterFlip || false);
-            if (this.anims.exists(`${charKey}-idle`)) this.playerSprite.play(`${charKey}-idle`);
-            this.playerSprite.setDepth(2);
-        }
+        // Player sprite — always visible (cozy background covers any underlying scene)
+        this.playerSprite = this.add.sprite(PLAYER_X, GROUND_Y, `player-${charKey}`, 0);
+        this.playerSprite.setOrigin(0.5, 1);
+        this.playerSprite.setScale(2.5 * (this.playerData.characterScale || 1.0));
+        this.playerSprite.setFlipX(this.playerData.characterFlip || false);
+        if (this.anims.exists(`${charKey}-idle`)) this.playerSprite.play(`${charKey}-idle`);
+        this.playerSprite.setDepth(2);
 
         // --- HUD ---
         // Row 1 (y=8): Score | Helped | Round
@@ -203,7 +198,7 @@ export class ChallengeScene extends Phaser.Scene {
         }).setDepth(10);
 
         // Mode label
-        const modeLabels = { tones: 'TONES', noteReading: 'NOTE READING', rhythm: 'RHYTHM', all: 'ALL' };
+        const modeLabels = { tones: 'TONES', noteReading: 'NOTE READING', rhythm: 'RHYTHM EAR TRAINING', rhythmReading: 'RHYTHM READING', all: 'ALL' };
         this.add.text(width / 2, height - 12, modeLabels[this.mode] || 'CHALLENGE', {
             font: '11px monospace', fill: '#556677',
             stroke: '#000000', strokeThickness: 2
@@ -278,8 +273,6 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.midiInput.available) {
             this.midiInput.onNoteOn((midiNote) => this._handleMidiNote(midiNote));
         }
-        this._buildMidiStatus();
-
         // ESC opens settings overlay
         this.input.keyboard.on('keydown-ESC', () => this._openSettings());
 
@@ -329,6 +322,7 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.mode === 'tones') return 'tone';
         if (this.mode === 'noteReading') return 'noteReading';
         if (this.mode === 'rhythm') return 'rhythm';
+        if (this.mode === 'rhythmReading') return 'rhythmReading';
 
         // 'all' mode — group 5-10 questions of same type before switching
         // Rhythm types (transcription + sight-tap) only do 1 per rotation
@@ -346,6 +340,9 @@ export class ChallengeScene extends Phaser.Scene {
 
     _spawnNextVillager() {
         if (this._gameOverFlag) return;
+
+        // Destroy any leftover sprite from the previous round
+        if (this._villagerSprite) { this._villagerSprite.destroy(); this._villagerSprite = null; }
 
         // In story mode, only one villager — if already helped, don't respawn
         if (this.storyBattle && this.session.round > 0 && this._storyVillagerHelped) return;
@@ -365,38 +362,34 @@ export class ChallengeScene extends Phaser.Scene {
         }
         const data = VILLAGERS[villagerKey];
 
-        // Create villager sprite (skip in practice mode only — show in overlay too)
+        // Create villager sprite — always show, including practice mode
         const { width } = this.cameras.main;
         const spawnX = width - 150;
-        if (!this.practiceMode) {
-            const spriteKey = data.spriteKey || `villager-${villagerKey}`;
-            const targetH = (isSpecial && this.storyBattle) ? 120 : 80;
-            const frameH = data.frameHeight || 17;
-            const scale = targetH / frameH;
+        const spriteKey = data.spriteKey || `villager-${villagerKey}`;
+        const targetH = (isSpecial && this.storyBattle) ? 120 : 80;
+        const frameH = data.frameHeight || 17;
+        const scale = targetH / frameH;
 
-            if (this.textures.exists(spriteKey)) {
-                this._villagerSprite = this.add.sprite(spawnX, GROUND_Y, spriteKey);
-                this._villagerSprite.setOrigin(0.5, 1);
-                this._villagerSprite.setScale(scale);
-                this._villagerSprite.setDepth(2);
+        if (this.textures.exists(spriteKey)) {
+            this._villagerSprite = this.add.sprite(spawnX, GROUND_Y, spriteKey);
+            this._villagerSprite.setOrigin(0.5, 1);
+            this._villagerSprite.setScale(scale);
+            this._villagerSprite.setDepth(2);
 
-                const animKey = `villager-${villagerKey}-idle`;
-                if (!this.anims.exists(animKey)) {
-                    this.anims.create({
-                        key: animKey,
-                        frames: this.anims.generateFrameNumbers(spriteKey, { start: 0, end: (data.frameCount || 4) - 1 }),
-                        frameRate: 6, repeat: -1
-                    });
-                }
-                this._villagerSprite.play(animKey);
-                this._villagerSprite.setFlipX(data.facesRight !== false);
-            } else {
-                this._villagerSprite = this.add.circle(spawnX, GROUND_Y - 40, isSpecial ? 40 : 28,
-                    isSpecial ? 0xffaa44 : 0x88cc66);
-                this._villagerSprite.setDepth(2);
+            const animKey = `villager-${villagerKey}-idle`;
+            if (!this.anims.exists(animKey)) {
+                this.anims.create({
+                    key: animKey,
+                    frames: this.anims.generateFrameNumbers(spriteKey, { start: 0, end: (data.frameCount || 4) - 1 }),
+                    frameRate: 6, repeat: -1
+                });
             }
+            this._villagerSprite.play(animKey);
+            this._villagerSprite.setFlipX(data.facesRight !== false);
         } else {
-            this._villagerSprite = null;
+            this._villagerSprite = this.add.circle(spawnX, GROUND_Y - 40, isSpecial ? 40 : 28,
+                isSpecial ? 0xffaa44 : 0x88cc66);
+            this._villagerSprite.setDepth(2);
         }
 
         this._currentVillagerKey = villagerKey;
@@ -413,19 +406,16 @@ export class ChallengeScene extends Phaser.Scene {
         // Pick challenge type
         this._challengeType = this._pickChallengeType();
 
-        if (this.practiceMode) {
-            this._spawnFriendlyNpc(this._challengeType);
-            this.messageText.setText('Ready for a new question?');
-        } else {
-            this.messageText.setText(`${data.name} needs your help!`);
-        }
+        this.messageText.setText(`${data.name} needs your help!`);
 
-        // Start escape timer — if player takes too long the animal runs away
+        // Start escape timer — practice mode has no time limit
         this._cancelEscapeTimer();
-        const escapeMs = Math.max(8000, 15000 - (this.session.round - 1) * 300);
-        this._escapeTimer = this.time.delayedCall(escapeMs, () => {
-            if (!this._gameOverFlag) this._triggerEscape();
-        });
+        if (!this.practiceMode) {
+            const escapeMs = Math.max(8000, 15000 - (this.session.round - 1) * 300);
+            this._escapeTimer = this.time.delayedCall(escapeMs, () => {
+                if (!this._gameOverFlag) this._triggerEscape();
+            });
+        }
 
         const startDelay = this.practiceMode ? 400 : 800;
         this.time.delayedCall(startDelay, () => {
@@ -514,7 +504,7 @@ export class ChallengeScene extends Phaser.Scene {
         }
         this._activeUIType = this._challengeType;
 
-        if (this.practiceMode) this._showNpcTip(this._challengeType);
+        // NPC tips removed — animals are shown for all modes
 
         switch (this._challengeType) {
             case 'tone':          this._askTone(); break;
@@ -822,8 +812,9 @@ export class ChallengeScene extends Phaser.Scene {
 
         if (this._challengeType === 'tone') {
             // Map MIDI note to scale degree relative to current root
+            const transpose = ((new ProgressionManager()).loadArcadeSettings() || {}).midiTranspose || 0;
             const degree = MidiInput.scaleDegree(
-                midiNote, this.musicTheory.rootMidi, this._getTonesPool()
+                midiNote + transpose, this.musicTheory.rootMidi, this._getTonesPool()
             );
             if (degree) this._submitTone(degree);
         } else if (this._challengeType === 'noteReading') {
@@ -1827,30 +1818,15 @@ export class ChallengeScene extends Phaser.Scene {
         this._villagerHappiness = Math.min(100, (this._villagerHappiness || 0) + happinessGain);
         this._updateHpBars();
 
-        // Practice mode: NPC bounces happily
-        if (this.practiceMode) {
-            if (this._npcSprite) {
-                this.tweens.add({
-                    targets: this._npcSprite,
-                    y: { from: GROUND_Y, to: GROUND_Y - 22 },
-                    duration: 160, yoyo: true, ease: 'Power2'
-                });
-            }
-            if (this._villagerHappiness >= 100) {
-                this._addToRescuedPreview(this._currentVillagerData?.spriteKey || `villager-${this._currentVillagerKey}`, this._currentVillagerData?.name || 'Friend');
-                this.time.delayedCall(500, () => this._returnPlayerThenSpawn());
-            } else {
-                this.time.delayedCall(400, () => this._returnPlayerThenContinue());
-            }
-            return;
-        }
+        // Practice mode falls through to the same full-scene logic below
 
-        // Overlay mode: show happiness gain text near player
+        // Overlay mode: show happiness gain text near animal
         if (this.isSidescrollMode) {
-            this._showDamageNumber(PLAYER_X, GROUND_Y - 80, 0, '#ffcc44', `+${happinessGain}% ♥`);
+            const ax = this._villagerSprite?.x || (this.cameras.main.width - 150);
+            this._showDamageNumber(ax, GROUND_Y - 80, 0, '#ffcc44', `+${happinessGain}% ♥`);
             if (this._villagerHappiness >= 100) {
                 this._storyVillagerHelped = true;
-                this._showDamageNumber(PLAYER_X, GROUND_Y - 120, 0, '#ffdd44', '\u2728 HAPPY!');
+                this._showDamageNumber(ax, GROUND_Y - 120, 0, '#ffdd44', '\u2728 HAPPY!');
                 this._addToRescuedPreview(this._currentVillagerData?.spriteKey || `villager-${this._currentVillagerKey}`, this._currentVillagerData?.name || 'Friend');
                 this.time.delayedCall(600, () => this._returnPlayerThenVictory());
             } else {
@@ -1862,40 +1838,49 @@ export class ChallengeScene extends Phaser.Scene {
             return;
         }
 
-        // Full scene mode: no running over — visual feedback in place
-        if (!this._villagerSprite) return;
-
-        this._showHitEffect(PLAYER_X, GROUND_Y - 40);
-        this._showDamageNumber(PLAYER_X, GROUND_Y - 80, 0, '#ffcc44', `+${happinessGain}% ♥`);
-
-        // Bounce villager (happy reaction)
+        // Full scene mode: visual feedback near the animal
         const sp = this._villagerSprite;
-        this.tweens.add({
-            targets: sp,
-            y: sp.y - 18,
-            duration: 150, yoyo: true, ease: 'Power2',
-            onComplete: () => {
-                if (sp.active) {
-                    this.tweens.add({ targets: sp, tint: { from: 0xffdd44, to: 0xffffff }, duration: 300 });
-                }
-            }
-        });
+        if (sp) {
+            const animalX = sp.x;
+            this._showHitEffect(animalX, GROUND_Y - 40);
+            this._showDamageNumber(animalX, GROUND_Y - 80, 0, '#ffcc44', `+${happinessGain}% ♥`);
 
-        if (this._villagerHappiness >= 100) {
-            this._storyVillagerHelped = true;
-            this._showDamageNumber(PLAYER_X, GROUND_Y - 110, 0, '#ffdd44', '\u2728 HAPPY!');
-            const vData = this._currentVillagerData;
-            this._addToRescuedPreview(vData.spriteKey || `villager-${this._currentVillagerKey}`, vData.name);
-            this.time.delayedCall(500, () => this._animalFlyOff('happy'));
-        } else {
-            this.time.delayedCall(500, () => {
-                if (!this._gameOverFlag) {
-                    this._villagerApproaching = true;
-                    this._challengeType = this._pickChallengeType();
-                    this.time.delayedCall(300, () => this._askQuestion());
+            // Bounce villager (happy reaction)
+            this.tweens.add({
+                targets: sp,
+                y: sp.y - 18,
+                duration: 150, yoyo: true, ease: 'Power2',
+                onComplete: () => {
+                    if (sp.active) sp.setTint(0xffdd44);
+                    this.time.delayedCall(200, () => { if (sp.active) sp.clearTint(); });
                 }
             });
+
+            if (this._villagerHappiness >= 100) {
+                this._storyVillagerHelped = true;
+                this._showDamageNumber(animalX, GROUND_Y - 110, 0, '#ffdd44', '\u2728 HAPPY!');
+                const vData = this._currentVillagerData;
+                this._addToRescuedPreview(vData.spriteKey || `villager-${this._currentVillagerKey}`, vData.name);
+                this.time.delayedCall(500, () => this._animalFlyOff('happy'));
+                return;
+            }
+        } else if (this._villagerHappiness >= 100) {
+            // No sprite but fully happy — still advance
+            this._storyVillagerHelped = true;
+            const vData = this._currentVillagerData;
+            if (vData) this._addToRescuedPreview(vData.spriteKey || `villager-${this._currentVillagerKey}`, vData.name);
+            this.time.delayedCall(500, () => this._animalFlyOff('happy'));
+            return;
         }
+
+        // Not yet fully happy — ask next question
+        this.time.delayedCall(500, () => {
+            if (!this._gameOverFlag) {
+                this._villagerApproaching = true;
+                this._challengeType = this._pickChallengeType();
+                this.time.delayedCall(300, () => this._askQuestion());
+            }
+        });
     }
 
     _animalFlyOff(reason) {
@@ -2495,63 +2480,6 @@ export class ChallengeScene extends Phaser.Scene {
         if (this._npcNameText) { this._npcNameText.destroy(); this._npcNameText = null; }
         if (this._npcBubble) { this._npcBubble.forEach(o => o.destroy()); this._npcBubble = []; }
         this._npcType = null;
-    }
-
-    _buildMidiStatus() {
-        const { width, height } = this.cameras.main;
-        if (this._midiStatusObj) { this._midiStatusObj.destroy(); this._midiStatusObj = null; }
-
-        if (this.midiInput.available) {
-            const deviceCount = this.midiInput.inputs.length;
-            const label = deviceCount > 0
-                ? `🎹 MIDI: ${this.midiInput.inputs.map(i => i.name).join(', ')}`
-                : '🎹 MIDI ready — no device detected';
-            const color = deviceCount > 0 ? '#44cc66' : '#ffaa44';
-            this._midiStatusObj = this.add.text(width / 2, height - 14, label, {
-                font: '11px monospace', fill: color,
-                stroke: '#000000', strokeThickness: 2
-            }).setOrigin(0.5, 1).setDepth(10).setAlpha(0.8);
-
-            // Rebuild status when devices connect/disconnect
-            if (this.midiInput._access) {
-                this.midiInput._access.onstatechange = () => {
-                    this.midiInput._bindInputs();
-                    if (this.midiInput.available) {
-                        this.midiInput.onNoteOn((midiNote) => this._handleMidiNote(midiNote));
-                    }
-                    this._buildMidiStatus();
-                };
-            }
-        } else {
-            // Show a clickable retry button
-            const reason = this.midiInput.unavailableReason;
-            const msg = reason === 'permission-denied'
-                ? '🎹 MIDI blocked — click to retry'
-                : reason === 'not-supported'
-                ? '🎹 MIDI not supported in this browser'
-                : '🎹 MIDI unavailable — click to retry';
-
-            this._midiStatusObj = this.add.text(width / 2, height - 14, msg, {
-                font: '11px monospace', fill: '#ffaa44',
-                stroke: '#000000', strokeThickness: 2
-            }).setOrigin(0.5, 1).setDepth(10).setAlpha(0.8);
-
-            if (reason !== 'not-supported') {
-                this._midiStatusObj.setInteractive({ useHandCursor: true });
-                this._midiStatusObj.on('pointerover', () => this._midiStatusObj.setStyle({ fill: '#ffcc88' }));
-                this._midiStatusObj.on('pointerout',  () => this._midiStatusObj.setStyle({ fill: '#ffaa44' }));
-                this._midiStatusObj.on('pointerdown', async () => {
-                    this._midiStatusObj.setText('🎹 Requesting MIDI...');
-                    if (this.midiInput) this.midiInput.dispose();
-                    this.midiInput = new MidiInput();
-                    const ok = await this.midiInput.init();
-                    if (ok) {
-                        this.midiInput.onNoteOn((midiNote) => this._handleMidiNote(midiNote));
-                    }
-                    this._buildMidiStatus();
-                });
-            }
-        }
     }
 
     _makeBtn(x, y, label, bgColor, hoverColor, cb) {

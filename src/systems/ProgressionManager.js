@@ -3,14 +3,14 @@
 import { ZONES, ZONE_ORDER } from '../data/zones.js';
 
 const SAVE_KEY = 'music-theory-rpg-save';
-export const ENCOUNTERS_TO_CLEAR = 4; // defeat this many fixed encounters to unlock next zone
+export const ENCOUNTERS_TO_CLEAR = 4; // help this many villagers to unlock next zone
 
 export class ProgressionManager {
     constructor() {
         this.currentZone = 'forest';
         this.unlockedZones = ['forest'];
-        this.defeatedEncounters = {}; // { zoneName: [0, 1, 2, ...] } — indices of defeated encounters
-        this.totalBattles = 0;
+        this.completedEncounters = {}; // { zoneName: [0, 1, 2, ...] } — indices of helped villagers
+        this.totalSessions = 0;
         this.totalCorrect = 0;
     }
 
@@ -22,26 +22,26 @@ export class ProgressionManager {
         return this.unlockedZones.includes(zoneName);
     }
 
-    // Record an encounter defeat by index. Returns true if this clears the zone.
+    // Record an encounter completion by index. Returns true if this clears the zone.
     recordEncounterDefeat(zoneName, encounterIndex) {
-        if (!this.defeatedEncounters[zoneName]) {
-            this.defeatedEncounters[zoneName] = [];
+        if (!this.completedEncounters[zoneName]) {
+            this.completedEncounters[zoneName] = [];
         }
-        if (!this.defeatedEncounters[zoneName].includes(encounterIndex)) {
-            this.defeatedEncounters[zoneName].push(encounterIndex);
+        if (!this.completedEncounters[zoneName].includes(encounterIndex)) {
+            this.completedEncounters[zoneName].push(encounterIndex);
         }
         return this.isZoneCleared(zoneName);
     }
 
-    // True when all required encounters have been defeated
+    // True when all required encounters have been completed
     isZoneCleared(zoneName) {
-        const defeated = this.defeatedEncounters[zoneName] || [];
-        return defeated.length >= ENCOUNTERS_TO_CLEAR;
+        const completed = this.completedEncounters[zoneName] || [];
+        return completed.length >= ENCOUNTERS_TO_CLEAR;
     }
 
-    // Which encounter indices are already defeated for a zone
+    // Which encounter indices are already completed for a zone
     getDefeatedEncounters(zoneName) {
-        return this.defeatedEncounters[zoneName] || [];
+        return this.completedEncounters[zoneName] || [];
     }
 
     // Unlock the next zone. Returns the new zone name, or null.
@@ -62,14 +62,14 @@ export class ProgressionManager {
         return false;
     }
 
-    getRandomMonster() {
+    getRandomVillager() {
         const zone = ZONES[this.currentZone];
-        const monsters = zone.monsters;
-        return monsters[Math.floor(Math.random() * monsters.length)];
+        const villagers = zone.villagers;
+        return villagers[Math.floor(Math.random() * villagers.length)];
     }
 
     recordBattle(won, correctAnswers, totalAnswers) {
-        this.totalBattles++;
+        this.totalSessions++;
         this.totalCorrect += correctAnswers;
     }
 
@@ -77,8 +77,8 @@ export class ProgressionManager {
         const saveData = {
             currentZone: this.currentZone,
             unlockedZones: this.unlockedZones,
-            defeatedEncounters: this.defeatedEncounters,
-            totalBattles: this.totalBattles,
+            completedEncounters: this.completedEncounters,
+            totalSessions: this.totalSessions,
             totalCorrect: this.totalCorrect,
             player: playerData,
             timestamp: Date.now()
@@ -99,8 +99,8 @@ export class ProgressionManager {
             const data = JSON.parse(raw);
             this.currentZone = data.currentZone || 'forest';
             this.unlockedZones = data.unlockedZones || ['forest'];
-            this.defeatedEncounters = data.defeatedEncounters || {};
-            this.totalBattles = data.totalBattles || 0;
+            this.completedEncounters = data.completedEncounters || data.defeatedEncounters || {};
+            this.totalSessions = data.totalSessions || data.totalBattles || 0;
             this.totalCorrect = data.totalCorrect || 0;
             return data.player || null;
         } catch (e) {

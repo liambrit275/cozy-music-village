@@ -45,7 +45,7 @@ export class RhythmGridScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.returnScene = data.returnScene || 'MenuScene';
+        this.returnScene = data.returnScene || 'TitleScene';
         this.returnData  = data.returnData  || {};
     }
 

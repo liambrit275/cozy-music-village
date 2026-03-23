@@ -3,6 +3,7 @@
 // Pauses callerKey scene while open (if pauseCaller is true), resumes on close.
 
 import { ProgressionManager } from '../systems/ProgressionManager.js';
+import { MidiInput } from '../systems/MidiInput.js';
 import {
     DRONE_PRESETS,
     INTERVAL_PRESETS,
@@ -11,7 +12,7 @@ import {
 } from '../systems/AudioEngine.js';
 
 const PANEL_W = 640;
-const PANEL_H = 420;
+const PANEL_H = 460;
 const BG_COLOR     = 0x06060f;
 const BORDER_COLOR = 0x4455aa;
 const TITLE_COLOR  = '#aabbff';
@@ -42,6 +43,9 @@ export class SettingsScene extends Phaser.Scene {
             this.settings.sounds.volumes = { click: 1.0, rhythmNote: 1.0, drone: 0.75, interval: 1.0 };
         }
         if (this.settings.showGrid === undefined) this.settings.showGrid = true;
+        if (this.settings.midiTranspose == null) this.settings.midiTranspose = 0;
+        this._midiInput = null;
+        this._midiStatusLabel = null;
     }
 
     create() {
@@ -86,8 +90,72 @@ export class SettingsScene extends Phaser.Scene {
             this._save();
         });
 
-        // ── Sounds section ────────────────────────────────────
+        // ── MIDI section ──────────────────────────────────────
         cy += 36;
+        this.add.text(px + 24, cy - 14, 'MIDI', {
+            font: 'bold 11px monospace', fill: LABEL_COLOR,
+        }).setOrigin(0, 0.5);
+        this.add.rectangle(width / 2, cy - 4, PANEL_W - 40, 1, 0x2233aa, 0.6);
+
+        // Status row
+        cy += 14;
+        this.add.text(px + 24, cy, 'STATUS:', {
+            font: '11px monospace', fill: LABEL_COLOR,
+        }).setOrigin(0, 0.5);
+        this._midiStatusLabel = this.add.text(px + 108, cy, 'Checking...', {
+            font: '11px monospace', fill: '#888888',
+        }).setOrigin(0, 0.5);
+
+        const reconnectBtn = this.add.text(px + PANEL_W - 120, cy, 'RESCAN', {
+            font: 'bold 10px monospace', fill: '#aabbcc',
+            backgroundColor: '#111122', padding: { x: 7, y: 4 },
+        }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+        reconnectBtn.on('pointerover', () => reconnectBtn.setStyle({ fill: '#ffcc00' }));
+        reconnectBtn.on('pointerout',  () => reconnectBtn.setStyle({ fill: '#aabbcc' }));
+        reconnectBtn.on('pointerdown', () => this._reconnectMidi());
+
+        // Hint — Firefox caches MIDI devices at page load
+        this.add.text(px + 24, cy + 14, 'Refresh page if new device not found', {
+            font: '9px monospace', fill: '#445566',
+        }).setOrigin(0, 0.5);
+
+        // Transpose row
+        cy += 32;
+        this.add.text(px + 24, cy, 'TRANSPOSE:', {
+            font: '11px monospace', fill: LABEL_COLOR,
+        }).setOrigin(0, 0.5);
+
+        const tx = px + 120;
+        const transpDecBtn = this.add.text(tx, cy, '◀', {
+            font: 'bold 14px monospace', fill: '#556688', padding: { x: 6, y: 3 },
+        }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+
+        this._transpLabel = this.add.text(tx + 28, cy, this._transpText(this.settings.midiTranspose), {
+            font: 'bold 11px monospace', fill: '#aaccee', padding: { x: 4, y: 3 },
+        }).setOrigin(0, 0.5);
+
+        const transpIncBtn = this.add.text(tx + 72, cy, '▶', {
+            font: 'bold 14px monospace', fill: '#556688', padding: { x: 6, y: 3 },
+        }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+
+        const updateTransp = (delta) => {
+            const next = Math.max(-12, Math.min(12, this.settings.midiTranspose + delta));
+            this.settings.midiTranspose = next;
+            this._transpLabel.setText(this._transpText(next));
+            this._save();
+        };
+        transpDecBtn.on('pointerdown', () => updateTransp(-1));
+        transpIncBtn.on('pointerdown', () => updateTransp(+1));
+
+        this.add.text(tx + 100, cy, 'semitones', {
+            font: '10px monospace', fill: '#445566',
+        }).setOrigin(0, 0.5);
+
+        // Start async MIDI status check
+        this._checkMidiStatus();
+
+        // ── Sounds section ────────────────────────────────────
+        cy += 44;
         this.add.text(px + 24, cy - 14, 'SOUNDS', {
             font: 'bold 11px monospace', fill: LABEL_COLOR,
         }).setOrigin(0, 0.5);
@@ -181,10 +249,85 @@ export class SettingsScene extends Phaser.Scene {
             if (initVol >= 1.0) incBtn.setStyle({ fill: '#2a3344' });
         });
 
+        // ── Edit Avatar button ────────────────────────────────
+        const avatarBtn = this.add.text(px + 24, py + PANEL_H - 44, 'EDIT AVATAR', {
+            font: 'bold 13px monospace', fill: '#aabbcc',
+            backgroundColor: '#111122', padding: { x: 10, y: 6 },
+        }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+        avatarBtn.on('pointerover', () => avatarBtn.setStyle({ fill: '#ffcc00' }));
+        avatarBtn.on('pointerout',  () => avatarBtn.setStyle({ fill: '#aabbcc' }));
+        avatarBtn.on('pointerdown', () => {
+            this.scene.pause('SettingsScene');
+            this.scene.launch('AvatarBuilderScene', { callerScene: 'SettingsScene' });
+        });
+
         // ── Hint text ─────────────────────────────────────────
         this.add.text(width / 2, py + PANEL_H - 16, 'ESC or ✕ to close', {
             font: '10px monospace', fill: '#334455',
         }).setOrigin(0.5);
+    }
+
+    _transpText(v) {
+        return v === 0 ? '0' : v > 0 ? `+${v}` : `${v}`;
+    }
+
+    async _checkMidiStatus() {
+        if (!this._midiStatusLabel) return;
+        if (!navigator.requestMIDIAccess) {
+            this._midiStatusLabel.setText('Not supported').setStyle({ fill: '#ff6644' });
+            return;
+        }
+        this._midiInput = new MidiInput();
+        await this._midiInput.init();
+        await this._probeMidiDevices();
+    }
+
+    async _probeMidiDevices() {
+        if (!this._midiStatusLabel || !this._midiInput) return;
+        if (!this._midiStatusLabel.active) return;
+        if (!this._midiInput.available) {
+            const reason = this._midiInput.unavailableReason;
+            const text = reason === 'not-supported' ? 'Not supported'
+                       : reason === 'permission-denied' ? 'Permission denied'
+                       : 'Unavailable';
+            this._midiStatusLabel.setText(text).setStyle({ fill: '#ff6644' });
+            return;
+        }
+        // Actually try to open each port — Firefox reports unplugged devices as state=connected
+        const alive = await this._midiInput.probeConnected();
+        if (alive.length > 0) {
+            const first = alive[0].name || 'Unknown';
+            const truncated = first.length > 26 ? first.slice(0, 24) + '…' : first;
+            const label = alive.length > 1 ? `${truncated} +${alive.length - 1}` : truncated;
+            this._midiStatusLabel.setText(label).setStyle({ fill: '#44cc66' });
+        } else {
+            this._midiStatusLabel.setText('No device found').setStyle({ fill: '#ffaa44' });
+        }
+    }
+
+    async _reconnectMidi() {
+        if (!this._midiStatusLabel) return;
+        this._midiStatusLabel.setText('Scanning...').setStyle({ fill: '#888888' });
+
+        if (this._midiInput) this._midiInput.dispose();
+
+        this._midiInput = new MidiInput();
+        await this._midiInput.init();
+        await this._probeMidiDevices();
+
+        // Also reinit MIDI on the caller scene (e.g. ChallengeScene) so new device works in-game
+        if (this.callerKey) {
+            const callerScene = this.scene.get(this.callerKey);
+            if (callerScene && callerScene.midiInput) {
+                const oldCallback = callerScene.midiInput._onNoteOn;
+                callerScene.midiInput.dispose();
+                callerScene.midiInput = new MidiInput();
+                await callerScene.midiInput.init();
+                if (callerScene.midiInput.available && oldCallback) {
+                    callerScene.midiInput.onNoteOn(oldCallback);
+                }
+            }
+        }
     }
 
     _volText(v) {
@@ -220,6 +363,7 @@ export class SettingsScene extends Phaser.Scene {
     }
 
     _close() {
+        if (this._midiInput) { this._midiInput.dispose(); this._midiInput = null; }
         if (this.pauseCaller && this.callerKey) {
             this.scene.resume(this.callerKey);
         }

@@ -201,23 +201,26 @@ export class AvatarBuilderScene extends Phaser.Scene {
                 ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
             }
 
-            if (this.textures.exists('player-avatar')) this.textures.remove('player-avatar');
-            this.textures.addCanvas('player-avatar', canvas);
-            // Register 32 frames (8 cols × 4 rows of 32×32)
-            const tex = this.textures.get('player-avatar');
-            for (let i = 0; i < 32; i++) {
-                tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+            // Update the canvas texture in-place so sprites/animations in other scenes stay valid.
+            // Never remove/re-add 'player-avatar' while other scenes may be referencing it.
+            if (this.textures.exists('player-avatar')) {
+                const tex = this.textures.get('player-avatar');
+                tex.context.clearRect(0, 0, 256, 128);
+                tex.context.drawImage(canvas, 0, 0);
+                tex.refresh();
+            } else {
+                this.textures.addCanvas('player-avatar', canvas);
+                const tex = this.textures.get('player-avatar');
+                for (let i = 0; i < 32; i++) {
+                    tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+                }
+                // Create animations only on first build — frame indices never change
+                this.anims.create({ key: 'avatar-walk-down',  frames: this.anims.generateFrameNumbers('player-avatar', { start: 0,  end: 7  }), frameRate: 8, repeat: -1 });
+                this.anims.create({ key: 'avatar-walk-right', frames: this.anims.generateFrameNumbers('player-avatar', { start: 8,  end: 15 }), frameRate: 8, repeat: -1 });
+                this.anims.create({ key: 'avatar-walk-up',    frames: this.anims.generateFrameNumbers('player-avatar', { start: 16, end: 23 }), frameRate: 8, repeat: -1 });
+                this.anims.create({ key: 'avatar-walk-left',  frames: this.anims.generateFrameNumbers('player-avatar', { start: 24, end: 31 }), frameRate: 8, repeat: -1 });
+                this.anims.create({ key: 'avatar-idle',       frames: this.anims.generateFrameNumbers('player-avatar', { start: 0,  end: 0  }), frameRate: 1, repeat: 0  });
             }
-
-            // Regenerate avatar animations
-            ['avatar-walk-down','avatar-walk-right','avatar-walk-up','avatar-walk-left','avatar-idle'].forEach(k => {
-                if (this.anims.exists(k)) this.anims.remove(k);
-            });
-            this.anims.create({ key: 'avatar-walk-down',  frames: this.anims.generateFrameNumbers('player-avatar', { start: 0,  end: 7  }), frameRate: 8, repeat: -1 });
-            this.anims.create({ key: 'avatar-walk-right', frames: this.anims.generateFrameNumbers('player-avatar', { start: 8,  end: 15 }), frameRate: 8, repeat: -1 });
-            this.anims.create({ key: 'avatar-walk-up',    frames: this.anims.generateFrameNumbers('player-avatar', { start: 16, end: 23 }), frameRate: 8, repeat: -1 });
-            this.anims.create({ key: 'avatar-walk-left',  frames: this.anims.generateFrameNumbers('player-avatar', { start: 24, end: 31 }), frameRate: 8, repeat: -1 });
-            this.anims.create({ key: 'avatar-idle',       frames: this.anims.generateFrameNumbers('player-avatar', { start: 0,  end: 0  }), frameRate: 1, repeat: 0  });
 
             this.scene.stop('AvatarBuilderScene');
             if (this.callerScene) this.scene.resume(this.callerScene);

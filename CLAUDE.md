@@ -26,6 +26,13 @@ Scene data is passed via `scene.start('SceneName', { progression, playerData, ..
 
 ### Key Design Patterns
 
+## Project Harmony: Core Rules
+- **No Violence:** Never use screen shakes, red flashes, or aggressive movement.
+- **Input Parity:** MIDI, Keyboard, and On-Screen Buttons must always be functional.
+- **Octave-Agnostic:** In "Serenade" mode, the pitch register (octave) does not matter for note-matching.
+- **Asset Path:** Always prioritize the `/Cozy_Game_Assets` directory.
+- **Scene Logic:** `ArcadeMode` and `StoryMode` must share the same `EncounterScene` logic to ensure feature parity.
+
 **CombatManager is UI-agnostic.** It drives the battle turn machine (state enum in `COMBAT_STATES`) and fires `onStateChange(state, data)` callbacks. `BattleScene` registers that callback and handles all rendering. Adding new combat mechanics means touching `CombatManager`, then updating `BattleScene.handleStateChange()`.
 
 **AudioEngine must be `await`ed before use.** `Tone.start()` requires a user gesture (browser policy). `BattleScene.create()` is `async` and calls `await this.audioEngine.init()`. The engine is created fresh per battle — it is not shared between scenes.

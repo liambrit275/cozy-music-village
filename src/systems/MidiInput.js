@@ -13,7 +13,8 @@ export class MidiInput {
     constructor() {
         this.available = false;
         this.inputs = [];
-        this._onNoteOn = null;  // callback: (midiNote, velocity) => void
+        this._onNoteOn = null;      // callback: (midiNote, velocity) => void
+        this._onStateChange = null; // callback: () => void — fires when devices connect/disconnect
         this._access = null;
     }
 
@@ -30,7 +31,10 @@ export class MidiInput {
             this._bindInputs();
 
             // Re-bind when devices connect/disconnect
-            this._access.onstatechange = () => this._bindInputs();
+            this._access.onstatechange = () => {
+                this._bindInputs();
+                if (this._onStateChange) this._onStateChange();
+            };
 
             this.available = true;
             this.unavailableReason = null;
@@ -47,11 +51,34 @@ export class MidiInput {
         this.inputs.forEach(input => { input.onmidimessage = null; });
         this.inputs = [];
 
-        // Bind all connected MIDI inputs
+        // Bind all MIDI inputs that the browser reports as connected.
+        // Note: Firefox keeps disconnected ports as state='connected',
+        // so we also try to open each port — truly unplugged ports will fail silently.
         for (const input of this._access.inputs.values()) {
-            input.onmidimessage = (msg) => this._handleMessage(msg);
-            this.inputs.push(input);
+            if (input.state !== 'disconnected') {
+                input.onmidimessage = (msg) => this._handleMessage(msg);
+                this.inputs.push(input);
+            }
         }
+    }
+
+    // Probe which ports are actually reachable by trying to open them.
+    // Returns only ports that successfully open (truly connected hardware).
+    async probeConnected() {
+        if (!this._access) return [];
+        const alive = [];
+        for (const input of this._access.inputs.values()) {
+            if (input.state === 'disconnected') continue;
+            try {
+                await input.open();
+                if (input.connection === 'open') {
+                    alive.push(input);
+                }
+            } catch {
+                // Port can't be opened — device not physically present
+            }
+        }
+        return alive;
     }
 
     _handleMessage(msg) {
@@ -69,9 +96,15 @@ export class MidiInput {
         this._onNoteOn = callback;
     }
 
-    // Remove callback
+    // Set callback for device connect/disconnect events
+    onStateChange(callback) {
+        this._onStateChange = callback;
+    }
+
+    // Remove callbacks
     clearCallback() {
         this._onNoteOn = null;
+        this._onStateChange = null;
     }
 
     // ── Helpers for mapping MIDI notes to game answers ──
@@ -101,6 +134,14 @@ export class MidiInput {
         if (!degree) return null;
         if (availableDegrees && !availableDegrees.includes(degree)) return null;
         return degree;
+    }
+
+    // Re-enumerate inputs now (call anytime to pick up newly connected devices)
+    refresh() {
+        if (this._access) {
+            this._bindInputs();
+            if (this._onStateChange) this._onStateChange();
+        }
     }
 
     dispose() {

@@ -5,138 +5,138 @@ export const ZONES = {
         key: 'forest',
         order: 0,
         scaleDegrees: ['1', '3', '5'],
-        bgColor: '#000000',
-        groundColor: 0x111111,
-        groundAccentColor: 0x222222,
+        bgColor: '#1a150e',
+        groundColor: 0x2a3a1a,
+        groundAccentColor: 0x1a2a10,
         backgroundKey: 'bg-forest',
-        monsters: ['slime', 'glowWisp', 'mutantToad'],
-        bossMonster: 'frog',
+        villagers: ['melody', 'flicker', 'clover'],
+        specialVillager: 'daisy',
         requiredLevel: 0,
         nextZone: 'village',
         description: 'Learn the major triad: Do, Mi, Sol',
-        levelEnemies: [
-            { key: 'slime',      x: 650,  patrolRange: 130 },
-            { key: 'glowWisp',   x: 1200, patrolRange: 100 },
-            { key: 'mutantToad', x: 1900, patrolRange: 140 },
-            { key: 'slime',      x: 2500, patrolRange: 130 },
-            { key: 'glowWisp',   x: 3100, patrolRange: 100 }
+        levelVillagers: [
+            { key: 'melody',     x: 650,  wanderRange: 130 },
+            { key: 'flicker',    x: 1200, wanderRange: 100 },
+            { key: 'clover',  x: 1900, wanderRange: 140 },
+            { key: 'melody',     x: 2500, wanderRange: 130 },
+            { key: 'flicker',    x: 3100, wanderRange: 100 }
         ],
-        bossX: 4200
+        specialX: 4200
     },
     village: {
         name: 'Sunny Village',
         key: 'village',
         order: 1,
         scaleDegrees: ['1', '2', '3', '4', '5'],
-        bgColor: '#000000',
-        groundColor: 0x111111,
-        groundAccentColor: 0x222222,
+        bgColor: '#1a150e',
+        groundColor: 0x2a3a1a,
+        groundAccentColor: 0x1a2a10,
         backgroundKey: 'bg-village',
-        monsters: ['wanderingBard', 'toadVillage'],
-        bossMonster: 'scrollKeeper',
+        villagers: ['pippin', 'puddle'],
+        specialVillager: 'greta',
         requiredLevel: 3,
         nextZone: 'caves',
         description: 'Add Re and Fa for pentatonic territory',
-        levelEnemies: [
-            { key: 'wanderingBard', x: 650,  patrolRange: 150 },
-            { key: 'toadVillage',   x: 1250, patrolRange: 130 },
-            { key: 'wanderingBard', x: 1950, patrolRange: 150 },
-            { key: 'toadVillage',   x: 2600, patrolRange: 130 },
-            { key: 'wanderingBard', x: 3200, patrolRange: 150 }
+        levelVillagers: [
+            { key: 'pippin', x: 650,  wanderRange: 150 },
+            { key: 'puddle',    x: 1250, wanderRange: 130 },
+            { key: 'pippin', x: 1950, wanderRange: 150 },
+            { key: 'puddle',    x: 2600, wanderRange: 130 },
+            { key: 'pippin', x: 3200, wanderRange: 150 }
         ],
-        bossX: 4200
+        specialX: 4200
     },
     caves: {
         name: 'Crystal Caves',
         key: 'caves',
         order: 2,
         scaleDegrees: ['1', '2', 'b3', '3', '4', '5', 'b7'],
-        bgColor: '#000000',
-        groundColor: 0x111111,
-        groundAccentColor: 0x222222,
+        bgColor: '#1a150e',
+        groundColor: 0x2a2a2a,
+        groundAccentColor: 0x1a1a2a,
         backgroundKey: 'bg-caves',
-        monsters: ['hellHound', 'shadowCrow'],
-        bossMonster: 'ogre',
+        villagers: ['bramble', 'pebble'],
+        specialVillager: 'buttercup',
         requiredLevel: 6,
         nextZone: 'castle',
         description: 'Discover minor and dominant sounds: Me, Te',
-        levelEnemies: [
-            { key: 'hellHound',  x: 650,  patrolRange: 150 },
-            { key: 'shadowCrow', x: 1200, patrolRange: 110 },
-            { key: 'hellHound',  x: 1900, patrolRange: 150 },
-            { key: 'shadowCrow', x: 2500, patrolRange: 110 },
-            { key: 'hellHound',  x: 3200, patrolRange: 150 }
+        levelVillagers: [
+            { key: 'bramble', x: 650,  wanderRange: 150 },
+            { key: 'pebble',   x: 1200, wanderRange: 110 },
+            { key: 'bramble', x: 1900, wanderRange: 150 },
+            { key: 'pebble',   x: 2500, wanderRange: 110 },
+            { key: 'bramble', x: 3200, wanderRange: 150 }
         ],
-        bossX: 4200
+        specialX: 4200
     },
     castle: {
         name: 'Magic Castle',
         key: 'castle',
         order: 3,
         scaleDegrees: ['1', '2', 'b3', '3', '4', '5', '6', 'b7', '7'],
-        bgColor: '#000000',
-        groundColor: 0x111111,
-        groundAccentColor: 0x222222,
+        bgColor: '#1a150e',
+        groundColor: 0x2a2a3a,
+        groundAccentColor: 0x1a1a2a,
         backgroundKey: 'bg-castle',
-        monsters: ['guardCaptain', 'crowCastle'],
-        bossMonster: 'guardCaptainBoss',
+        villagers: ['duchess', 'cricket'],
+        specialVillager: 'barnaby',
         requiredLevel: 10,
         nextZone: 'underworld',
         description: 'Complete the major scale with La and Ti',
-        levelEnemies: [
-            { key: 'guardCaptain', x: 650,  patrolRange: 150 },
-            { key: 'crowCastle',   x: 1200, patrolRange: 110 },
-            { key: 'guardCaptain', x: 1950, patrolRange: 150 },
-            { key: 'crowCastle',   x: 2550, patrolRange: 110 },
-            { key: 'guardCaptain', x: 3200, patrolRange: 150 }
+        levelVillagers: [
+            { key: 'duchess',  x: 650,  wanderRange: 150 },
+            { key: 'cricket',  x: 1200, wanderRange: 110 },
+            { key: 'duchess',  x: 1950, wanderRange: 150 },
+            { key: 'cricket',  x: 2550, wanderRange: 110 },
+            { key: 'duchess',  x: 3200, wanderRange: 150 }
         ],
-        bossX: 4200
+        specialX: 4200
     },
     underworld: {
-        name: "Dragon's Lair",
+        name: 'Mystic Hollow',
         key: 'underworld',
         order: 4,
         scaleDegrees: ['1', 'b2', '2', 'b3', '3', '4', '5', 'b6', '6', 'b7', '7'],
-        bgColor: '#000000',
-        groundColor: 0x111111,
-        groundAccentColor: 0x222222,
+        bgColor: '#1a150e',
+        groundColor: 0x2a1a2a,
+        groundAccentColor: 0x1a1020,
         backgroundKey: 'bg-underworld',
-        monsters: ['flameHoundLair', 'crowLair'],
-        bossMonster: 'flameHoundBoss',
+        villagers: ['ember', 'cinder'],
+        specialVillager: 'magnolia',
         requiredLevel: 14,
         nextZone: 'tower',
         description: 'Face the dark intervals: Ra and Le',
-        levelEnemies: [
-            { key: 'flameHoundLair', x: 650,  patrolRange: 150 },
-            { key: 'crowLair',       x: 1200, patrolRange: 110 },
-            { key: 'flameHoundLair', x: 1950, patrolRange: 150 },
-            { key: 'crowLair',       x: 2550, patrolRange: 110 },
-            { key: 'flameHoundLair', x: 3200, patrolRange: 150 }
+        levelVillagers: [
+            { key: 'ember',   x: 650,  wanderRange: 150 },
+            { key: 'cinder',   x: 1200, wanderRange: 110 },
+            { key: 'ember',   x: 1950, wanderRange: 150 },
+            { key: 'cinder',   x: 2550, wanderRange: 110 },
+            { key: 'ember',   x: 3200, wanderRange: 150 }
         ],
-        bossX: 4200
+        specialX: 4200
     },
     tower: {
         name: 'Sky Tower',
         key: 'tower',
         order: 5,
         scaleDegrees: ['1', 'b2', '2', 'b3', '3', '4', '#4', '5', 'b6', '6', 'b7', '7'],
-        bgColor: '#000000',
-        groundColor: 0x111111,
-        groundAccentColor: 0x222222,
+        bgColor: '#1a150e',
+        groundColor: 0x2a2a3a,
+        groundAccentColor: 0x1a1a30,
         backgroundKey: 'bg-tower',
-        monsters: ['crowTower', 'guardTower'],
-        bossMonster: 'werewolf',
+        villagers: ['breeze', 'woolsworth'],
+        specialVillager: 'clementine',
         requiredLevel: 18,
         nextZone: null,
         description: 'Master all 12 scale degrees with the tritone: Fi',
-        levelEnemies: [
-            { key: 'crowTower',   x: 650,  patrolRange: 120 },
-            { key: 'guardTower',  x: 1250, patrolRange: 150 },
-            { key: 'crowTower',   x: 1900, patrolRange: 120 },
-            { key: 'guardTower',  x: 2550, patrolRange: 150 },
-            { key: 'crowTower',   x: 3200, patrolRange: 120 }
+        levelVillagers: [
+            { key: 'breeze',      x: 650,  wanderRange: 120 },
+            { key: 'woolsworth',  x: 1250, wanderRange: 150 },
+            { key: 'breeze',      x: 1900, wanderRange: 120 },
+            { key: 'woolsworth',  x: 2550, wanderRange: 150 },
+            { key: 'breeze',      x: 3200, wanderRange: 120 }
         ],
-        bossX: 4200
+        specialX: 4200
     }
 };
 

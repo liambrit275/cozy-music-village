@@ -1,12 +1,12 @@
-// RhythmReadingScene: Arcade rhythm sight-reading with monsters.
+// RhythmReadingScene: Cozy village rhythm sight-reading.
 // A rhythm is shown as sheet music. Tap Spacebar / MIDI on every note onset.
-// Monsters approach — accurate tapping defeats them!
+// Villagers need your help — accurate tapping cheers them up!
 
 import { AudioEngine } from '../systems/AudioEngine.js';
 import { spellPattern } from '../systems/RhythmSpeller.js';
 import { RhythmNotationRenderer } from '../systems/RhythmNotationRenderer.js';
 import { MidiInput } from '../systems/MidiInput.js';
-import { MONSTERS } from '../data/monsters.js';
+import { VILLAGERS } from '../data/villagers.js';
 
 const SUBDIVISIONS = {
     quarter:   { label: 'Quarter',  cells: ['1','2','3','4'],
@@ -36,8 +36,8 @@ const PLAYER_HP_MAX   = 100;
 const AUTO_PLAY_DELAY = 1200;  // ms to read notation before countdown
 const RESULT_DISPLAY  = 1600;  // ms to see result before advancing
 
-const MONSTER_POOL = Object.keys(MONSTERS).filter(k => !MONSTERS[k].isBoss);
-const BOSS_POOL    = Object.keys(MONSTERS).filter(k =>  MONSTERS[k].isBoss);
+const MONSTER_POOL = Object.keys(VILLAGERS).filter(k => !VILLAGERS[k].isSpecial);
+const BOSS_POOL    = Object.keys(VILLAGERS).filter(k =>  VILLAGERS[k].isSpecial);
 const ZONE_BGS     = ['bg-forest','bg-village','bg-caves','bg-castle','bg-underworld','bg-tower'];
 
 export class RhythmReadingScene extends Phaser.Scene {
@@ -46,11 +46,11 @@ export class RhythmReadingScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.returnScene  = data.returnScene  || 'ArcadeMenuScene';
+        this.returnScene  = data.returnScene  || 'PracticeMenuScene';
         this.returnData   = data.returnData   || {};
         this.settings     = data.settings     || {};
         this.playerData   = data.playerData || data.returnData?.playerData
-            || { hp: 100, maxHp: 100, attack: 30, defense: 5, level: 1, characterKey: 'knight' };
+            || { hp: 100, maxHp: 100, attack: 30, defense: 5, level: 1, characterKey: 'char1' };
     }
 
     async create() {
@@ -85,12 +85,12 @@ export class RhythmReadingScene extends Phaser.Scene {
         this._approachSpeed   = 90;   // px/s, updated per bar
         this._gameOverFlag    = false;
 
-        this.session = { score: 0, streak: 0, monstersSlain: 0, round: 0 };
+        this.session = { score: 0, streak: 0, villagersHelped: 0, round: 0 };
 
         // Player HP
         this._playerHp    = this.playerData.hp    || PLAYER_HP_MAX;
         this._playerHpMax = this.playerData.maxHp || PLAYER_HP_MAX;
-        this._charKey     = this.playerData.characterKey || 'knight';
+        this._charKey     = this.playerData.characterKey || 'char1';
 
         // ── Player sprite ────────────────────────────────────
         this.playerSprite = this.add.sprite(PLAYER_X, GROUND_Y, `${this._charKey}-idle`)
@@ -100,7 +100,7 @@ export class RhythmReadingScene extends Phaser.Scene {
             this.playerSprite.play(`${this._charKey}-idle`);
 
         // ── Danger overlay ───────────────────────────────────
-        this._dangerOverlay = this.add.rectangle(width/2, height/2, width, height, 0xff0000, 0)
+        this._dangerOverlay = this.add.rectangle(width/2, height/2, width, height, 0x4466aa, 0)
             .setDepth(50);
 
         // ── HUD ──────────────────────────────────────────────
@@ -257,31 +257,31 @@ export class RhythmReadingScene extends Phaser.Scene {
         this.session.round++;
         this._updateHUD();
 
-        // Boss every 5th monster
-        const isBoss = this.session.monstersSlain > 0 && this.session.monstersSlain % 5 === 0;
+        // Special villager every 5th round
+        const isBoss = this.session.villagersHelped > 0 && this.session.villagersHelped % 5 === 0;
         const pool   = isBoss ? BOSS_POOL : MONSTER_POOL;
         const key    = pool[Math.floor(Math.random() * pool.length)];
-        const data   = MONSTERS[key];
+        const data   = VILLAGERS[key];
 
         this._currentMonsterKey  = key;
         this._currentMonsterData = data;
         this._isBoss             = isBoss;
-        this._monsterHp          = data.hp  || 40;
+        this._monsterHp          = data.helpNeeded  || 40;
         this._monsterHpMax       = this._monsterHp;
-        this._monsterAttack      = data.attack || 10;
+        this._monsterAttack      = data.patience || 10;
         this._monsterX           = SPAWN_X;
 
         // Destroy previous sprite
         if (this._monsterSprite) { this._monsterSprite.destroy(); this._monsterSprite = null; }
 
-        const spriteKey = `monster-${data.spriteKey || key}`;
+        const spriteKey = `villager-${data.spriteKey || key}`;
         if (this.textures.exists(spriteKey)) {
             const targetH = isBoss ? BOSS_H : MONSTER_H;
             const scale   = targetH / (data.frameHeight || 64);
             this._monsterSprite = this.add.sprite(SPAWN_X, GROUND_Y, spriteKey)
                 .setOrigin(0.5, 1).setScale(scale).setDepth(2);
 
-            const animKey = `monster-${key}-idle`;
+            const animKey = `villager-${key}-idle`;
             if (!this.anims.exists(animKey)) {
                 this.anims.create({
                     key: animKey,
@@ -294,7 +294,7 @@ export class RhythmReadingScene extends Phaser.Scene {
         }
 
         this._buildHpBars();
-        this.msgText.setText(`${data.name} appears!`).setStyle({ fill: '#ffaacc' });
+        this.msgText.setText(`${data.name} needs your help!`).setStyle({ fill: '#ffaacc' });
 
         this._generateRound();
     }
@@ -580,7 +580,7 @@ export class RhythmReadingScene extends Phaser.Scene {
                 this.playerSprite.play(`${this._charKey}-attack`).once('animationcomplete',
                     () => { if (!this._gameOverFlag) this.playerSprite.play(`${this._charKey}-idle`); });
 
-            this._showDamageNumber(this._monsterX, GROUND_Y - MONSTER_H - 20, dmg, '#ff4444', false);
+            this._showDamageNumber(this._monsterX, GROUND_Y - MONSTER_H - 20, dmg, '#44ff66', false);
 
             // Push monster back
             const pushback = Math.min(SPAWN_X - this._monsterX, 120 + Math.floor(accuracy * 100));
@@ -606,8 +606,7 @@ export class RhythmReadingScene extends Phaser.Scene {
                 this.playerSprite.play(`${this._charKey}-hurt`).once('animationcomplete',
                     () => { if (!this._gameOverFlag) this.playerSprite.play(`${this._charKey}-idle`); });
 
-            this.cameras.main.shake(300, 0.015);
-            this._showDamageNumber(PLAYER_X, GROUND_Y - 80, dmg, '#ff4444', true);
+            this._showDamageNumber(PLAYER_X, GROUND_Y - 80, dmg, '#ffaa44', true);
             this._updatePlayerHpBar();
 
             const extraStr = extraTaps > 0 ? `  ${extraTaps} extra` : '';
@@ -631,9 +630,9 @@ export class RhythmReadingScene extends Phaser.Scene {
     }
 
     _monsterDefeated() {
-        this.session.monstersSlain++;
-        this.slainText.setText(`✦ ${this.session.monstersSlain} slain`);
-        this.msgText.setText(`${this._currentMonsterData?.name} defeated!`).setStyle({ fill: '#ffcc00' });
+        this.session.villagersHelped++;
+        this.slainText.setText(`✦ ${this.session.villagersHelped} helped`);
+        this.msgText.setText(`${this._currentMonsterData?.name} is happy again!`).setStyle({ fill: '#ffcc00' });
         this.audioEngine.playCorrect();
 
         if (this._monsterSprite) {
@@ -650,17 +649,17 @@ export class RhythmReadingScene extends Phaser.Scene {
         this._gameOverFlag = true;
         this._stopAll();
         const { width, height } = this.cameras.main;
-        this.cameras.main.shake(600, 0.03);
+        this.cameras.main.shake(200, 0.008);
         this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.7).setDepth(60);
-        this.add.text(width/2, height/2 - 40, 'GAME OVER', {
-            font: 'bold 48px monospace', fill: '#ff3333',
+        this.add.text(width/2, height/2 - 40, 'OUT OF ENERGY!', {
+            font: 'bold 48px monospace', fill: '#ffaa44',
             stroke: '#000', strokeThickness: 6
         }).setOrigin(0.5).setDepth(61);
         this.add.text(width/2, height/2 + 20, `Score: ${this.session.score}`, {
             font: 'bold 24px monospace', fill: '#ffcc00',
             stroke: '#000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(61);
-        this.add.text(width/2, height/2 + 55, `Monsters slain: ${this.session.monstersSlain}`, {
+        this.add.text(width/2, height/2 + 55, `Villagers Helped: ${this.session.villagersHelped}`, {
             font: '18px monospace', fill: '#aaffaa', stroke: '#000', strokeThickness: 3
         }).setOrigin(0.5).setDepth(61);
 
@@ -695,8 +694,8 @@ export class RhythmReadingScene extends Phaser.Scene {
         this.scoreText.setText(`Score: ${this.session.score}`);
         this.roundText.setText(`Round ${this.session.round}`);
         this.streakText.setText(this.session.streak >= 2 ? `streak x${this.session.streak}` : '');
-        if (this.session.monstersSlain > 0)
-            this.slainText.setText(`✦ ${this.session.monstersSlain} slain`);
+        if (this.session.villagersHelped > 0)
+            this.slainText.setText(`✦ ${this.session.villagersHelped} helped`);
     }
 
     _showDamageNumber(x, y, amount, color, isPlayer) {

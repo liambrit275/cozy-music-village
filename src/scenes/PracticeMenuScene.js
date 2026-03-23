@@ -105,11 +105,11 @@ export class PracticeMenuScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         const modes = [
-            { id: 'tones',         label: 'TONES',     x: width / 2 - 270 },
-            { id: 'noteReading',   label: 'NOTE READ', x: width / 2 - 135 },
-            { id: 'rhythm',        label: 'RHYTHM',    x: width / 2 },
-            { id: 'rhythmReading', label: 'SIGHT-TAP', x: width / 2 + 135 },
-            { id: 'all',           label: 'ALL',       x: width / 2 + 270 },
+            { id: 'tones',         label: 'TONES',      x: width / 2 - 270 },
+            { id: 'noteReading',   label: 'NOTE READ',  x: width / 2 - 135 },
+            { id: 'rhythm',        label: 'EAR RHYTHM', x: width / 2 },
+            { id: 'rhythmReading', label: 'RHYTHM READ',x: width / 2 + 135 },
+            { id: 'all',           label: 'ALL',        x: width / 2 + 270 },
         ];
 
         this.modeBtns = {};
@@ -326,11 +326,11 @@ export class PracticeMenuScene extends Phaser.Scene {
     _buildHighScores(width, y) {
         const scores = this.pm.loadArcadeScores();
         const cols = [
-            { label: 'TONES',     key: 'tones',         x: width / 2 - 290 },
-            { label: 'NOTE READ', key: 'noteReading',   x: width / 2 - 150 },
-            { label: 'RHYTHM',    key: 'rhythm',        x: width / 2 - 10  },
-            { label: 'SIGHT-TAP', key: 'rhythmReading', x: width / 2 + 130 },
-            { label: 'ALL',       key: 'all',            x: width / 2 + 270 },
+            { label: 'TONES',      key: 'tones',         x: width / 2 - 290 },
+            { label: 'NOTE READ',  key: 'noteReading',   x: width / 2 - 150 },
+            { label: 'EAR RHYTHM', key: 'rhythm',        x: width / 2 - 10  },
+            { label: 'RHYTHM READ',key: 'rhythmReading', x: width / 2 + 130 },
+            { label: 'ALL',        key: 'all',            x: width / 2 + 270 },
         ];
 
         this.add.text(width / 2, y - 14, 'HIGH SCORES', {
@@ -379,15 +379,6 @@ export class PracticeMenuScene extends Phaser.Scene {
         playerData.characterKey   = 'avatar';
         playerData.characterScale = 2.0;
         playerData.characterFlip  = false;
-
-        if (this.selectedMode === 'rhythmReading') {
-            this.scene.start('RhythmReadingScene', {
-                returnScene: 'PracticeMenuScene',
-                returnData: { playerData },
-                settings: this.settings,
-            });
-            return;
-        }
 
         this.scene.start('ChallengeScene', {
             mode: this.selectedMode,

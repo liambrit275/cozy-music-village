@@ -1,6 +1,6 @@
 // BattleScene: Turn-based combat with interval identification, rhythm, and note reading
 
-import { Monster } from '../entities/Monster.js';
+import { Villager } from '../entities/Villager.js';
 import { MusicTheory, SCALE_DEGREES } from '../systems/MusicTheory.js';
 import { AudioEngine } from '../systems/AudioEngine.js';
 import { NoteReadingEngine } from '../systems/NoteReadingEngine.js';
@@ -26,7 +26,7 @@ export class BattleScene extends Phaser.Scene {
     init(data) {
         this.progression      = data.progression || null;
         this.playerData       = data.playerData;
-        this.monsterKey       = data.monsterKey;
+        this.villagerKey      = data.villagerKey;
         this.encounterIndex   = data.encounterIndex ?? -1;
         this.playerPos        = data.playerPos;
         this.currentZone      = this.progression?.currentZone || data.currentZone || 'forest';
@@ -34,7 +34,7 @@ export class BattleScene extends Phaser.Scene {
         this.isSidescrollMode = data.isSidescrollMode || false;
         this.enemyId          = data.enemyId ?? null;
         this.isBoss           = data.isBoss || false;
-        this.characterKey     = data.playerData?.characterKey || 'knight';
+        this.characterKey     = data.playerData?.characterKey || 'char1';
     }
 
     async create() {
@@ -57,10 +57,10 @@ export class BattleScene extends Phaser.Scene {
         }
         this.add.rectangle(width / 2, height * 0.44, width - 20, 2, 0x334466, this.isSidescrollMode ? 0.6 : 0.25).setDepth(1);
 
-        // --- MONSTER AREA ---
-        this.monster = new Monster(this, this.monsterKey, width / 2, height * 0.22);
+        // --- VILLAGER AREA ---
+        this.villager = new Villager(this, this.villagerKey, width / 2, height * 0.22);
 
-        // --- HP BARS — arcade style: player top-left, monster top-right ---
+        // --- HP BARS — arcade style: player top-left, villager top-right ---
 
         // Player HP bar (top-left)
         this.add.rectangle(110, 50, 164, 18, 0x331111)
@@ -76,29 +76,29 @@ export class BattleScene extends Phaser.Scene {
             font: '11px monospace', fill: '#ffcc00', stroke: '#000000', strokeThickness: 2
         }).setDepth(10);
 
-        // Monster HP bar (top-right)
+        // Villager help bar (top-right)
         this.add.rectangle(width - 110, 50, 164, 18, 0x331111)
             .setStrokeStyle(1, 0x664444).setDepth(10);
-        this.monsterHpBar = this.add.rectangle(width - 110, 50, 160, 14, 0xff4444)
+        this.monsterHpBar = this.add.rectangle(width - 110, 50, 160, 14, 0xffaa44)
             .setDepth(10);
-        this.monsterNameText = this.add.text(width - 190, 42, this.monster.name, {
-            font: '11px monospace', fill: '#ffaa88', stroke: '#000000', strokeThickness: 2
+        this.monsterNameText = this.add.text(width - 190, 42, this.villager.name, {
+            font: '11px monospace', fill: '#88cc66', stroke: '#000000', strokeThickness: 2
         }).setDepth(10);
         this.monsterHpText = this.add.text(width - 110, 50, '', {
             font: '10px monospace', fill: '#ffffff', stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(11);
 
-        // Monster display name — centered above monster sprite
-        this.add.text(width / 2, 14, this.monster.name, {
+        // Villager display name — centered above villager sprite
+        this.add.text(width / 2, 14, this.villager.name, {
             font: 'bold 20px monospace', fill: '#ffdddd',
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(10);
 
         // --- PLAYER AREA ---
         const ck = this.characterKey;
-        this.playerSprite = this.add.sprite(100, height * 0.62, `${ck}-idle`);
+        this.playerSprite = this.add.sprite(100, height * 0.62, `player-${ck}`, 0);
         this.playerSprite.setScale(2.4).setFlipX(false).setDepth(2);
-        this.playerSprite.play(`${ck}-idle`);
+        if (this.anims.exists(`${ck}-idle`)) this.playerSprite.play(`${ck}-idle`);
 
         // Drone indicator — right side, below HP bar (no longer overlapping message box)
         this.droneText = this.add.text(width - 16, 72, '', {
@@ -154,7 +154,7 @@ export class BattleScene extends Phaser.Scene {
         const defaultStats = {
             hp: 100, maxHp: 100, attack: 12, defense: 4,
             level: 1, xp: 0, xpToNext: 50, gold: 0,
-            characterKey: 'knight'
+            characterKey: 'char1'
         };
         this.playerStats = { ...defaultStats, ...this.playerData };
         this.playerStats.calcDamage = (mult = 1) => {
@@ -174,7 +174,7 @@ export class BattleScene extends Phaser.Scene {
 
         const availableDegrees = zone.scaleDegrees;
         this.combat = new CombatManager(
-            this, this.playerStats, this.monster,
+            this, this.playerStats, this.villager,
             this.musicTheory, this.audioEngine,
             availableDegrees, this.noteReadingEngine
         );
@@ -509,7 +509,7 @@ export class BattleScene extends Phaser.Scene {
                 this.droneText.setText(data.droneNote ? `Drone: ${data.droneNote}` : '');
                 break;
 
-            case COMBAT_STATES.MONSTER_ATTACK:
+            case COMBAT_STATES.VILLAGER_REQUEST:
                 break;
 
             case COMBAT_STATES.PLAYER_IDENTIFY:
@@ -520,17 +520,13 @@ export class BattleScene extends Phaser.Scene {
                 break;
 
             case COMBAT_STATES.PLAYER_RESULT: {
-                const ck = this.characterKey;
                 this.timerBar.setVisible(false);
                 if (data.correct) {
                     this.correctAnswers++;
-                    this.playerSprite.play(`${ck}-attack`);
-                    this.playerSprite.once('animationcomplete', () => this.playerSprite.play(`${ck}-idle`));
-                    this.showDamageNumber(this.monster.sprite.x, this.monster.sprite.y - 40, data.damage, '#ffcc00');
+                    this._playerHopForward();
+                    this.showDamageNumber(this.villager.sprite.x, this.villager.sprite.y - 40, data.damage, '#ffcc00');
                 } else {
-                    this.playerSprite.play(`${ck}-hurt`);
-                    this.playerSprite.once('animationcomplete', () => this.playerSprite.play(`${ck}-idle`));
-                    this.cameras.main.shake(200, 0.008);
+                    this._playerShake();
                     this.showDamageNumber(this.playerSprite.x, this.playerSprite.y - 30, data.damage, '#ff4444');
                     if (data.correctAnswer) this.flashCorrectSolfege(data.correctAnswer);
                 }
@@ -543,17 +539,13 @@ export class BattleScene extends Phaser.Scene {
                 break;
 
             case COMBAT_STATES.NOTE_READING_RESULT: {
-                const cknr = this.characterKey;
                 this._clearNoteReadingUI();
                 if (data.correct) {
                     this.correctAnswers++;
-                    this.playerSprite.play(`${cknr}-attack`);
-                    this.playerSprite.once('animationcomplete', () => this.playerSprite.play(`${cknr}-idle`));
-                    this.showDamageNumber(this.monster.sprite.x, this.monster.sprite.y - 40, data.damage, '#ffcc00');
+                    this._playerHopForward();
+                    this.showDamageNumber(this.villager.sprite.x, this.villager.sprite.y - 40, data.damage, '#ffcc00');
                 } else {
-                    this.playerSprite.play(`${cknr}-hurt`);
-                    this.playerSprite.once('animationcomplete', () => this.playerSprite.play(`${cknr}-idle`));
-                    this.cameras.main.shake(200, 0.008);
+                    this._playerShake();
                     this.showDamageNumber(this.playerSprite.x, this.playerSprite.y - 30, data.damage, '#ff4444');
                 }
                 break;
@@ -566,31 +558,53 @@ export class BattleScene extends Phaser.Scene {
                 break;
 
             case COMBAT_STATES.RHYTHM_RESULT: {
-                const ckr = this.characterKey;
                 this._clearRhythmUI();
                 if (data.correct) {
                     this.correctAnswers++;
-                    this.playerSprite.play(`${ckr}-attack`);
-                    this.playerSprite.once('animationcomplete', () => this.playerSprite.play(`${ckr}-idle`));
-                    this.showDamageNumber(this.monster.sprite.x, this.monster.sprite.y - 40, data.damage, '#ffcc00');
+                    this._playerHopForward();
+                    this.showDamageNumber(this.villager.sprite.x, this.villager.sprite.y - 40, data.damage, '#ffcc00');
                 } else {
-                    this.playerSprite.play(`${ckr}-hurt`);
-                    this.playerSprite.once('animationcomplete', () => this.playerSprite.play(`${ckr}-idle`));
-                    this.cameras.main.shake(200, 0.008);
+                    this._playerShake();
                     this.showDamageNumber(this.playerSprite.x, this.playerSprite.y - 30, data.damage, '#ff4444');
                 }
                 break;
             }
 
-            case COMBAT_STATES.MONSTER_DEFEATED:
+            case COMBAT_STATES.VILLAGER_HELPED:
                 this.time.delayedCall(2000, () => this.endBattle(true, data));
                 break;
 
-            case COMBAT_STATES.PLAYER_DEFEATED:
-                this.playerSprite.play(`${this.characterKey}-hurt`);
+            case COMBAT_STATES.PLAYER_EXHAUSTED:
+                this._playerShake();
                 this.time.delayedCall(2000, () => this.endBattle(false, data));
                 break;
         }
+    }
+
+    _playerHopForward() {
+        const origX = this.playerSprite.x;
+        if (this.anims.exists(`${this.characterKey}-walk-right`)) {
+            this.playerSprite.play(`${this.characterKey}-walk-right`);
+        }
+        this.tweens.add({
+            targets: this.playerSprite,
+            x: origX + 20, duration: 150, yoyo: true,
+            onComplete: () => {
+                this.playerSprite.x = origX;
+                if (this.anims.exists(`${this.characterKey}-idle`)) {
+                    this.playerSprite.play(`${this.characterKey}-idle`);
+                }
+            }
+        });
+    }
+
+    _playerShake() {
+        const origX = this.playerSprite.x;
+        this.tweens.add({
+            targets: this.playerSprite,
+            x: origX - 8, duration: 60, yoyo: true, repeat: 2,
+            onComplete: () => { this.playerSprite.x = origX; }
+        });
     }
 
     startTimer() {
@@ -637,10 +651,10 @@ export class BattleScene extends Phaser.Scene {
     }
 
     updateHpBars() {
-        const mRatio = Math.max(0, this.monster.hp / this.monster.maxHp);
+        const mRatio = Math.max(0, this.villager.helpNeeded / this.villager.maxHelpNeeded);
         this.monsterHpBar.setScale(mRatio, 1);
-        this.monsterHpBar.setFillStyle(mRatio < 0.25 ? 0xff2222 : mRatio < 0.5 ? 0xff8800 : 0xff4444);
-        this.monsterHpText.setText(`${this.monster.hp}/${this.monster.maxHp}`);
+        this.monsterHpBar.setFillStyle(mRatio < 0.25 ? 0xff2222 : mRatio < 0.5 ? 0xff8800 : 0xffaa44);
+        this.monsterHpText.setText(`${this.villager.helpNeeded}/${this.villager.maxHelpNeeded}`);
 
         const pRatio = Math.max(0, this.playerStats.hp / this.playerStats.maxHp);
         this.playerHpBar.setScale(pRatio, 1);
@@ -659,14 +673,14 @@ export class BattleScene extends Phaser.Scene {
 
         // ── Classic story/overworld flow ──────────────────────────────────
         if (playerWon) {
-            this.scene.start('VictoryScene', {
+            this.scene.start('RewardScene', {
                 progression:    this.progression,
                 playerData:     this.playerStats,
-                monsterName:    this.monster.name,
-                monsterKey:     this.monsterKey,
+                villagerName:   this.villager.name,
+                villagerKey:    this.villagerKey,
                 encounterIndex: this.encounterIndex,
-                xp:             data.xp   || this.monster.xp,
-                gold:           data.gold || this.monster.gold,
+                xp:             data.xp   || this.villager.friendship,
+                gold:           data.gold || this.villager.gratitude,
                 correctAnswers: this.correctAnswers,
                 totalAnswers:   this.totalAnswers,
                 playerPos:      this.playerPos
@@ -674,7 +688,7 @@ export class BattleScene extends Phaser.Scene {
         } else {
             this.playerStats.hp = Math.floor(this.playerStats.maxHp * 0.5);
             if (this.progression) this.progression.save(this.playerStats);
-            this.scene.start('OverworldScene', {
+            this.scene.start('VillageScene', {
                 progression:      this.progression,
                 playerData:       this.playerStats,
                 returnFromBattle: true
@@ -684,8 +698,8 @@ export class BattleScene extends Phaser.Scene {
 
     _endBattleSidescroll(playerWon, data) {
         const { width, height } = this.cameras.main;
-        const xp   = data?.xp   || this.monster.xp;
-        const gold = data?.gold || this.monster.gold;
+        const xp   = data?.xp   || this.villager.friendship;
+        const gold = data?.gold || this.villager.gratitude;
 
         // Apply XP / level up to playerStats
         if (playerWon) {
@@ -712,7 +726,7 @@ export class BattleScene extends Phaser.Scene {
         const popupBg = this.add.rectangle(width / 2, height / 2, 360, 180, 0x000022, 0.95)
             .setStrokeStyle(2, playerWon ? 0x44ff44 : 0xff4444);
 
-        const titleTxt = playerWon ? 'VICTORY!' : 'DEFEATED!';
+        const titleTxt = playerWon ? 'WONDERFUL!' : 'OUT OF ENERGY!';
         const titleCol = playerWon ? '#ffcc00'  : '#ff8888';
         this.add.text(width / 2, height / 2 - 55, titleTxt, {
             font: 'bold 30px monospace', fill: titleCol,
@@ -720,7 +734,7 @@ export class BattleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         if (playerWon) {
-            this.add.text(width / 2, height / 2 - 10, `+${xp} XP   +${gold} Gold`, {
+            this.add.text(width / 2, height / 2 - 10, `+${xp} Friendship   +${gold} Gratitude`, {
                 font: '18px monospace', fill: '#ffcc00', stroke: '#000000', strokeThickness: 3
             }).setOrigin(0.5);
             const accuracy = this.totalAnswers > 0
@@ -732,7 +746,7 @@ export class BattleScene extends Phaser.Scene {
                 font: '13px monospace', fill: '#88cc88'
             }).setOrigin(0.5);
         } else {
-            this.add.text(width / 2, height / 2 - 5, 'You were defeated...\nHP restored to 50%', {
+            this.add.text(width / 2, height / 2 - 5, 'You ran out of energy...\nHP restored to 50%', {
                 font: '16px monospace', fill: '#ffaa88',
                 align: 'center'
             }).setOrigin(0.5);

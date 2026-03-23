@@ -1,8 +1,8 @@
-// SidescrollScene: side-scrolling adventure world
-// Player walks/jumps through each zone, encounters enemies, triggers battle overlay
+// SidescrollScene: side-scrolling cozy village world
+// Player walks/jumps through each zone, meets villagers who need musical help
 
 import { ZONES, ZONE_ORDER } from '../data/zones.js';
-import { MONSTERS } from '../data/monsters.js';
+import { VILLAGERS } from '../data/villagers.js';
 import { ProgressionManager } from '../systems/ProgressionManager.js';
 import { WORLD_REGIONS } from '../data/worldMap.js';
 import { WorldMapProgress } from '../systems/WorldMapProgress.js';
@@ -133,9 +133,9 @@ export class SidescrollScene extends Phaser.Scene {
     // ── PLAYER ──────────────────────────────────────────────────────────────────
 
     _createPlayer() {
-        const charKey = this.playerData.characterKey || 'knight';
+        const charKey = this.playerData.characterKey || 'char1';
 
-        this.player = this.physics.add.sprite(150, PLAYER_STAND_Y, `${charKey}-idle`);
+        this.player = this.physics.add.sprite(150, PLAYER_STAND_Y, `player-${charKey}`, 0);
         this.player.setScale(2.0);
         this.player.setCollideWorldBounds(true);
         this.player.body.setGravityY(600);
@@ -155,20 +155,20 @@ export class SidescrollScene extends Phaser.Scene {
     // ── ENEMIES ─────────────────────────────────────────────────────────────────
 
     _spawnEnemies(zone) {
-        // Regular enemies
-        zone.levelEnemies.forEach(cfg => this._spawnEnemy(cfg.key, cfg.x, cfg.patrolRange, false));
+        // Regular villagers
+        (zone.levelVillagers || zone.levelEnemies || []).forEach(cfg => this._spawnEnemy(cfg.key, cfg.x, cfg.wanderRange || cfg.patrolRange || 100, false));
 
-        // Boss
-        this._spawnEnemy(zone.bossMonster, zone.bossX, 220, true);
+        // Special villager
+        this._spawnEnemy(zone.specialVillager || zone.bossMonster, zone.specialX || zone.bossX || 4200, 220, true);
     }
 
-    _spawnEnemy(monsterKey, x, patrolRange, isBoss) {
-        const data = MONSTERS[monsterKey];
+    _spawnEnemy(villagerKey, x, patrolRange, isSpecial) {
+        const data = VILLAGERS[villagerKey];
         if (!data) return;
 
         const id         = this._nextEnemyId++;
-        const spriteKey  = `monster-${data.spriteKey || monsterKey}`;
-        const targetH    = isBoss ? 320 : 160;
+        const spriteKey  = data.spriteKey || `villager-${villagerKey}`;
+        const targetH    = isSpecial ? 320 : 160;
         const scale      = targetH / data.frameHeight;
         const y          = GROUND_TOP - (data.frameHeight * scale) / 2;
 
@@ -176,12 +176,12 @@ export class SidescrollScene extends Phaser.Scene {
         sprite.setScale(scale);
 
         // Create idle animation if not yet registered
-        const animKey = `monster-${monsterKey}-idle`;
+        const animKey = `villager-${villagerKey}-idle`;
         if (!this.anims.exists(animKey)) {
             this.anims.create({
                 key: animKey,
                 frames: this.anims.generateFrameNumbers(spriteKey, { start: 0, end: data.frameCount - 1 }),
-                frameRate: isBoss ? 8 : 6,
+                frameRate: isSpecial ? 8 : 6,
                 repeat: -1
             });
         }
@@ -204,17 +204,17 @@ export class SidescrollScene extends Phaser.Scene {
             onRepeat:   () => sprite.setFlipX(!nativeFacesRight)
         });
 
-        // Boss indicator
-        if (isBoss) {
+        // Special villager indicator
+        if (isSpecial) {
             const bossTag = this.add.text(x, y - (data.frameHeight * scale) / 2 - 18,
-                '⚔ BOSS', {
+                '✨ HELP ME', {
                     font: 'bold 13px monospace', fill: '#ffcc00',
                     stroke: '#000000', strokeThickness: 3
                 }).setOrigin(0.5);
             // Attach so it follows the sprite
-            this._enemies.push({ id, key: monsterKey, sprite, tween, isBoss, bossTag });
+            this._enemies.push({ id, key: villagerKey, sprite, tween, isSpecial, bossTag });
         } else {
-            this._enemies.push({ id, key: monsterKey, sprite, tween, isBoss });
+            this._enemies.push({ id, key: villagerKey, sprite, tween, isSpecial });
         }
     }
 
@@ -304,10 +304,8 @@ export class SidescrollScene extends Phaser.Scene {
         // Movement
         if (left) {
             this.player.setVelocityX(-WALK_SPEED);
-            this.player.setFlipX(true);
         } else if (right) {
             this.player.setVelocityX(WALK_SPEED);
-            this.player.setFlipX(false);
         } else {
             this.player.setVelocityX(0);
         }
@@ -317,15 +315,21 @@ export class SidescrollScene extends Phaser.Scene {
             this.player.setVelocityY(JUMP_VELOCITY);
         }
 
-        // Animations
+        // Animations — cozy characters use walk-left / walk-right / idle
         const ck = this._charKey;
         if (!onGround) {
-            if (this.player.anims.currentAnim?.key !== `${ck}-jump`) {
-                this.player.play(`${ck}-jump`, true);
+            // No jump anim — use walk-up while airborne
+            const jumpAnim = `${ck}-walk-up`;
+            if (this.player.anims.currentAnim?.key !== jumpAnim) {
+                this.player.play(jumpAnim, true);
             }
-        } else if (left || right) {
-            if (this.player.anims.currentAnim?.key !== `${ck}-run`) {
-                this.player.play(`${ck}-run`, true);
+        } else if (left) {
+            if (this.player.anims.currentAnim?.key !== `${ck}-walk-left`) {
+                this.player.play(`${ck}-walk-left`, true);
+            }
+        } else if (right) {
+            if (this.player.anims.currentAnim?.key !== `${ck}-walk-right`) {
+                this.player.play(`${ck}-walk-right`, true);
             }
         } else {
             if (this.player.anims.currentAnim?.key !== `${ck}-idle`) {
@@ -457,14 +461,15 @@ export class SidescrollScene extends Phaser.Scene {
 
         this.time.delayedCall(200, () => {
             this.scene.pause('SidescrollScene');
-            this.scene.launch('ArcadeBattleScene', {
+            this.scene.launch('BattleScene', {
                 mode:             'all',
                 storyBattle:      true,
                 progression:      this.progression,
                 playerData:       this.playerData,
-                monsterKey:       enemy.key,
+                villagerKey:      enemy.key,
                 encounterIndex:   enemy.id,
                 isSidescrollMode: true,
+                isSpecial:        enemy.isSpecial,
                 returnScene:      'SidescrollScene',
                 returnData:       { enemyId: enemy.id },
             });
@@ -481,7 +486,7 @@ export class SidescrollScene extends Phaser.Scene {
         this._updateHud();
 
         if (result.won) {
-            // Remove defeated enemy
+            // Remove helped villager
             const idx = this._enemies.findIndex(e => e.id === result.enemyId);
             if (idx !== -1) {
                 const enemy = this._enemies[idx];
@@ -499,13 +504,13 @@ export class SidescrollScene extends Phaser.Scene {
                 // Show XP popup
                 if (result.xp) this._showRewardPopup(result.xp, result.gold);
 
-                // Boss defeated → advance zone
-                if (result.isBoss) {
+                // Special villager helped → advance zone
+                if (result.isSpecial || result.isBoss) {
                     this.time.delayedCall(800, () => this._completeBossDefeat());
                 }
             }
         } else {
-            // Defeated — resume patrols, player respawns at zone start
+            // Not helped — resume patrols, player respawns at zone start
             this._enemies.forEach(e => e.tween?.resume());
             this.player.setPosition(150, PLAYER_STAND_Y);
             this.cameras.main.scrollX = 0;

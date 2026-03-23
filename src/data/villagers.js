@@ -20,7 +20,7 @@ export const VILLAGERS = {
         zone: 'forest',
         helpNeeded: 48, patience: 9, shyness: 3, friendship: 15, gratitude: 8,
         spriteKey: 'villager-robin', facesRight: true,
-        frameWidth: 16, frameHeight: 16, frameCount: 4,
+        frameWidth: 16, frameHeight: 16, frameCount: 3,
         troubleIntervals: ['1', '3', '5'],
         needsHelpWith: 'noteReading',
         description: 'A chirpy robin who mixes up notes on the staff.'
@@ -129,7 +129,7 @@ export const VILLAGERS = {
         zone: 'castle',
         helpNeeded: 80, patience: 20, shyness: 6, friendship: 36, gratitude: 18,
         spriteKey: 'villager-robin', facesRight: false,
-        frameWidth: 16, frameHeight: 16, frameCount: 4,
+        frameWidth: 16, frameHeight: 16, frameCount: 3,
         troubleIntervals: ['6', 'b7', '7'],
         needsHelpWith: 'rhythm',
         description: 'A castle robin who trills rhythms from the turret.'
@@ -185,7 +185,7 @@ export const VILLAGERS = {
         zone: 'tower',
         helpNeeded: 125, patience: 32, shyness: 11, friendship: 65, gratitude: 34,
         spriteKey: 'villager-robin', facesRight: false,
-        frameWidth: 16, frameHeight: 16, frameCount: 4,
+        frameWidth: 16, frameHeight: 16, frameCount: 3,
         troubleIntervals: ['#4', 'b2', 'b6'],
         needsHelpWith: 'rhythm',
         description: 'A high-flying robin who whistles tricky rhythms in the wind.'

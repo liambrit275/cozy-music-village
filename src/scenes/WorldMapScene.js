@@ -219,7 +219,7 @@ export class WorldMapScene extends Phaser.Scene {
                 this.scene.stop('WorldMapScene');
                 this.scene.resume(this.returnScene);
             } else {
-                this.scene.start('MenuScene');
+                this.scene.start('TitleScene');
             }
         });
     }

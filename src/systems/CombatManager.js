@@ -4,22 +4,22 @@ import { NoteReadingEngine } from './NoteReadingEngine.js';
 
 export const COMBAT_STATES = {
     INTRO: 'intro',
-    MONSTER_ATTACK: 'monster_attack',
+    VILLAGER_REQUEST: 'villager_request',
     PLAYER_IDENTIFY: 'player_identify',
     PLAYER_RESULT: 'player_result',
     NOTE_READING_QUESTION: 'note_reading_question',
     NOTE_READING_RESULT: 'note_reading_result',
     RHYTHM_QUESTION: 'rhythm_question',
     RHYTHM_RESULT: 'rhythm_result',
-    MONSTER_DEFEATED: 'monster_defeated',
-    PLAYER_DEFEATED: 'player_defeated'
+    VILLAGER_HELPED: 'villager_helped',
+    PLAYER_EXHAUSTED: 'player_exhausted'
 };
 
 export class CombatManager {
-    constructor(scene, player, monster, musicTheory, audioEngine, availableDegrees, noteReadingEngine, options = {}) {
+    constructor(scene, player, villager, musicTheory, audioEngine, availableDegrees, noteReadingEngine, options = {}) {
         this.scene = scene;
         this.player = player;
-        this.monster = monster;
+        this.villager = villager;
         this.music = musicTheory;
         this.audio = audioEngine;
         this.availableDegrees = availableDegrees;
@@ -45,13 +45,13 @@ export class CombatManager {
     // Start the battle
     async startBattle() {
         this.music.randomizeRoot();
-        const enemyType = this.monster.enemyType || 'mixed';
+        const enemyType = this.villager.needsHelpWith || 'mixed';
         // Start drone for tone-based challenges
         if (enemyType === 'tone' || enemyType === 'mixed') {
             this.audio.startDrone(this.music.getDroneFreq());
         }
         this.setState(COMBAT_STATES.INTRO, {
-            message: `A wild ${this.monster.name} appeared!`,
+            message: `${this.villager.name} needs your help!`,
             droneNote: (enemyType === 'tone' || enemyType === 'mixed') ? this.music.rootNote : null
         });
 
@@ -62,7 +62,7 @@ export class CombatManager {
     // Begin a new turn — branches on monster.enemyType
     nextTurn() {
         this.turnCount++;
-        const enemyType = this.monster.enemyType || 'mixed';
+        const enemyType = this.villager.needsHelpWith || 'mixed';
 
         switch (enemyType) {
             case 'tone':
@@ -94,15 +94,15 @@ export class CombatManager {
         // Restart drone (may have been stopped during rhythm phase)
         this.audio.startDrone(this.music.getDroneFreq());
 
-        this.currentInterval = this.monster.chooseInterval(this.availableDegrees);
+        this.currentInterval = this.villager.chooseInterval(this.availableDegrees);
         const freq = this.music.getIntervalFreq(this.currentInterval);
 
-        this.setState(COMBAT_STATES.MONSTER_ATTACK, {
-            message: `${this.monster.name} plays a note...`,
+        this.setState(COMBAT_STATES.VILLAGER_REQUEST, {
+            message: `${this.villager.name} hums a tune...`,
             interval: this.currentInterval
         });
 
-        this.monster.shakeAttack();
+        this.villager.showPuzzle();
 
         this.scene.time.delayedCall(500, () => {
             this.audio.playInterval(freq, '2n');
@@ -124,33 +124,33 @@ export class CombatManager {
         if (correct) {
             const speedBonus = Math.max(1, 2 - responseTime / 4000);
             const damage = this.player.calcDamage(speedBonus);
-            const actualDamage = this.monster.takeDamage(damage);
+            const actualDamage = this.villager.receiveHelp(damage);
 
             this.audio.playCorrect();
-            this.monster.flashHurt();
+            this.villager.flashHappy();
 
             this.setState(COMBAT_STATES.PLAYER_RESULT, {
                 correct: true,
-                message: `Correct! ${this.music.getSolfege(this.currentInterval)}! ${actualDamage} damage!`,
+                message: `Correct! ${this.music.getSolfege(this.currentInterval)}! +${actualDamage} help!`,
                 damage: actualDamage,
                 speedBonus: speedBonus.toFixed(1)
             });
         } else {
-            const damage = this.monster.calcDamage();
+            const damage = this.villager.calcFrustration();
             const actualDamage = this.player.takeDamage(damage);
 
             this.audio.playWrong();
 
             this.setState(COMBAT_STATES.PLAYER_RESULT, {
                 correct: false,
-                message: `Wrong! It was ${this.music.getSolfege(this.currentInterval)}. You take ${actualDamage} damage!`,
+                message: `Wrong! It was ${this.music.getSolfege(this.currentInterval)}. You lose ${actualDamage} energy!`,
                 damage: actualDamage,
                 correctAnswer: this.currentInterval
             });
         }
 
         this.scene.time.delayedCall(1200, () => {
-            if (this.monster.isDead()) {
+            if (this.villager.isHappy()) {
                 this.endBattle(true);
             } else if (this.player.hp <= 0) {
                 this.endBattle(false);
@@ -192,31 +192,31 @@ export class CombatManager {
         if (correct) {
             const speedBonus = Math.max(1, 2 - responseTime / 4000);
             const damage = this.player.calcDamage(speedBonus);
-            const actualDamage = this.monster.takeDamage(damage);
+            const actualDamage = this.villager.receiveHelp(damage);
             this.audio.playCorrect();
-            this.monster.flashHurt();
+            this.villager.flashHappy();
 
             this.setState(COMBAT_STATES.NOTE_READING_RESULT, {
                 correct: true,
-                message: `Correct! It's ${this.pendingNoteQuestion.correctAnswer}! ${actualDamage} damage!`,
+                message: `Correct! It's ${this.pendingNoteQuestion.correctAnswer}! +${actualDamage} help!`,
                 damage: actualDamage,
                 correctAnswer: this.pendingNoteQuestion.correctAnswer
             });
         } else {
-            const damage = this.monster.calcDamage();
+            const damage = this.villager.calcFrustration();
             const actualDamage = this.player.takeDamage(damage);
             this.audio.playWrong();
 
             this.setState(COMBAT_STATES.NOTE_READING_RESULT, {
                 correct: false,
-                message: `Wrong! It was ${this.pendingNoteQuestion.correctAnswer}. You take ${actualDamage} damage!`,
+                message: `Wrong! It was ${this.pendingNoteQuestion.correctAnswer}. You lose ${actualDamage} energy!`,
                 damage: actualDamage,
                 correctAnswer: this.pendingNoteQuestion.correctAnswer
             });
         }
 
         this.scene.time.delayedCall(1800, () => {
-            if (this.monster.isDead()) {
+            if (this.villager.isHappy()) {
                 this.endBattle(true);
             } else if (this.player.hp <= 0) {
                 this.endBattle(false);
@@ -284,27 +284,27 @@ export class CombatManager {
             const speedBonus = Math.max(1, 2 - responseTime / 8000);
             const accuracyBonus = accuracy >= 1.0 ? 1.5 : 1.0;
             const damage = this.player.calcDamage(speedBonus * accuracyBonus);
-            const actualDamage = this.monster.takeDamage(damage);
+            const actualDamage = this.villager.receiveHelp(damage);
             this.audio.playCorrect();
-            this.monster.flashHurt();
+            this.villager.flashHappy();
 
             const pct = Math.round(accuracy * 100);
             this.setState(COMBAT_STATES.RHYTHM_RESULT, {
                 correct: true,
-                message: `${pct}% correct! ${actualDamage} damage!`,
+                message: `${pct}% correct! +${actualDamage} help!`,
                 damage: actualDamage,
                 pattern,
                 userGrid
             });
         } else {
-            const damage = this.monster.calcDamage();
+            const damage = this.villager.calcFrustration();
             const actualDamage = this.player.takeDamage(damage);
             this.audio.playWrong();
 
             const pct = Math.round(accuracy * 100);
             this.setState(COMBAT_STATES.RHYTHM_RESULT, {
                 correct: false,
-                message: `${pct}% — not enough! You take ${actualDamage} damage!`,
+                message: `${pct}% — not quite! You lose ${actualDamage} energy!`,
                 damage: actualDamage,
                 pattern,
                 userGrid
@@ -312,7 +312,7 @@ export class CombatManager {
         }
 
         this.scene.time.delayedCall(1800, () => {
-            if (this.monster.isDead()) {
+            if (this.villager.isHappy()) {
                 this.endBattle(true);
             } else if (this.player.hp <= 0) {
                 this.endBattle(false);
@@ -327,15 +327,15 @@ export class CombatManager {
 
         if (playerWon) {
             this.audio.playVictory();
-            this.monster.deathAnimation(() => {});
-            this.setState(COMBAT_STATES.MONSTER_DEFEATED, {
-                message: `${this.monster.name} defeated!`,
-                xp: this.monster.xp,
-                gold: this.monster.gold
+            this.villager.happyAnimation(() => {});
+            this.setState(COMBAT_STATES.VILLAGER_HELPED, {
+                message: `${this.villager.name} is happy again!`,
+                xp: this.villager.friendship,
+                gold: this.villager.gratitude
             });
         } else {
-            this.setState(COMBAT_STATES.PLAYER_DEFEATED, {
-                message: 'You were defeated...'
+            this.setState(COMBAT_STATES.PLAYER_EXHAUSTED, {
+                message: "You're too tired to help..."
             });
         }
     }

@@ -71,7 +71,7 @@ export class PracticeScene extends Phaser.Scene {
 
     init(data) {
         this.mode        = data.mode || 'all';
-        this.returnScene = data.returnScene || 'ArcadeMenuScene';
+        this.returnScene = data.returnScene || 'PracticeMenuScene';
         this.returnData  = data.returnData  || {};
 
         const s = data.settings || {};

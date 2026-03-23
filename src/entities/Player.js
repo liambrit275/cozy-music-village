@@ -1,73 +1,39 @@
 // Player entity with stats, sprite management, and animations
+// Stats: hp=energy, attack=helpPower, defense=stamina, xp=friendship, gold=gratitude
 
 export class Player {
-    constructor(scene, x, y) {
+    constructor(scene, x, y, characterKey = 'char1') {
         this.scene = scene;
-        this.maxHp = 100;
-        this.hp = 100;
-        this.attack = 15;
-        this.defense = 5;
+        this.maxHp = 100;    // energy
+        this.hp = 100;       // energy
+        this.attack = 15;    // helpPower
+        this.defense = 5;    // stamina
         this.level = 1;
-        this.xp = 0;
+        this.xp = 0;         // friendship
         this.xpToNext = 50;
-        this.gold = 0;
+        this.gold = 0;       // gratitude
         this.speed = 160;
+        this.characterKey = characterKey;
 
-        // Create sprite for overworld (128x96 frames, character is ~30x40 in center)
-        this.sprite = scene.physics.add.sprite(x, y, 'player-idle');
+        // Create sprite (32×32 cozy character)
+        const spriteKey = `player-${characterKey}`;
+        this.sprite = scene.physics.add.sprite(x, y, spriteKey);
         this.sprite.setCollideWorldBounds(true);
-        this.sprite.setScale(0.6);
-        this.sprite.body.setSize(30, 40);
-        this.sprite.body.setOffset(49, 45);
+        this.sprite.setScale(2.0);
+        this.sprite.body.setSize(20, 24);
+        this.sprite.body.setOffset(6, 8);
 
-        this.createAnimations();
-    }
-
-    createAnimations() {
-        const scene = this.scene;
-
-        if (!scene.anims.exists('player-idle-anim')) {
-            scene.anims.create({
-                key: 'player-idle-anim',
-                frames: scene.anims.generateFrameNumbers('player-idle', { start: 0, end: 3 }),
-                frameRate: 6,
-                repeat: -1
-            });
+        // Play idle animation
+        const idleKey = `${characterKey}-idle`;
+        if (scene.anims.exists(idleKey)) {
+            this.sprite.play(idleKey);
         }
-
-        if (!scene.anims.exists('player-run-anim')) {
-            scene.anims.create({
-                key: 'player-run-anim',
-                frames: scene.anims.generateFrameNumbers('player-run', { start: 0, end: 11 }),
-                frameRate: 14,
-                repeat: -1
-            });
-        }
-
-        if (!scene.anims.exists('player-attack-anim')) {
-            scene.anims.create({
-                key: 'player-attack-anim',
-                frames: scene.anims.generateFrameNumbers('player-attack', { start: 0, end: 5 }),
-                frameRate: 12,
-                repeat: 0
-            });
-        }
-
-        if (!scene.anims.exists('player-hurt-anim')) {
-            scene.anims.create({
-                key: 'player-hurt-anim',
-                frames: scene.anims.generateFrameNumbers('player-hurt', { start: 0, end: 2 }),
-                frameRate: 8,
-                repeat: 0
-            });
-        }
-
-        this.sprite.play('player-idle-anim');
     }
 
     update(cursors) {
         const { left, right, up, down } = cursors;
         let vx = 0, vy = 0;
+        const ck = this.characterKey;
 
         if (left.isDown) vx = -this.speed;
         else if (right.isDown) vx = this.speed;
@@ -81,37 +47,45 @@ export class Player {
             this.sprite.setVelocity(vx * 0.707, vy * 0.707);
         }
 
-        // Flip sprite based on direction
-        if (vx < 0) this.sprite.setFlipX(true);
-        else if (vx > 0) this.sprite.setFlipX(false);
-
-        // Animation
+        // Direction-based animation
         if (vx !== 0 || vy !== 0) {
-            this.sprite.play('player-run-anim', true);
+            let dir;
+            if (Math.abs(vx) > Math.abs(vy)) {
+                dir = vx < 0 ? 'left' : 'right';
+            } else {
+                dir = vy < 0 ? 'up' : 'down';
+            }
+            const walkKey = `${ck}-walk-${dir}`;
+            if (this.scene.anims.exists(walkKey)) {
+                this.sprite.play(walkKey, true);
+            }
         } else {
-            this.sprite.play('player-idle-anim', true);
+            const idleKey = `${ck}-idle`;
+            if (this.scene.anims.exists(idleKey)) {
+                this.sprite.play(idleKey, true);
+            }
         }
     }
 
-    // Calculate damage dealt
+    // Calculate help power dealt to villager
     calcDamage(bonusMultiplier = 1) {
         const base = this.attack + Math.floor(Math.random() * 5);
         return Math.floor(base * bonusMultiplier);
     }
 
-    // Take damage (reduced by defense)
+    // Lose energy (reduced by stamina)
     takeDamage(amount) {
         const reduced = Math.max(1, amount - this.defense);
         this.hp = Math.max(0, this.hp - reduced);
         return reduced;
     }
 
-    // Heal
+    // Recover energy
     heal(amount) {
         this.hp = Math.min(this.maxHp, this.hp + amount);
     }
 
-    // Gain XP and check level up
+    // Gain friendship and check skill up
     gainXp(amount) {
         this.xp += amount;
         let leveled = false;
@@ -133,7 +107,8 @@ export class Player {
         return {
             hp: this.hp, maxHp: this.maxHp, attack: this.attack,
             defense: this.defense, level: this.level, xp: this.xp,
-            xpToNext: this.xpToNext, gold: this.gold
+            xpToNext: this.xpToNext, gold: this.gold,
+            characterKey: this.characterKey
         };
     }
 

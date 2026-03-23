@@ -16,7 +16,10 @@
       "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== town full/**)",
       "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== Character v.2/**)",
       "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/=== fishing_full/**)",
-      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/**)"
+      "Read(//Users/liambritten/Documents/Visual Studio Code/2d music theory game/**)",
+      "Bash(gh auth:*)",
+      "Bash(python3 -c \"from PIL import Image; print\\(''''PIL available''''\\)\")",
+      "Bash(pip3 install:*)"
     ]
   }
 }

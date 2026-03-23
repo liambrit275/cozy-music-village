@@ -349,12 +349,12 @@ export class OverworldScene extends Phaser.Scene {
         this.time.delayedCall(280, () => {
             this.progression.save(this.player.toJSON());
             this.scene.pause('OverworldScene');
-            this.scene.launch('ArcadeBattleScene', {
+            this.scene.launch('BattleScene', {
                 mode: 'all',
                 storyBattle: true,
                 progression: this.progression,
                 playerData: this.player.toJSON(),
-                monsterKey: monsterKey || this.progression.getRandomMonster(),
+                villagerKey: monsterKey || this.progression.getRandomVillager(),
                 encounterIndex,
                 playerPos: { x: this.player.sprite.x, y: this.player.sprite.y },
                 returnScene: 'OverworldScene',

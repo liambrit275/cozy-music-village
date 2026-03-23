@@ -18,7 +18,7 @@ export class LatencyTestScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.returnScene = data.returnScene || 'ArcadeMenuScene';
+        this.returnScene = data.returnScene || 'PracticeMenuScene';
         this.returnData  = data.returnData  || {};
         this.settings    = data.settings    || {};
     }
