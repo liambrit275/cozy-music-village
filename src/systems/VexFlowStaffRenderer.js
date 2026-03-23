@@ -7,11 +7,11 @@
 //
 // question shape: { clef, noteName, accidental, octave }
 
-const PANEL_BG = '#0a0a22';
-const NOTE_COLOR = '#44aaff';
-const STAVE_COLOR = '#334466';
-const TEXT_COLOR = '#778899';
-const BORDER_COLOR = '#4455aa';
+const PANEL_BG = '#f8fbff';
+const NOTE_COLOR = '#222233';
+const STAVE_COLOR = '#667788';
+const TEXT_COLOR = '#445566';
+const BORDER_COLOR = '#aabbcc';
 const ACC_MAP  = { sharp: '#', flat: 'b' };
 
 // Native VexFlow rendering dimensions (before CSS scaling).
@@ -121,7 +121,7 @@ export class VexFlowStaffRenderer {
 
         const ctx = renderer.getContext();
 
-        // Style for dark background
+        // Style for light background
         ctx.setFillStyle(NOTE_COLOR);
         ctx.setStrokeStyle(NOTE_COLOR);
 
@@ -161,7 +161,7 @@ export class VexFlowStaffRenderer {
             voice.draw(ctx, stave);
         }
 
-        // Style SVG elements for dark background
+        // Style SVG elements for light background
         this._styleSvg(wrapper);
 
         // ── Resize: reposition wrapper ─────────────────────────────────────

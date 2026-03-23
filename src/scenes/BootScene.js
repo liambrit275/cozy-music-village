@@ -1,4 +1,11 @@
-// BootScene: preload all game assets
+// BootScene: preload all game assets (cozy edition)
+
+export const AVATAR_DEFAULTS = { body: 1, top: 'basic', bottom: 'pants', hair: 'bob' };
+export const TOPS_OPTIONS    = ['basic','spaghetti','sporty','stripe','floral','sailor_bow','sailor','dress','overalls','suit','pants_suit','clown','pumpkin','skull','spooky','witch'];
+export const BOTTOMS_OPTIONS = ['pants','skirt'];
+export const HAIR_OPTIONS    = ['bob','ponytail','braids','curly','buzzcut','wavy','long_straight','extra_long','emo','midiwave','spacebuns','french_curl','gentleman'];
+// Legacy alias so any old code using CLOTHES_OPTIONS doesn't break
+export const CLOTHES_OPTIONS = TOPS_OPTIONS;
 
 export class BootScene extends Phaser.Scene {
     constructor() {
@@ -29,165 +36,266 @@ export class BootScene extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        // ── PLAYER CHARACTERS ─────────────────────────────────────────────────
+        // ── PLAYER CHARACTER BODY LAYERS (images, not spritesheets) ──────────
+        for (let i = 1; i <= 8; i++) {
+            this.load.image(`char-body-${i}`,
+                `assets/cozy/characters/char${i}-walk.png`
+            );
+        }
 
-        // Knight — 128×96 per frame
-        this.load.spritesheet('knight-idle',   'assets/characters/knight-idle.png',   { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('knight-run',    'assets/characters/knight-run.png',    { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('knight-jump',   'assets/characters/knight-jump.png',   { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('knight-attack', 'assets/characters/knight-attack.png', { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('knight-hurt',   'assets/characters/knight-hurt.png',   { frameWidth: 128, frameHeight: 96 });
+        // ── CLOTHES LAYERS ────────────────────────────────────────────────────
+        const clothesFiles = ['basic','clown','dress','floral','overalls','pants_suit','pants','pumpkin','sailor_bow','sailor','shoes','skirt','skull','spaghetti','spooky','sporty','stripe','suit','witch'];
+        clothesFiles.forEach(name => {
+            this.load.image(`clothes-${name}`,
+                `assets/cozy/clothes/${name}_walk.png`
+            );
+        });
 
-        // Adventurer — 128×96 per frame
-        this.load.spritesheet('adventurer-idle',   'assets/characters/adventurer-idle.png',   { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('adventurer-run',    'assets/characters/adventurer-run.png',    { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('adventurer-jump',   'assets/characters/adventurer-jump.png',   { frameWidth: 128, frameHeight: 96 });
-        this.load.spritesheet('adventurer-attack', 'assets/characters/adventurer-attack.png', { frameWidth: 128, frameHeight: 96 });
+        // ── HAIR LAYERS ───────────────────────────────────────────────────────
+        const hairFiles = ['bob','braids','buzzcut','curly','emo','extra_long','french_curl','gentleman','long_straight','midiwave','ponytail','spacebuns','wavy'];
+        hairFiles.forEach(name => {
+            this.load.image(`hair-${name}`,
+                `assets/cozy/hair/${name}_walk.png`
+            );
+        });
 
-        // Sunny animal player characters — alias texture keys used by battle scenes
-        // bunny: 24×42 (4 frames), dragon: 192×176 (9 frames),
-        // mushroom: 41×30 (10 frames), froggy: 42×38 (10 frames)
-        this.load.spritesheet('bunny-idle',    'assets/characters/bunny.png',    { frameWidth: 24,  frameHeight: 42  });
-        this.load.spritesheet('dragon-idle',   'assets/characters/dragon.png',   { frameWidth: 192, frameHeight: 176 });
-        this.load.spritesheet('mushroom-idle', 'assets/characters/mushroom.png', { frameWidth: 41,  frameHeight: 30  });
-        this.load.spritesheet('froggy-idle',   'assets/characters/froggy.png',   { frameWidth: 42,  frameHeight: 38  });
+        // ── FARM ANIMALS (villagers) — 4 cols × 5 rows ─────────────────────
+        const farmAnimals = [
+            { name: 'bunny',       frameSize: 17 },
+            { name: 'chicken',     frameSize: 16 },
+            { name: 'cow',         frameSize: 24 },
+            { name: 'goat',        frameSize: 19 },
+            { name: 'pig',         frameSize: 20 },
+            { name: 'sheep',       frameSize: 17 },
+            { name: 'turkey',      frameSize: 17 },
+            { name: 'bunny-baby',  frameSize: 16 },
+            { name: 'chicken-baby', frameSize: 16 },
+            { name: 'cow-baby',    frameSize: 21 },
+        ];
+        farmAnimals.forEach(a => {
+            this.load.spritesheet(`villager-${a.name}`,
+                `assets/cozy/animals/${a.name}.png`,
+                { frameWidth: a.frameSize, frameHeight: a.frameSize }
+            );
+        });
 
-        // ── MONSTER SPRITES ───────────────────────────────────────────────────
+        // ── TOWN ANIMALS ────────────────────────────────────────────────────
+        this.load.spritesheet('villager-robin',
+            'assets/cozy/animals/robin.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+        this.load.spritesheet('villager-blackbird',
+            'assets/cozy/animals/blackbird.png',
+            { frameWidth: 16, frameHeight: 16 }
+        );
+        this.load.spritesheet('villager-squirrel',
+            'assets/cozy/animals/squirrel.png',
+            { frameWidth: 19, frameHeight: 19 }
+        );
+        this.load.spritesheet('villager-rat',
+            'assets/cozy/animals/rat.png',
+            { frameWidth: 18, frameHeight: 18 }
+        );
 
-        // Forest
-        this.load.spritesheet('monster-slime',      'assets/monsters/slime.png',      { frameWidth: 118, frameHeight: 79  });
-        this.load.spritesheet('monster-frog',       'assets/monsters/frog.png',       { frameWidth: 63,  frameHeight: 68  });
-        this.load.spritesheet('monster-glowWisp',   'assets/monsters/glow-wisp.png',  { frameWidth: 48,  frameHeight: 48  });
-        this.load.spritesheet('monster-mutantToad', 'assets/monsters/mutant-toad.png',{ frameWidth: 80,  frameHeight: 64  });
+        // ── CRITTERS (no animations yet, just load) ─────────────────────────
+        this.load.image('critter-slime-all', 'assets/cozy/animals/slime-all.png');
+        this.load.image('critter-ghost',     'assets/cozy/animals/ghost.png');
+        this.load.image('critter-bat',       'assets/cozy/animals/bat.png');
 
-        // Village
-        this.load.spritesheet('monster-wanderingBard', 'assets/monsters/centaur.png', { frameWidth: 112, frameHeight: 144 });
-        this.load.spritesheet('monster-scrollKeeper',  'assets/monsters/ghost.png',   { frameWidth: 64,  frameHeight: 80  });
+        // ── EFFECTS ─────────────────────────────────────────────────────────
+        this.load.image('heart', 'assets/cozy/effects/heart.png');
 
-        // Caves
-        this.load.spritesheet('monster-hellHound',  'assets/monsters/hell-hound.png', { frameWidth: 64,  frameHeight: 48  });
-        this.load.spritesheet('monster-shadowCrow', 'assets/monsters/crow.png',       { frameWidth: 48,  frameHeight: 48  });
-        this.load.spritesheet('monster-ogre',       'assets/monsters/ogre.png',       { frameWidth: 144, frameHeight: 80  });
+        // ── ENVIRONMENT / TOP-DOWN WORLD ───────────────────────────────────
+        this.load.image('nature-global',  'assets/cozy/environment/nature-global.png');
+        this.load.image('outdoor-tiles',  'assets/cozy/environment/outdoor-tiles.png');
 
-        // Castle
-        this.load.spritesheet('monster-guardCaptain', 'assets/monsters/treant.png',   { frameWidth: 80,  frameHeight: 84  });
-
-        // Tower
-        this.load.spritesheet('monster-werewolf',   'assets/monsters/werewolf.png',   { frameWidth: 96,  frameHeight: 76  });
-
-        // ── SUNNY ANIMAL NPCs (world map rescues) ──────────────────────────────
-        // Reuse the character alias sheets already loaded above
-        this.load.spritesheet('sunny-bunny',    'assets/characters/bunny.png',    { frameWidth: 24,  frameHeight: 42  });
-        this.load.spritesheet('sunny-froggy',   'assets/characters/froggy.png',   { frameWidth: 42,  frameHeight: 38  });
-        this.load.spritesheet('sunny-dragon',   'assets/characters/dragon.png',   { frameWidth: 192, frameHeight: 176 });
-        this.load.spritesheet('sunny-mushroom', 'assets/characters/mushroom.png', { frameWidth: 41,  frameHeight: 30  });
-
-        // ── BATTLE BACKGROUNDS (per zone) ─────────────────────────────────────
-        this.load.image('bg-forest',       'assets/backgrounds/forest.png');
-        this.load.image('bg-forest-trees', 'assets/backgrounds/forest-trees.png');
-        this.load.image('bg-village',      'assets/backgrounds/village.png');
-        this.load.image('bg-caves',        'assets/backgrounds/caves.png');
-        this.load.image('bg-castle',       'assets/backgrounds/castle.png');
-        this.load.image('bg-underworld',   'assets/backgrounds/underworld.png');
-        this.load.image('bg-tower',        'assets/backgrounds/tower.png');
-
-        // ── MUSIC NOTATION SYMBOLS ────────────────────────────────────────────
+        // ── MUSIC NOTATION SYMBOLS ──────────────────────────────────────────
         this.load.image('note-quarter',   'assets/symbols/note_quarter.png');
         this.load.image('note-eighth',    'assets/symbols/note_eighth.png');
         this.load.image('note-sixteenth', 'assets/symbols/note_sixteenth.png');
         this.load.image('rest-quarter',   'assets/symbols/rest_quarter.png');
         this.load.image('rest-eighth',    'assets/symbols/rest_eighth.png');
         this.load.image('rest-sixteenth', 'assets/symbols/rest_sixteenth.png');
-
-        // ── HIT EFFECT ────────────────────────────────────────────────────────
-        this.load.spritesheet('hit-effect', 'assets/effects/hit.png', { frameWidth: 31, frameHeight: 32 });
     }
 
     create() {
-        // Hit effect animation (shared)
-        if (!this.anims.exists('hit-anim')) {
-            this.anims.create({
-                key: 'hit-anim',
-                frames: this.anims.generateFrameNumbers('hit-effect', { start: 0, end: 2 }),
-                frameRate: 12, repeat: 0
-            });
+        // ── COMPOSE PLAYER AVATAR from saved settings ─────────────────────
+        let avatarSettings;
+        try {
+            const saved = JSON.parse(localStorage.getItem('avatar-settings'));
+            if (saved && saved.body) {
+                // Migrate old single-clothes format to top/bottom split
+                avatarSettings = {
+                    body:   saved.body,
+                    top:    saved.top    || saved.clothes || AVATAR_DEFAULTS.top,
+                    bottom: saved.bottom || AVATAR_DEFAULTS.bottom,
+                    hair:   saved.hair   || AVATAR_DEFAULTS.hair,
+                };
+            } else {
+                avatarSettings = { ...AVATAR_DEFAULTS };
+            }
+        } catch (e) {
+            avatarSettings = { ...AVATAR_DEFAULTS };
+        }
+        this._composeAvatar(avatarSettings);
+
+        // ── AVATAR ANIMATIONS ─────────────────────────────────────────────
+        this._createAnimIfNew('avatar-walk-down',  'player-avatar', 0,  7,  8, -1);
+        this._createAnimIfNew('avatar-walk-right', 'player-avatar', 8,  15, 8, -1);
+        this._createAnimIfNew('avatar-walk-up',    'player-avatar', 16, 23, 8, -1);
+        this._createAnimIfNew('avatar-walk-left',  'player-avatar', 24, 31, 8, -1);
+        this._createAnimIfNew('avatar-idle',       'player-avatar', 0,  0,  1, 0);
+
+        // ── FARM ANIMAL ANIMATIONS (4 cols × 5 rows) ────────────────────────
+        const farmNames = [
+            'bunny', 'chicken', 'cow', 'goat', 'pig',
+            'sheep', 'turkey', 'bunny-baby', 'chicken-baby', 'cow-baby'
+        ];
+        farmNames.forEach(name => {
+            const sheet = `villager-${name}`;
+
+            // Walk directions: row0=down(0-3), row1=right(4-7), row2=up(8-11), row3=left(12-15), row4=sleep(16-19)
+            this._createAnimIfNew(`${name}-walk-down`,  sheet, 0,  3,  5, -1);
+            this._createAnimIfNew(`${name}-walk-right`, sheet, 4,  7,  5, -1);
+            this._createAnimIfNew(`${name}-walk-up`,    sheet, 8,  11, 5, -1);
+            this._createAnimIfNew(`${name}-walk-left`,  sheet, 12, 15, 5, -1);
+            this._createAnimIfNew(`${name}-sleep`,      sheet, 16, 19, 3, -1);
+
+            // Idle: frame 0 only
+            this._createAnimIfNew(`${name}-idle`, sheet, 0, 0, 1, 0);
+        });
+
+        // ── TOWN ANIMAL ANIMATIONS ──────────────────────────────────────────
+        // Robin & blackbird: 64×128 → 4 cols × 8 rows
+        // Blank frames: 3,7,10,11,14,15 — use only populated frames per direction
+        ['robin', 'blackbird'].forEach(name => {
+            const sheet = `villager-${name}`;
+            this._createAnimIfNew(`${name}-walk-down`,  sheet, 0,  2,  5, -1); // 3 frames (frame 3 blank)
+            this._createAnimIfNew(`${name}-walk-right`, sheet, 4,  6,  5, -1); // 3 frames (frame 7 blank)
+            this._createAnimIfNew(`${name}-walk-up`,    sheet, 8,  9,  5, -1); // 2 frames (10-11 blank)
+            this._createAnimIfNew(`${name}-walk-left`,  sheet, 12, 13, 5, -1); // 2 frames (14-15 blank)
+            this._createAnimIfNew(`${name}-idle`,       sheet, 0,  0,  1, 0);
+        });
+        // Squirrel: 114×114 → 6 cols × 6 rows
+        {
+            const sheet = 'villager-squirrel';
+            this._createAnimIfNew('squirrel-walk-down',  sheet, 0,  5,  5, -1);
+            this._createAnimIfNew('squirrel-walk-right', sheet, 6,  11, 5, -1);
+            this._createAnimIfNew('squirrel-walk-up',    sheet, 12, 17, 5, -1);
+            this._createAnimIfNew('squirrel-walk-left',  sheet, 18, 23, 5, -1);
+            this._createAnimIfNew('squirrel-idle',       sheet, 0,  0,  1, 0);
+        }
+        // Rat: 72×108 → 4 cols × 6 rows
+        {
+            const sheet = 'villager-rat';
+            this._createAnimIfNew('rat-walk-down',  sheet, 0,  3,  5, -1);
+            this._createAnimIfNew('rat-walk-right', sheet, 4,  7,  5, -1);
+            this._createAnimIfNew('rat-walk-up',    sheet, 8,  11, 5, -1);
+            this._createAnimIfNew('rat-walk-left',  sheet, 12, 15, 5, -1);
+            this._createAnimIfNew('rat-idle',       sheet, 0,  0,  1, 0);
         }
 
-        // ── CHARACTER ANIMATIONS ──────────────────────────────────────────────
-        this._createCharAnims('knight', {
-            idle:   { sheet: 'knight-idle',   start: 0, end: 3, rate: 6,  repeat: -1 },
-            run:    { sheet: 'knight-run',    start: 0, end: 7, rate: 12, repeat: -1 },
-            jump:   { sheet: 'knight-jump',   start: 0, end: 3, rate: 8,  repeat: 0  },
-            attack: { sheet: 'knight-attack', start: 0, end: 5, rate: 12, repeat: 0  },
-            hurt:   { sheet: 'knight-hurt',   start: 0, end: 2, rate: 8,  repeat: 0  },
-        });
-        this._createCharAnims('adventurer', {
-            idle:   { sheet: 'adventurer-idle',   start: 0, end: 3, rate: 8,  repeat: -1 },
-            run:    { sheet: 'adventurer-run',    start: 0, end: 7, rate: 12, repeat: -1 },
-            jump:   { sheet: 'adventurer-jump',   start: 0, end: 2, rate: 8,  repeat: 0  },
-            attack: { sheet: 'adventurer-attack', start: 0, end: 7, rate: 12, repeat: 0  },
-            hurt:   { sheet: 'adventurer-idle',   start: 0, end: 1, rate: 8,  repeat: 0  },
-        });
-        this._createCharAnims('bunny', {
-            idle:   { sheet: 'bunny-idle', start: 0, end: 3, rate: 6,  repeat: -1 },
-            run:    { sheet: 'bunny-idle', start: 0, end: 3, rate: 10, repeat: -1 },
-            jump:   { sheet: 'bunny-idle', start: 0, end: 3, rate: 8,  repeat: 0  },
-            attack: { sheet: 'bunny-idle', start: 0, end: 3, rate: 12, repeat: 0  },
-            hurt:   { sheet: 'bunny-idle', start: 0, end: 1, rate: 8,  repeat: 0  },
-        });
-        this._createCharAnims('dragon', {
-            idle:   { sheet: 'dragon-idle', start: 0, end: 8, rate: 8,  repeat: -1 },
-            run:    { sheet: 'dragon-idle', start: 0, end: 8, rate: 12, repeat: -1 },
-            jump:   { sheet: 'dragon-idle', start: 0, end: 8, rate: 8,  repeat: 0  },
-            attack: { sheet: 'dragon-idle', start: 0, end: 8, rate: 14, repeat: 0  },
-            hurt:   { sheet: 'dragon-idle', start: 0, end: 2, rate: 8,  repeat: 0  },
-        });
-        this._createCharAnims('mushroom', {
-            idle:   { sheet: 'mushroom-idle', start: 0, end: 9, rate: 8,  repeat: -1 },
-            run:    { sheet: 'mushroom-idle', start: 0, end: 9, rate: 12, repeat: -1 },
-            jump:   { sheet: 'mushroom-idle', start: 0, end: 9, rate: 8,  repeat: 0  },
-            attack: { sheet: 'mushroom-idle', start: 0, end: 9, rate: 14, repeat: 0  },
-            hurt:   { sheet: 'mushroom-idle', start: 0, end: 1, rate: 8,  repeat: 0  },
-        });
-        this._createCharAnims('froggy', {
-            idle:   { sheet: 'froggy-idle', start: 0, end: 9, rate: 8,  repeat: -1 },
-            run:    { sheet: 'froggy-idle', start: 0, end: 9, rate: 12, repeat: -1 },
-            jump:   { sheet: 'froggy-idle', start: 0, end: 9, rate: 8,  repeat: 0  },
-            attack: { sheet: 'froggy-idle', start: 0, end: 9, rate: 14, repeat: 0  },
-            hurt:   { sheet: 'froggy-idle', start: 0, end: 1, rate: 8,  repeat: 0  },
-        });
-
-        // ── SUNNY ANIMAL NPC ANIMATIONS (world map) ───────────────────────────
-        const sunnyAnims = [
-            { key: 'sunny-bunny-idle',    sheet: 'sunny-bunny',    start: 0, end: 3, rate: 6  },
-            { key: 'sunny-froggy-idle',   sheet: 'sunny-froggy',   start: 0, end: 9, rate: 8  },
-            { key: 'sunny-dragon-idle',   sheet: 'sunny-dragon',   start: 0, end: 8, rate: 8  },
-            { key: 'sunny-mushroom-idle', sheet: 'sunny-mushroom', start: 0, end: 9, rate: 8  },
-        ];
-        sunnyAnims.forEach(a => {
-            if (!this.anims.exists(a.key)) {
-                this.anims.create({
-                    key: a.key,
-                    frames: this.anims.generateFrameNumbers(a.sheet, { start: a.start, end: a.end }),
-                    frameRate: a.rate, repeat: -1
-                });
-            }
-        });
-
-        this.scene.start('MenuScene');
+        // ── TRANSITION ──────────────────────────────────────────────────────
+        this.scene.start('TitleScene');
     }
 
-    _createCharAnims(charKey, defs) {
-        Object.entries(defs).forEach(([action, cfg]) => {
-            const key = `${charKey}-${action}`;
-            if (!this.anims.exists(key)) {
-                this.anims.create({
-                    key,
-                    frames: this.anims.generateFrameNumbers(cfg.sheet, { start: cfg.start, end: cfg.end }),
-                    frameRate: cfg.rate,
-                    repeat: cfg.repeat
-                });
-            }
-        });
+    /**
+     * Composite the avatar layers onto a canvas and register as 'player-avatar' texture.
+     */
+    _composeAvatar(settings) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+
+        const bodyIdx = (settings.body || 1) - 1; // 0-7
+        const colW = 256;
+
+        // 1. Body base
+        const bodyImg = this.textures.get(`char-body-${settings.body || 1}`).getSourceImage();
+        ctx.drawImage(bodyImg, 0, 0);
+
+        // 2. Bottom layer (pants / skirt) — always required
+        const bottomKey = `clothes-${settings.bottom || AVATAR_DEFAULTS.bottom}`;
+        if (this.textures.exists(bottomKey)) {
+            const img = this.textures.get(bottomKey).getSourceImage();
+            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
+        }
+
+        // 3. Top layer (shirt / full outfit) — always required
+        const topKey = `clothes-${settings.top || AVATAR_DEFAULTS.top}`;
+        if (this.textures.exists(topKey)) {
+            const img = this.textures.get(topKey).getSourceImage();
+            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
+        }
+
+        // 4. Hair
+        const hairKey = `hair-${settings.hair || AVATAR_DEFAULTS.hair}`;
+        if (this.textures.exists(hairKey)) {
+            const img = this.textures.get(hairKey).getSourceImage();
+            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
+        }
+
+        // Register as Phaser texture (remove old if exists)
+        if (this.textures.exists('player-avatar')) this.textures.remove('player-avatar');
+        this.textures.addCanvas('player-avatar', canvas);
+        // Register 32 frames (8 cols × 4 rows of 32×32) so animations work correctly
+        const tex = this.textures.get('player-avatar');
+        for (let i = 0; i < 32; i++) {
+            tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+        }
+    }
+
+    /**
+     * Static helper: compose avatar canvas using game.textures (callable from any scene).
+     */
+    static composeAvatarCanvas(game, settings) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        const bodyIdx = (settings.body || 1) - 1;
+        const colW = 256;
+        // 1. Body
+        const bodyImg = game.textures.get(`char-body-${settings.body || 1}`).getSourceImage();
+        ctx.drawImage(bodyImg, 0, 0);
+        // 2. Bottom
+        const bottomKey = `clothes-${settings.bottom || 'pants'}`;
+        if (game.textures.exists(bottomKey)) {
+            const img = game.textures.get(bottomKey).getSourceImage();
+            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
+        }
+        // 3. Top
+        const topKey = `clothes-${settings.top || settings.clothes || 'basic'}`;
+        if (game.textures.exists(topKey)) {
+            const img = game.textures.get(topKey).getSourceImage();
+            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
+        }
+        // 4. Hair
+        const hairKey = `hair-${settings.hair || 'bob'}`;
+        if (game.textures.exists(hairKey)) {
+            const img = game.textures.get(hairKey).getSourceImage();
+            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
+        }
+        if (game.textures.exists('player-avatar')) game.textures.remove('player-avatar');
+        game.textures.addCanvas('player-avatar', canvas);
+        const tex = game.textures.get('player-avatar');
+        for (let i = 0; i < 32; i++) {
+            tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+        }
+        return canvas;
+    }
+
+    /**
+     * Helper: create an animation if it doesn't already exist.
+     */
+    _createAnimIfNew(key, sheet, start, end, frameRate, repeat) {
+        if (!this.anims.exists(key)) {
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(sheet, { start, end }),
+                frameRate,
+                repeat
+            });
+        }
     }
 }

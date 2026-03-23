@@ -19,20 +19,25 @@ export class MidiInput {
 
     async init() {
         if (!navigator.requestMIDIAccess) {
-            console.log('Web MIDI API not supported');
+            this.unavailableReason = 'not-supported';
+            console.log('Web MIDI API not supported in this browser');
             return false;
         }
         try {
-            this._access = await navigator.requestMIDIAccess();
+            // sysex: false is required by some browsers (e.g. Firefox) to avoid
+            // triggering a higher-permission prompt
+            this._access = await navigator.requestMIDIAccess({ sysex: false });
             this._bindInputs();
 
             // Re-bind when devices connect/disconnect
             this._access.onstatechange = () => this._bindInputs();
 
             this.available = true;
+            this.unavailableReason = null;
             return true;
         } catch (e) {
-            console.log('MIDI access denied:', e);
+            this.unavailableReason = e.name === 'SecurityError' ? 'permission-denied' : 'error';
+            console.log('MIDI access denied:', e.name, e.message);
             return false;
         }
     }
