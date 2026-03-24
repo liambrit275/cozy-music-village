@@ -109,7 +109,7 @@ export class LocationInfoScene extends Phaser.Scene {
         this._objs.push(charName);
 
         const charTitle = this.add.text(CONTENT_X, TOP + 32, subtitleTxt, {
-            font: '11px monospace', fill: '#aabbcc'
+            font: '11px monospace', fill: '#bbaa88'
         }).setDepth(4);
         this._objs.push(charTitle);
 
@@ -147,7 +147,7 @@ export class LocationInfoScene extends Phaser.Scene {
 
         if (!saved) {
             // Not yet rescued — show info only, must beat boss in side-scroller
-            const learnBtn = this._makeBtn(cx - 60, btnY, '📖 Tell me more', '#1a1a2a', '#2a2a44', () => {
+            const learnBtn = this._makeBtn(cx - 60, btnY, '📖 Tell me more', '#2a2418', '#3a3020', () => {
                 this._showTutorial();
             });
             learnBtn.forEach(o => this._objs.push(o));
@@ -169,7 +169,7 @@ export class LocationInfoScene extends Phaser.Scene {
         }
 
         // Back
-        const backBtn = this._makeBtn(cx - PANEL_W / 2 + 50, btnY, '← Back', '#1a1a33', '#2a2a44', () => {
+        const backBtn = this._makeBtn(cx - PANEL_W / 2 + 50, btnY, '← Back', '#2a2418', '#3a3020', () => {
             this._goBack();
         });
         backBtn.forEach(o => this._objs.push(o));
@@ -232,7 +232,7 @@ export class LocationInfoScene extends Phaser.Scene {
         // Buttons
         const btnY = cy + PANEL_H / 2 - 36;
 
-        const backBtn = this._makeBtn(cx - 140, btnY, '← Back', '#1a1a33', '#2a2a44', () => {
+        const backBtn = this._makeBtn(cx - 140, btnY, '← Back', '#2a2418', '#3a3020', () => {
             this._showEncounter();
         });
         backBtn.forEach(o => this._objs.push(o));

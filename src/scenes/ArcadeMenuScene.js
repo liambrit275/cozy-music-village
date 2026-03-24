@@ -47,20 +47,14 @@ const DEFAULT_SETTINGS = {
     noteRanges: ['onStaff'],
     rhythmSubs: ['quarter'],
     tapLatencyMs: 0,
-    characterKey: 'adventurer',
+    characterKey: 'adventurer',  // only hero with run/attack sheets
     sounds: {
         drone: 'pad', interval: 'synth', click: 'stick', rhythmNote: 'snare',
         volumes: { drone: 0.75, interval: 1.0, click: 1.0, rhythmNote: 1.0 },
     },
 };
 
-const CHARACTERS = [
-    { key: 'bunny',      label: 'Bunny',    texture: 'bunny-idle',     menuScale: 1.0,  gameScale: 1.0 },
-    { key: 'dragon',     label: 'Dragon',   texture: 'dragon-idle',    menuScale: 0.15, gameScale: 0.35, flip: true },
-    { key: 'mushroom',   label: 'Mushroom', texture: 'mushroom-idle',  menuScale: 1.5,  gameScale: 1.0 },
-    { key: 'froggy',     label: 'Froggy',   texture: 'froggy-idle',    menuScale: 1.0,  gameScale: 1.0, flip: true },
-    { key: 'adventurer', label: 'Hero',     texture: 'adventurer-idle',menuScale: 0.35, gameScale: 1.0 },
-];
+const HERO_CHARACTER = { key: 'adventurer', label: 'Hero', texture: 'adventurer-idle', menuScale: 0.35, gameScale: 1.0 };
 
 // Keys shown in the tones key selector (RANDOM + all 12)
 const TONE_KEYS = [
@@ -83,7 +77,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.cameras.main;
-        this.cameras.main.setBackgroundColor('#080818');
+        this.cameras.main.setBackgroundColor('#1a150e');
 
         // Load saved settings
         const saved = this.pm.loadArcadeSettings();
@@ -98,7 +92,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         this._settingsObjs = [];
 
         // Title
-        this.add.text(width / 2, 24, 'ARCADE MODE', {
+        this.add.text(width / 2, 24, 'BATTLE MODE', {
             font: 'bold 32px monospace', fill: '#ffaa00',
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5);
@@ -133,11 +127,11 @@ export class ArcadeMenuScene extends Phaser.Scene {
 
         // --- Settings gear button (top right) ---
         this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#445566',
+            font: 'bold 20px monospace', fill: '#887766',
             padding: { x: 6, y: 4 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
-            .on('pointerover', function() { this.setStyle({ fill: '#aabbff' }); })
-            .on('pointerout',  function() { this.setStyle({ fill: '#445566' }); })
+            .on('pointerover', function() { this.setStyle({ fill: '#ffcc66' }); })
+            .on('pointerout',  function() { this.setStyle({ fill: '#887766' }); })
             .on('pointerdown', () => {
                 this.scene.launch('SettingsScene', { callerKey: null, pauseCaller: false });
             });
@@ -152,7 +146,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         this._makeBtn(width / 2 + 60, height - 36, 'START', '#114411', '#225522', () => this._startArcade());
 
         // --- LATENCY ---
-        this._makeBtn(width / 2 + 200, height - 36, 'LATENCY', '#111122', '#1a1a44', () => {
+        this._makeBtn(width / 2 + 200, height - 36, 'LATENCY', '#2a2418', '#3a3020', () => {
             this.scene.start('LatencyTestScene', {
                 returnScene: 'ArcadeMenuScene',
                 returnData:  { playerData: this.playerData },
@@ -162,7 +156,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
 
         // --- BACK ---
         this._makeBtn(width / 2 - 120, height - 36, 'BACK', '#221111', '#443333', () => {
-            this.scene.start('MenuScene');
+            this.scene.start('TitleScene');
         });
 
         // Initial state
@@ -267,24 +261,11 @@ export class ArcadeMenuScene extends Phaser.Scene {
             y += 24;
         }
 
-        // Character picker (always shown)
+        // Hero preview
         y += 12;
-        this._settingsObjs.push(
-            this.add.text(width / 2 - 200, y, 'Character:', { font: '12px monospace', fill: '#aaaacc' }).setOrigin(0, 0.5)
-        );
-        const spacing = 80;
-        const startX = width / 2 - (spacing * (CHARACTERS.length - 1)) / 2;
-        CHARACTERS.forEach((ch, i) => {
-            const cx = startX + i * spacing;
-            const sprite = this.add.sprite(cx, y + 20, ch.texture, 0).setScale(ch.menuScale).setFlipX(ch.flip || false);
-            const isSelected = (this.settings.characterKey || 'knight') === ch.key;
-            const btn = this._makeCheckBtn(cx, y + 46, ch.label, isSelected, () => {
-                this.settings.characterKey = ch.key;
-                this._saveSettings();
-                this._refreshSettings();
-            });
-            this._settingsObjs.push(sprite, btn);
-        });
+        const sprite = this.add.sprite(width / 2, y + 20, HERO_CHARACTER.texture, 0)
+            .setScale(HERO_CHARACTER.menuScale);
+        this._settingsObjs.push(sprite);
     }
 
     _toggleSetting(key, value, btn) {
@@ -342,8 +323,8 @@ export class ArcadeMenuScene extends Phaser.Scene {
         const on = this.settings.practice;
         this.practiceBtn.setText(on ? '✓ PRACTICE' : '✗ PRACTICE');
         this.practiceBtn.setStyle({
-            backgroundColor: on ? '#1a3344' : '#222222',
-            fill: on ? '#88ddff' : '#888888'
+            backgroundColor: on ? '#2a3322' : '#222222',
+            fill: on ? '#eedd88' : '#888888'
         });
     }
 
@@ -384,7 +365,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         this.selectedMode = mode;
         Object.entries(this.modeBtns).forEach(([id, btn]) => {
             btn.setStyle({
-                backgroundColor: id === mode ? '#334433' : '#111133',
+                backgroundColor: id === mode ? '#334433' : '#2a2418',
                 fill: id === mode ? '#ffcc00' : '#ffffff'
             });
         });
@@ -402,10 +383,9 @@ export class ArcadeMenuScene extends Phaser.Scene {
         const playerData = this.playerData || {
             hp: 100, maxHp: 100, attack: 30, defense: 5, level: 1, xp: 0, gold: 0
         };
-        const selChar = CHARACTERS.find(c => c.key === (this.settings.characterKey || 'adventurer'));
-        playerData.characterKey   = selChar ? selChar.key       : 'adventurer';
-        playerData.characterScale = selChar ? selChar.gameScale : 1.0;
-        playerData.characterFlip  = selChar ? (selChar.flip || false) : false;
+        playerData.characterKey   = 'adventurer';
+        playerData.characterScale = HERO_CHARACTER.gameScale;
+        playerData.characterFlip  = false;
 
         if (this.selectedMode === 'rhythmReading') {
             this.scene.start('RhythmReadingScene', {
@@ -431,7 +411,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         const btn = this.add.text(x, y, label, {
             font: 'bold 13px monospace',
             fill: '#ffffff',
-            backgroundColor: '#111133',
+            backgroundColor: '#2a2418',
             padding: { x: 10, y: 6 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerdown', cb);

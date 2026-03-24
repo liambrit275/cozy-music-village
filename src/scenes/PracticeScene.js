@@ -132,7 +132,7 @@ export class PracticeScene extends Phaser.Scene {
 
         // ── Title ────────────────────────────────────────────────────────────
         this.add.text(width / 2, 18, 'PRACTICE MODE', {
-            font: 'bold 22px monospace', fill: '#88ddff',
+            font: 'bold 22px monospace', fill: '#eedd88',
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(5);
 
@@ -177,10 +177,10 @@ export class PracticeScene extends Phaser.Scene {
 
         // ── Settings gear ─────────────────────────────────────────────────────
         this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#445566', padding: { x: 6, y: 4 }
+            font: 'bold 20px monospace', fill: '#887766', padding: { x: 6, y: 4 }
         }).setOrigin(1, 0).setDepth(10).setInteractive({ useHandCursor: true })
-            .on('pointerover', function() { this.setStyle({ fill: '#aabbff' }); })
-            .on('pointerout',  function() { this.setStyle({ fill: '#445566' }); })
+            .on('pointerover', function() { this.setStyle({ fill: '#ffcc66' }); })
+            .on('pointerout',  function() { this.setStyle({ fill: '#887766' }); })
             .on('pointerdown', () => this._openSettings());
 
         this.input.keyboard.on('keydown-ESC', () => this._openSettings());
@@ -386,11 +386,11 @@ export class PracticeScene extends Phaser.Scene {
             if (!info) return;
             const btn = this.add.text(x, y, `${info.solfege}\n${degree}`, {
                 font: 'bold 14px monospace', fill: info.color,
-                backgroundColor: '#111133', padding: { x: 9, y: 5 },
+                backgroundColor: '#2a2418', padding: { x: 9, y: 5 },
                 stroke: '#000000', strokeThickness: 2, align: 'center'
             }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(5);
-            btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#2a2a55' }));
-            btn.on('pointerout',  () => btn.setStyle({ backgroundColor: '#111133' }));
+            btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#3a3020' }));
+            btn.on('pointerout',  () => btn.setStyle({ backgroundColor: '#2a2418' }));
             btn.on('pointerdown', () => this._submitTone(degree));
             this.solfegeButtons.push(btn);
         });
@@ -609,7 +609,7 @@ export class PracticeScene extends Phaser.Scene {
                 .setStrokeStyle(1, 0x2244aa).setDepth(3);
 
             const lbl = this.add.text(cx, gridY - cellH / 2 - 8, sub.cells[i], {
-                font: '9px monospace', fill: isDownbeat ? '#aabbcc' : '#445566'
+                font: '9px monospace', fill: isDownbeat ? '#bbaa88' : '#887766'
             }).setOrigin(0.5).setDepth(3);
 
             bg.setInteractive({ useHandCursor: true });

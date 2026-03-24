@@ -1,0 +1,313 @@
+{
+  "_meta": {
+    "description": "Asset manifest for Phaser 3 — keys, paths, types, and frame metadata",
+    "version": "2.0.0",
+    "updated": "2026-03-23"
+  },
+
+  "images": [
+    { "key": "heart",            "path": "assets/cozy/effects/heart.png",            "width": 7,   "height": 7 },
+    { "key": "nature-global",    "path": "assets/cozy/environment/nature-global.png", "width": 160, "height": 208 },
+    { "key": "outdoor-tiles",    "path": "assets/cozy/environment/outdoor-tiles.png", "width": 448, "height": 432 },
+    { "key": "note-quarter",     "path": "assets/symbols/note_quarter.png",           "width": 69,  "height": 164 },
+    { "key": "note-eighth",      "path": "assets/symbols/note_eighth.png",            "width": 109, "height": 164 },
+    { "key": "note-sixteenth",   "path": "assets/symbols/note_sixteenth.png",         "width": 109, "height": 164 },
+    { "key": "rest-quarter",     "path": "assets/symbols/rest_quarter.png",           "width": 207, "height": 220 },
+    { "key": "rest-eighth",      "path": "assets/symbols/rest_eighth.png",            "width": 186, "height": 220 },
+    { "key": "rest-sixteenth",   "path": "assets/symbols/rest_sixteenth.png",         "width": 220, "height": 220 }
+  ],
+
+  "characterBodies": [
+    { "key": "char-body-1", "path": "assets/cozy/characters/char1-walk.png", "width": 256, "height": 128, "note": "8x4 grid of 32x32 frames" },
+    { "key": "char-body-2", "path": "assets/cozy/characters/char2-walk.png", "width": 256, "height": 128 },
+    { "key": "char-body-3", "path": "assets/cozy/characters/char3-walk.png", "width": 256, "height": 128 },
+    { "key": "char-body-4", "path": "assets/cozy/characters/char4-walk.png", "width": 256, "height": 128 },
+    { "key": "char-body-5", "path": "assets/cozy/characters/char5-walk.png", "width": 256, "height": 128 },
+    { "key": "char-body-6", "path": "assets/cozy/characters/char6-walk.png", "width": 256, "height": 128 },
+    { "key": "char-body-7", "path": "assets/cozy/characters/char7-walk.png", "width": 256, "height": 128 },
+    { "key": "char-body-8", "path": "assets/cozy/characters/char8-walk.png", "width": 256, "height": 128 }
+  ],
+
+  "clothesLayers": [
+    { "key": "clothes-basic",      "path": "assets/cozy/clothes/basic_walk.png",      "width": 2560, "height": 128, "note": "8 body variants x 256px each, composited onto avatar canvas" },
+    { "key": "clothes-clown",      "path": "assets/cozy/clothes/clown_walk.png",      "width": 2560, "height": 128 },
+    { "key": "clothes-dress",      "path": "assets/cozy/clothes/dress_walk.png",      "width": 2560, "height": 128 },
+    { "key": "clothes-floral",     "path": "assets/cozy/clothes/floral_walk.png",     "width": 2560, "height": 128 },
+    { "key": "clothes-overalls",   "path": "assets/cozy/clothes/overalls_walk.png",   "width": 2560, "height": 128 },
+    { "key": "clothes-pants_suit", "path": "assets/cozy/clothes/pants_suit_walk.png", "width": 2560, "height": 128 },
+    { "key": "clothes-pants",      "path": "assets/cozy/clothes/pants_walk.png",      "width": 2560, "height": 128 },
+    { "key": "clothes-pumpkin",    "path": "assets/cozy/clothes/pumpkin_walk.png",    "width": 2560, "height": 128 },
+    { "key": "clothes-sailor_bow", "path": "assets/cozy/clothes/sailor_bow_walk.png", "width": 2560, "height": 128 },
+    { "key": "clothes-sailor",     "path": "assets/cozy/clothes/sailor_walk.png",     "width": 2560, "height": 128 },
+    { "key": "clothes-shoes",      "path": "assets/cozy/clothes/shoes_walk.png",      "width": 2560, "height": 128 },
+    { "key": "clothes-skirt",      "path": "assets/cozy/clothes/skirt_walk.png",      "width": 2560, "height": 128 },
+    { "key": "clothes-skull",      "path": "assets/cozy/clothes/skull_walk.png",      "width": 2560, "height": 128 },
+    { "key": "clothes-spaghetti",  "path": "assets/cozy/clothes/spaghetti_walk.png",  "width": 2560, "height": 128 },
+    { "key": "clothes-spooky",     "path": "assets/cozy/clothes/spooky_walk.png",     "width": 2560, "height": 128 },
+    { "key": "clothes-sporty",     "path": "assets/cozy/clothes/sporty_walk.png",     "width": 2560, "height": 128 },
+    { "key": "clothes-stripe",     "path": "assets/cozy/clothes/stripe_walk.png",     "width": 2560, "height": 128 },
+    { "key": "clothes-suit",       "path": "assets/cozy/clothes/suit_walk.png",       "width": 2560, "height": 128 },
+    { "key": "clothes-witch",      "path": "assets/cozy/clothes/witch_walk.png",      "width": 2560, "height": 128 }
+  ],
+
+  "hairLayers": [
+    { "key": "hair-bob",           "path": "assets/cozy/hair/bob_walk.png",           "width": 2560, "height": 128, "note": "8 body variants x 256px each, composited onto avatar canvas" },
+    { "key": "hair-braids",        "path": "assets/cozy/hair/braids_walk.png",        "width": 2560, "height": 128 },
+    { "key": "hair-buzzcut",       "path": "assets/cozy/hair/buzzcut_walk.png",       "width": 2560, "height": 128 },
+    { "key": "hair-curly",         "path": "assets/cozy/hair/curly_walk.png",         "width": 2560, "height": 128 },
+    { "key": "hair-emo",           "path": "assets/cozy/hair/emo_walk.png",           "width": 2560, "height": 128 },
+    { "key": "hair-extra_long",    "path": "assets/cozy/hair/extra_long_walk.png",    "width": 2560, "height": 128 },
+    { "key": "hair-french_curl",   "path": "assets/cozy/hair/french_curl_walk.png",   "width": 2560, "height": 128 },
+    { "key": "hair-gentleman",     "path": "assets/cozy/hair/gentleman_walk.png",     "width": 2560, "height": 128 },
+    { "key": "hair-long_straight", "path": "assets/cozy/hair/long_straight_walk.png", "width": 2560, "height": 128 },
+    { "key": "hair-midiwave",      "path": "assets/cozy/hair/midiwave_walk.png",      "width": 2560, "height": 128 },
+    { "key": "hair-ponytail",      "path": "assets/cozy/hair/ponytail_walk.png",      "width": 2560, "height": 128 },
+    { "key": "hair-spacebuns",     "path": "assets/cozy/hair/spacebuns_walk.png",     "width": 2560, "height": 128 },
+    { "key": "hair-wavy",          "path": "assets/cozy/hair/wavy_walk.png",          "width": 2560, "height": 128 }
+  ],
+
+  "spritesheets": {
+    "villagers": [
+      {
+        "key": "villager-bunny", "path": "assets/cozy/animals/bunny.png",
+        "frameWidth": 17, "frameHeight": 17, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-chicken", "path": "assets/cozy/animals/chicken.png",
+        "frameWidth": 16, "frameHeight": 16, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-cow", "path": "assets/cozy/animals/cow.png",
+        "frameWidth": 24, "frameHeight": 24, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-goat", "path": "assets/cozy/animals/goat.png",
+        "frameWidth": 19, "frameHeight": 19, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-pig", "path": "assets/cozy/animals/pig.png",
+        "frameWidth": 20, "frameHeight": 20, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-sheep", "path": "assets/cozy/animals/sheep.png",
+        "frameWidth": 17, "frameHeight": 17, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-turkey", "path": "assets/cozy/animals/turkey.png",
+        "frameWidth": 17, "frameHeight": 17, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-bunny-baby", "path": "assets/cozy/animals/bunny-baby.png",
+        "frameWidth": 16, "frameHeight": 16, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-chicken-baby", "path": "assets/cozy/animals/chicken-baby.png",
+        "frameWidth": 16, "frameHeight": 16, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-cow-baby", "path": "assets/cozy/animals/cow-baby.png",
+        "frameWidth": 21, "frameHeight": 21, "cols": 4, "rows": 5, "totalFrames": 20,
+        "layout": "farm",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "sleep":      { "start": 16, "end": 19, "frameRate": 3, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-robin", "path": "assets/cozy/animals/robin.png",
+        "frameWidth": 16, "frameHeight": 16, "cols": 4, "rows": 8, "totalFrames": 32,
+        "layout": "bird", "note": "Blank frames at 3,7,10,11,14,15",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 2,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 6,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 9,  "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 13, "frameRate": 5, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-blackbird", "path": "assets/cozy/animals/blackbird.png",
+        "frameWidth": 16, "frameHeight": 16, "cols": 4, "rows": 8, "totalFrames": 32,
+        "layout": "bird", "note": "Blank frames at 3,7,10,11,14,15",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 2,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 6,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 9,  "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 13, "frameRate": 5, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-squirrel", "path": "assets/cozy/animals/squirrel.png",
+        "frameWidth": 19, "frameHeight": 19, "cols": 6, "rows": 6, "totalFrames": 36,
+        "layout": "6col",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 5,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 6,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 12, "end": 17, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 18, "end": 23, "frameRate": 5, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      },
+      {
+        "key": "villager-rat", "path": "assets/cozy/animals/rat.png",
+        "frameWidth": 18, "frameHeight": 18, "cols": 4, "rows": 6, "totalFrames": 24,
+        "layout": "4col-6row",
+        "animations": {
+          "walk-down":  { "start": 0,  "end": 3,  "frameRate": 5, "repeat": -1 },
+          "walk-right": { "start": 4,  "end": 7,  "frameRate": 5, "repeat": -1 },
+          "walk-up":    { "start": 8,  "end": 11, "frameRate": 5, "repeat": -1 },
+          "walk-left":  { "start": 12, "end": 15, "frameRate": 5, "repeat": -1 },
+          "idle":       { "start": 0,  "end": 0,  "frameRate": 1, "repeat": 0  }
+        }
+      }
+    ],
+
+    "monsters": [
+      { "key": "monster-slime",        "path": "assets/monsters/slime.png",       "frameWidth": 118, "frameHeight": 79,  "frameCount": 4  },
+      { "key": "monster-glowWisp",     "path": "assets/monsters/glow-wisp.png",   "frameWidth": 48,  "frameHeight": 48,  "frameCount": 8  },
+      { "key": "monster-mutantToad",    "path": "assets/monsters/mutant-toad.png", "frameWidth": 80,  "frameHeight": 64,  "frameCount": 4  },
+      { "key": "monster-frog",          "path": "assets/monsters/frog.png",        "frameWidth": 63,  "frameHeight": 68,  "frameCount": 6  },
+      { "key": "monster-wanderingBard", "path": "assets/monsters/centaur.png",     "frameWidth": 112, "frameHeight": 144, "frameCount": 4  },
+      { "key": "monster-shadowCrow",    "path": "assets/monsters/crow.png",        "frameWidth": 48,  "frameHeight": 48,  "frameCount": 3  },
+      { "key": "monster-scrollKeeper",  "path": "assets/monsters/ghost.png",       "frameWidth": 64,  "frameHeight": 80,  "frameCount": 7  },
+      { "key": "monster-hellHound",     "path": "assets/monsters/hell-hound.png",  "frameWidth": 64,  "frameHeight": 48,  "frameCount": 11 },
+      { "key": "monster-ogre",          "path": "assets/monsters/ogre.png",        "frameWidth": 144, "frameHeight": 80,  "frameCount": 4  },
+      { "key": "monster-guardCaptain",  "path": "assets/monsters/treant.png",      "frameWidth": 80,  "frameHeight": 84,  "frameCount": 4  },
+      { "key": "monster-werewolf",      "path": "assets/monsters/werewolf.png",    "frameWidth": 96,  "frameHeight": 76,  "frameCount": 5  }
+    ],
+
+    "npcs": [
+      { "key": "sunny-bunny",    "path": "assets/characters/bunny.png",    "frameWidth": 24,  "frameHeight": 42,  "frameCount": 4  },
+      { "key": "sunny-froggy",   "path": "assets/characters/froggy.png",   "frameWidth": 60,  "frameHeight": 38,  "frameCount": 7  },
+      { "key": "sunny-dragon",   "path": "assets/characters/dragon.png",   "frameWidth": 144, "frameHeight": 176, "frameCount": 12 },
+      { "key": "sunny-mushroom", "path": "assets/characters/mushroom.png", "frameWidth": 41,  "frameHeight": 30,  "frameCount": 10 }
+    ],
+
+    "hero": [
+      { "key": "adventurer-idle",   "path": "assets/characters/adventurer-idle.png",   "frameWidth": 128, "frameHeight": 96, "frameCount": 4  },
+      { "key": "adventurer-run",    "path": "assets/characters/adventurer-run.png",    "frameWidth": 128, "frameHeight": 96, "frameCount": 8  },
+      { "key": "adventurer-attack", "path": "assets/characters/adventurer-attack.png", "frameWidth": 128, "frameHeight": 96, "frameCount": 8  }
+    ],
+
+    "effects": [
+      { "key": "hit-effect", "path": "assets/effects/hit.png", "frameWidth": 31, "frameHeight": 32, "frameCount": 3 }
+    ]
+  },
+
+  "backgrounds": [
+    { "key": "bg-forest",     "path": "assets/backgrounds/forest.png",     "width": 512,  "height": 224 },
+    { "key": "bg-village",    "path": "assets/backgrounds/village.png",    "width": 512,  "height": 224 },
+    { "key": "bg-caves",      "path": "assets/backgrounds/caves.png",      "width": 512,  "height": 288 },
+    { "key": "bg-castle",     "path": "assets/backgrounds/castle.png",     "width": 1024, "height": 336 },
+    { "key": "bg-underworld", "path": "assets/backgrounds/underworld.png", "width": 384,  "height": 224 },
+    { "key": "bg-tower",      "path": "assets/backgrounds/tower.png",      "width": 960,  "height": 304 }
+  ],
+
+  "tilesets": [
+    {
+      "key": "nature-global", "path": "assets/cozy/environment/nature-global.png",
+      "tileWidth": 16, "tileHeight": 16, "cols": 10, "rows": 13,
+      "note": "Main tileset for TopDownScene world rendering"
+    },
+    {
+      "key": "outdoor-tiles", "path": "assets/cozy/environment/outdoor-tiles.png",
+      "tileWidth": 16, "tileHeight": 16, "cols": 28, "rows": 27,
+      "note": "Extended outdoor tileset with buildings, paths, fences"
+    }
+  ],
+
+  "ui": [
+    { "key": "ui-crops",     "path": "assets/cozy/ui/crops.png",     "width": 96,  "height": 592 },
+    { "key": "ui-inventory", "path": "assets/cozy/ui/inventory.png", "width": 848, "height": 1360 },
+    { "key": "ui-items",     "path": "assets/cozy/ui/items.png",     "width": 160, "height": 192 },
+    { "key": "ui-seeds",     "path": "assets/cozy/ui/seeds.png",     "width": 112, "height": 96 },
+    { "key": "ui-tools",     "path": "assets/cozy/ui/tools.png",     "width": 592, "height": 64 },
+    { "key": "ui-panel",     "path": "assets/cozy/ui/ui.png",        "width": 384, "height": 144 }
+  ]
+}

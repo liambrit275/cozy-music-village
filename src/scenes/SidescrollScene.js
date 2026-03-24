@@ -239,7 +239,7 @@ export class SidescrollScene extends Phaser.Scene {
         }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
 
         this.hudLevelText = this.add.text(width - 14, 14, '', {
-            font: '13px monospace', fill: '#aaddff', stroke: '#000000', strokeThickness: 2
+            font: '13px monospace', fill: '#eedd88', stroke: '#000000', strokeThickness: 2
         }).setOrigin(1, 0).setScrollFactor(0).setDepth(10);
 
         // Controls hint (bottom)
@@ -461,12 +461,12 @@ export class SidescrollScene extends Phaser.Scene {
 
         this.time.delayedCall(200, () => {
             this.scene.pause('SidescrollScene');
-            this.scene.launch('BattleScene', {
+            this.scene.launch('ChallengeScene', {
                 mode:             'all',
                 storyBattle:      true,
                 progression:      this.progression,
                 playerData:       this.playerData,
-                villagerKey:      enemy.key,
+                monsterKey:       enemy.key,
                 encounterIndex:   enemy.id,
                 isSidescrollMode: true,
                 isSpecial:        enemy.isSpecial,

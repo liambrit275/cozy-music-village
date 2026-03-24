@@ -229,8 +229,8 @@ export class AvatarBuilderScene extends Phaser.Scene {
 
     _makeBackBtn(height) {
         const btn = this.add.text(60, height - 28, '← BACK', {
-            font: 'bold 16px monospace', fill: '#aaaacc',
-            backgroundColor: '#111122', padding: { x: 10, y: 8 }
+            font: 'bold 16px monospace', fill: '#bbaa88',
+            backgroundColor: '#2a2418', padding: { x: 10, y: 8 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerover', () => btn.setStyle({ fill: '#ffcc00' }));
         btn.on('pointerout',  () => btn.setStyle({ fill: '#aaaacc' }));

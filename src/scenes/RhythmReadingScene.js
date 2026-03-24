@@ -55,7 +55,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
     async create() {
         const { width, height } = this.cameras.main;
-        this.cameras.main.setBackgroundColor('#0a0a1a');
+        this.cameras.main.setBackgroundColor('#1a150e');
 
         // ── Background + ground ──────────────────────────────
         const bgKey = ZONE_BGS[Math.floor(Math.random() * ZONE_BGS.length)];
@@ -161,7 +161,7 @@ export class RhythmReadingScene extends Phaser.Scene {
         }).setDepth(10);
 
         this.roundText = this.add.text(width - 20, 12, 'Round 1', {
-            font: '14px monospace', fill: '#aaddff',
+            font: '14px monospace', fill: '#eedd88',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(1, 0).setDepth(10);
 
@@ -201,7 +201,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
         // Tempo display
         this._bpmText = this.add.text(width / 2, height - 14, '♩= --', {
-            font: '13px monospace', fill: '#445566',
+            font: '13px monospace', fill: '#887766',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5, 1).setDepth(10);
 
@@ -396,7 +396,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
             const lbl = this.add.text(cx, cy, sub.cells[i], {
                 font: isDB ? 'bold 14px monospace' : '11px monospace',
-                fill: isNote ? (isDB ? '#6688aa' : '#445566') : '#222e3a'
+                fill: isNote ? (isDB ? '#aa9977' : '#887766') : '#2a2418'
             }).setOrigin(0.5);
 
             this._gridCellRects.push(bg);
@@ -428,7 +428,7 @@ export class RhythmReadingScene extends Phaser.Scene {
                 .setStrokeStyle(1, isNote ? 0x334466 : 0x1a2233);
             if (this._gridCellLabels[i]) {
                 this._gridCellLabels[i].setStyle({
-                    fill: isNote ? (isDB ? '#6688aa' : '#445566') : '#222e3a'
+                    fill: isNote ? (isDB ? '#aa9977' : '#887766') : '#2a2418'
                 });
             }
         }

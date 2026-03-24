@@ -7,11 +7,11 @@
 //
 // question shape: { clef, noteName, accidental, octave }
 
-const PANEL_BG = '#f8fbff';
-const NOTE_COLOR = '#222233';
-const STAVE_COLOR = '#667788';
-const TEXT_COLOR = '#445566';
-const BORDER_COLOR = '#aabbcc';
+const PANEL_BG = '#faf5ee';
+const NOTE_COLOR = '#2a2418';
+const STAVE_COLOR = '#998866';
+const TEXT_COLOR = '#887766';
+const BORDER_COLOR = '#bbaa88';
 const ACC_MAP  = { sharp: '#', flat: 'b' };
 
 // Native VexFlow rendering dimensions (before CSS scaling).

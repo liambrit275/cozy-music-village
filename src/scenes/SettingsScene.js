@@ -13,14 +13,14 @@ import {
 
 const PANEL_W = 640;
 const PANEL_H = 460;
-const BG_COLOR     = 0x06060f;
-const BORDER_COLOR = 0x4455aa;
-const TITLE_COLOR  = '#aabbff';
-const LABEL_COLOR  = '#778899';
+const BG_COLOR     = 0x1a150e;
+const BORDER_COLOR = 0x665533;
+const TITLE_COLOR  = '#ffcc66';
+const LABEL_COLOR  = '#aa9977';
 const ON_COLOR     = '#ffcc00';
 const ON_BG        = '#2a2a00';
-const OFF_COLOR    = '#aabbcc';
-const OFF_BG       = '#111122';
+const OFF_COLOR    = '#bbaa88';
+const OFF_BG       = '#2a2418';
 const SEL_COLOR    = '#ffcc00';
 const SEL_BG       = '#333311';
 const UNSEL_COLOR  = '#888888';
@@ -68,10 +68,10 @@ export class SettingsScene extends Phaser.Scene {
 
         // Close button
         const closeBtn = this.add.text(px + PANEL_W - 14, py + 14, '✕', {
-            font: 'bold 18px monospace', fill: '#666688',
+            font: 'bold 18px monospace', fill: '#887766',
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
-        closeBtn.on('pointerover', () => closeBtn.setStyle({ fill: '#ff4444' }));
-        closeBtn.on('pointerout',  () => closeBtn.setStyle({ fill: '#666688' }));
+        closeBtn.on('pointerover', () => closeBtn.setStyle({ fill: '#dd8855' }));
+        closeBtn.on('pointerout',  () => closeBtn.setStyle({ fill: '#887766' }));
         closeBtn.on('pointerdown', () => this._close());
 
         // ESC to close
@@ -107,16 +107,16 @@ export class SettingsScene extends Phaser.Scene {
         }).setOrigin(0, 0.5);
 
         const reconnectBtn = this.add.text(px + PANEL_W - 120, cy, 'RESCAN', {
-            font: 'bold 10px monospace', fill: '#aabbcc',
-            backgroundColor: '#111122', padding: { x: 7, y: 4 },
+            font: 'bold 10px monospace', fill: '#bbaa88',
+            backgroundColor: '#2a2418', padding: { x: 7, y: 4 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
         reconnectBtn.on('pointerover', () => reconnectBtn.setStyle({ fill: '#ffcc00' }));
-        reconnectBtn.on('pointerout',  () => reconnectBtn.setStyle({ fill: '#aabbcc' }));
+        reconnectBtn.on('pointerout',  () => reconnectBtn.setStyle({ fill: '#bbaa88' }));
         reconnectBtn.on('pointerdown', () => this._reconnectMidi());
 
         // Hint — Firefox caches MIDI devices at page load
         this.add.text(px + 24, cy + 14, 'Refresh page if new device not found', {
-            font: '9px monospace', fill: '#445566',
+            font: '9px monospace', fill: '#887766',
         }).setOrigin(0, 0.5);
 
         // Transpose row
@@ -148,7 +148,7 @@ export class SettingsScene extends Phaser.Scene {
         transpIncBtn.on('pointerdown', () => updateTransp(+1));
 
         this.add.text(tx + 100, cy, 'semitones', {
-            font: '10px monospace', fill: '#445566',
+            font: '10px monospace', fill: '#887766',
         }).setOrigin(0, 0.5);
 
         // Start async MIDI status check
@@ -162,8 +162,8 @@ export class SettingsScene extends Phaser.Scene {
         this.add.rectangle(width / 2, cy - 4, PANEL_W - 40, 1, 0x2233aa, 0.6);
 
         // Column headers
-        this.add.text(px + 24 + 80,       cy + 2, 'PRESET', { font: '9px monospace', fill: '#445566' }).setOrigin(0, 0.5);
-        this.add.text(px + PANEL_W - 130, cy + 2, 'VOLUME',  { font: '9px monospace', fill: '#445566' }).setOrigin(0, 0.5);
+        this.add.text(px + 24 + 80,       cy + 2, 'PRESET', { font: '9px monospace', fill: '#887766' }).setOrigin(0, 0.5);
+        this.add.text(px + PANEL_W - 130, cy + 2, 'VOLUME',  { font: '9px monospace', fill: '#887766' }).setOrigin(0, 0.5);
 
         const soundRows = [
             { label: 'CLICK',  key: 'click',      presets: CLICK_PRESETS,       defaultPreset: 'stick', defaultVol: 1.0 },
@@ -251,11 +251,11 @@ export class SettingsScene extends Phaser.Scene {
 
         // ── Edit Avatar button ────────────────────────────────
         const avatarBtn = this.add.text(px + 24, py + PANEL_H - 44, 'EDIT AVATAR', {
-            font: 'bold 13px monospace', fill: '#aabbcc',
-            backgroundColor: '#111122', padding: { x: 10, y: 6 },
+            font: 'bold 13px monospace', fill: '#bbaa88',
+            backgroundColor: '#2a2418', padding: { x: 10, y: 6 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
         avatarBtn.on('pointerover', () => avatarBtn.setStyle({ fill: '#ffcc00' }));
-        avatarBtn.on('pointerout',  () => avatarBtn.setStyle({ fill: '#aabbcc' }));
+        avatarBtn.on('pointerout',  () => avatarBtn.setStyle({ fill: '#bbaa88' }));
         avatarBtn.on('pointerdown', () => {
             this.scene.pause('SettingsScene');
             this.scene.launch('AvatarBuilderScene', { callerScene: 'SettingsScene' });

@@ -4,8 +4,6 @@ export const AVATAR_DEFAULTS = { body: 1, top: 'basic', bottom: 'pants', hair: '
 export const TOPS_OPTIONS    = ['basic','spaghetti','sporty','stripe','floral','sailor_bow','sailor','dress','overalls','suit','pants_suit','clown','pumpkin','skull','spooky','witch'];
 export const BOTTOMS_OPTIONS = ['pants','skirt'];
 export const HAIR_OPTIONS    = ['bob','ponytail','braids','curly','buzzcut','wavy','long_straight','extra_long','emo','midiwave','spacebuns','french_curl','gentleman'];
-// Legacy alias so any old code using CLOTHES_OPTIONS doesn't break
-export const CLOTHES_OPTIONS = TOPS_OPTIONS;
 
 export class BootScene extends Phaser.Scene {
     constructor() {
@@ -97,11 +95,6 @@ export class BootScene extends Phaser.Scene {
             { frameWidth: 18, frameHeight: 18 }
         );
 
-        // ── CRITTERS (no animations yet, just load) ─────────────────────────
-        this.load.image('critter-slime-all', 'assets/cozy/animals/slime-all.png');
-        this.load.image('critter-ghost',     'assets/cozy/animals/ghost.png');
-        this.load.image('critter-bat',       'assets/cozy/animals/bat.png');
-
         // ── EFFECTS ─────────────────────────────────────────────────────────
         this.load.image('heart', 'assets/cozy/effects/heart.png');
 
@@ -116,6 +109,42 @@ export class BootScene extends Phaser.Scene {
         this.load.image('rest-quarter',   'assets/symbols/rest_quarter.png');
         this.load.image('rest-eighth',    'assets/symbols/rest_eighth.png');
         this.load.image('rest-sixteenth', 'assets/symbols/rest_sixteenth.png');
+
+        // ── ZONE BACKGROUNDS (used by ArcadeBattleScene, RhythmReadingScene) ─
+        this.load.image('bg-forest',      'assets/backgrounds/forest.png');
+        this.load.image('bg-village',     'assets/backgrounds/village.png');
+        this.load.image('bg-caves',       'assets/backgrounds/caves.png');
+        this.load.image('bg-castle',      'assets/backgrounds/castle.png');
+        this.load.image('bg-underworld',  'assets/backgrounds/underworld.png');
+        this.load.image('bg-tower',       'assets/backgrounds/tower.png');
+
+        // ── MONSTER SPRITESHEETS (used by ArcadeBattleScene) ────────────────
+        // Keys match `monster-${spriteKey}` from monsters.js
+        this.load.spritesheet('monster-slime',       'assets/monsters/slime.png',       { frameWidth: 118, frameHeight: 79 });
+        this.load.spritesheet('monster-glowWisp',    'assets/monsters/glow-wisp.png',   { frameWidth: 48,  frameHeight: 48 });
+        this.load.spritesheet('monster-mutantToad',   'assets/monsters/mutant-toad.png', { frameWidth: 80,  frameHeight: 64 });
+        this.load.spritesheet('monster-frog',         'assets/monsters/frog.png',        { frameWidth: 63,  frameHeight: 68 });
+        this.load.spritesheet('monster-wanderingBard','assets/monsters/centaur.png',     { frameWidth: 112, frameHeight: 144 });
+        this.load.spritesheet('monster-shadowCrow',   'assets/monsters/crow.png',        { frameWidth: 48,  frameHeight: 48 });
+        this.load.spritesheet('monster-scrollKeeper', 'assets/monsters/ghost.png',       { frameWidth: 64,  frameHeight: 80 });
+        this.load.spritesheet('monster-hellHound',    'assets/monsters/hell-hound.png',  { frameWidth: 64,  frameHeight: 48 });
+        this.load.spritesheet('monster-ogre',         'assets/monsters/ogre.png',        { frameWidth: 144, frameHeight: 80 });
+        this.load.spritesheet('monster-guardCaptain', 'assets/monsters/treant.png',      { frameWidth: 80,  frameHeight: 84 });
+        this.load.spritesheet('monster-werewolf',     'assets/monsters/werewolf.png',    { frameWidth: 96,  frameHeight: 76 });
+
+        // ── HIT EFFECT (used by ArcadeBattleScene) ──────────────────────────
+        this.load.spritesheet('hit-effect', 'assets/effects/hit.png', { frameWidth: 31, frameHeight: 32 });
+
+        // ── NPC / GUIDE CHARACTERS (used by npcs.js, PracticeScene, ArcadeBattleScene) ─
+        this.load.spritesheet('sunny-bunny',    'assets/characters/bunny.png',    { frameWidth: 24, frameHeight: 42 });
+        this.load.spritesheet('sunny-froggy',   'assets/characters/froggy.png',   { frameWidth: 60, frameHeight: 38 });
+        this.load.spritesheet('sunny-dragon',   'assets/characters/dragon.png',   { frameWidth: 144, frameHeight: 176 });
+        this.load.spritesheet('sunny-mushroom', 'assets/characters/mushroom.png', { frameWidth: 41, frameHeight: 30 });
+
+        // ── HERO CHARACTER (used by ArcadeMenuScene / ArcadeBattleScene) ────
+        this.load.spritesheet('adventurer-idle',   'assets/characters/adventurer-idle.png',   { frameWidth: 128, frameHeight: 96 });
+        this.load.spritesheet('adventurer-run',    'assets/characters/adventurer-run.png',    { frameWidth: 128, frameHeight: 96 });
+        this.load.spritesheet('adventurer-attack', 'assets/characters/adventurer-attack.png', { frameWidth: 128, frameHeight: 96 });
     }
 
     create() {
@@ -141,8 +170,8 @@ export class BootScene extends Phaser.Scene {
 
         // ── AVATAR ANIMATIONS ─────────────────────────────────────────────
         this._createAnimIfNew('avatar-walk-down',  'player-avatar', 0,  7,  8, -1);
-        this._createAnimIfNew('avatar-walk-right', 'player-avatar', 8,  15, 8, -1);
-        this._createAnimIfNew('avatar-walk-up',    'player-avatar', 16, 23, 8, -1);
+        this._createAnimIfNew('avatar-walk-up',    'player-avatar', 8,  15, 8, -1);
+        this._createAnimIfNew('avatar-walk-right', 'player-avatar', 16, 23, 8, -1);
         this._createAnimIfNew('avatar-walk-left',  'player-avatar', 24, 31, 8, -1);
         this._createAnimIfNew('avatar-idle',       'player-avatar', 0,  0,  1, 0);
 
@@ -183,7 +212,7 @@ export class BootScene extends Phaser.Scene {
             this._createAnimIfNew('squirrel-walk-right', sheet, 6,  11, 5, -1);
             this._createAnimIfNew('squirrel-walk-up',    sheet, 12, 17, 5, -1);
             this._createAnimIfNew('squirrel-walk-left',  sheet, 18, 23, 5, -1);
-            this._createAnimIfNew('squirrel-idle',       sheet, 0,  0,  1, 0);
+            this._createAnimIfNew('squirrel-idle',       sheet, 0,  0,  1, -1);
         }
         // Rat: 72×108 → 4 cols × 6 rows
         {
@@ -194,6 +223,17 @@ export class BootScene extends Phaser.Scene {
             this._createAnimIfNew('rat-walk-left',  sheet, 12, 15, 5, -1);
             this._createAnimIfNew('rat-idle',       sheet, 0,  0,  1, 0);
         }
+
+        // ── NPC GUIDE ANIMATIONS ──────────────────────────────────────────
+        this._createAnimIfNew('sunny-bunny-idle',    'sunny-bunny',    0, 3,  5, -1);
+        this._createAnimIfNew('sunny-froggy-idle',   'sunny-froggy',   0, 6,  5, -1);
+        this._createAnimIfNew('sunny-dragon-idle',   'sunny-dragon',   0, 11, 5, -1);
+        this._createAnimIfNew('sunny-mushroom-idle', 'sunny-mushroom', 0, 9,  5, -1);
+
+        // ── HERO ANIMATIONS (adventurer for arcade mode) ─────────────────────
+        this._createAnimIfNew('adventurer-idle',   'adventurer-idle',   0, 3, 6,  -1);
+        this._createAnimIfNew('adventurer-run',    'adventurer-run',    0, 7, 10, -1);
+        this._createAnimIfNew('adventurer-attack', 'adventurer-attack', 0, 7, 12, 0);
 
         // ── TRANSITION ──────────────────────────────────────────────────────
         this.scene.start('TitleScene');

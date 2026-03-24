@@ -53,14 +53,21 @@ export class TitleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // PLAY button — go to character screen then top-down rescue game
-        this.createButton(width / 2 - 110, height / 2 + 40, '▶  PLAY', () => {
+        this.createButton(width / 2 - 160, height / 2 + 40, '▶  PLAY', () => {
             this.scene.start('CharacterSelectScene', { isNewGame: true });
         }, '#1a2a18', '#2a5522');
 
         // PRACTICE button (jump straight to challenge settings)
-        this.createButton(width / 2 + 110, height / 2 + 40, 'PRACTICE', () => {
+        this.createButton(width / 2, height / 2 + 40, 'PRACTICE', () => {
             this.goToPractice();
         }, '#2a2510', '#886622');
+
+        // BATTLE button — battle mode with monsters
+        this.createButton(width / 2 + 160, height / 2 + 40, 'BATTLE', () => {
+            const pm = new ProgressionManager();
+            const playerData = pm.load();
+            this.scene.start('ArcadeMenuScene', { playerData });
+        }, '#2a2418', '#3a3020');
 
         // Instructions
         this.add.text(width / 2, height - 50, 'Identify intervals, tap rhythms, and read notes to help the village!', {

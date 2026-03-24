@@ -30,7 +30,7 @@ export class RegionMapScene extends Phaser.Scene {
         const { width, height } = this.cameras.main;
         this.wmProgress = WorldMapProgress.load();
 
-        this.cameras.main.setBackgroundColor('#060c14');
+        this.cameras.main.setBackgroundColor('#1a150e');
         this._drawBackground(width, height);
         this._drawHeader(width);
         this._drawNodes(width, height);
@@ -176,12 +176,12 @@ export class RegionMapScene extends Phaser.Scene {
 
     _drawBackBtn(height) {
         const btn = this.add.text(60, height - 28, '← MAP', {
-            font: 'bold 15px monospace', fill: '#aaaacc',
-            backgroundColor: '#111122', padding: { x: 12, y: 7 }
+            font: 'bold 15px monospace', fill: '#bbaa88',
+            backgroundColor: '#2a2418', padding: { x: 12, y: 7 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         btn.on('pointerover', () => btn.setStyle({ fill: '#ffcc00' }));
-        btn.on('pointerout',  () => btn.setStyle({ fill: '#aaaacc' }));
+        btn.on('pointerout',  () => btn.setStyle({ fill: '#bbaa88' }));
         btn.on('pointerdown', () => {
             this.scene.start('WorldMapScene', { playerData: this.playerData, returnScene: this.returnScene });
         });

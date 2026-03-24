@@ -2,12 +2,12 @@
 // Creates a DOM overlay (SVG) positioned over the Phaser canvas.
 // Follows the same pattern as VexFlowStaffRenderer.js.
 
-const PANEL_BG = '#f8fbff';
-const NOTE_COLOR = '#222233';
-const STAVE_COLOR = '#667788';
-const TEXT_COLOR = '#445566';
-const TIE_COLOR = '#445566';
-const BORDER_COLOR = '#aabbcc';
+const PANEL_BG = '#faf5ee';
+const NOTE_COLOR = '#2a2418';
+const STAVE_COLOR = '#998866';
+const TEXT_COLOR = '#887766';
+const TIE_COLOR = '#887766';
+const BORDER_COLOR = '#bbaa88';
 const CURSOR_COLOR = '#ff8800';
 
 // Native VexFlow dimensions (before CSS scaling)

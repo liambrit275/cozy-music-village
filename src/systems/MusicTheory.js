@@ -1,7 +1,7 @@
 // Scale degree definitions and interval logic using movable Do solfege
 
 export const SCALE_DEGREES = {
-    '1':  { solfege: 'Do',  semitones: 0,  color: '#ff4444' },
+    '1':  { solfege: 'Do',  semitones: 0,  color: '#ee7755' },
     'b2': { solfege: 'Ra',  semitones: 1,  color: '#884444' },
     '2':  { solfege: 'Re',  semitones: 2,  color: '#ff8844' },
     'b3': { solfege: 'Me',  semitones: 3,  color: '#886644' },
