@@ -9,8 +9,6 @@ import { SettingsScene }        from './scenes/SettingsScene.js';
 import { PracticeScene }        from './scenes/PracticeScene.js';
 import { LatencyTestScene }     from './scenes/LatencyTestScene.js';
 import { AvatarBuilderScene }   from './scenes/AvatarBuilderScene.js';
-import { ArcadeMenuScene }      from './scenes/ArcadeMenuScene.js';
-import { ArcadeBattleScene }    from './scenes/ArcadeBattleScene.js';
 import { LocationInfoScene }    from './scenes/LocationInfoScene.js';
 import { RegionMapScene }       from './scenes/RegionMapScene.js';
 import { SidescrollScene }      from './scenes/SidescrollScene.js';
@@ -46,8 +44,6 @@ const config = {
         PracticeScene,
         LatencyTestScene,
         AvatarBuilderScene,
-        ArcadeMenuScene,
-        ArcadeBattleScene,
         LocationInfoScene,
         RegionMapScene,
         SidescrollScene,
