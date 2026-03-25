@@ -57,7 +57,7 @@ export const RhythmMixin = {
             // Arcade custom mode: pick meter (beat count), then resolve to simple/compound
             const subs = this.customRhythmSubs;
             const meters = this.customMeters || ['4'];
-            const METER_MAP = { '4': { simple: '4/4', compound: '12/8' }, '2': { simple: '2/4', compound: '6/8' }, '3': { simple: '3/4', compound: '3/8' } };
+            const METER_MAP = { '4': { simple: '4/4', compound: '12/8' }, '2': { simple: '2/4', compound: '6/8' }, '3': { simple: '3/4', compound: '9/8' } };
             const meter = METER_MAP[meters[Math.floor(Math.random() * meters.length)]] || METER_MAP['4'];
             subKey = subs[Math.floor(Math.random() * subs.length)];
             if (subKey === 'triplet') {
