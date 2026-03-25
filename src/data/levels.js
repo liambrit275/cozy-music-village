@@ -12,7 +12,7 @@
  */
 export const TIME_SIG_INFO = {
     '1/4':  { beats: 1, beatValue: 4, compound: false, beatTicks: 4, totalTicks: 4,  midpoint: null, numBeats: 1,  vexBeatValue: 4 },
-    '2/4':  { beats: 2, beatValue: 4, compound: false, beatTicks: 4, totalTicks: 8,  midpoint: 4,    numBeats: 2,  vexBeatValue: 4 },
+    '2/4':  { beats: 2, beatValue: 4, compound: false, beatTicks: 4, totalTicks: 8,  midpoint: null, numBeats: 2,  vexBeatValue: 4 },
     '3/4':  { beats: 3, beatValue: 4, compound: false, beatTicks: 4, totalTicks: 12, midpoint: null,  numBeats: 3,  vexBeatValue: 4 },
     '4/4':  { beats: 4, beatValue: 4, compound: false, beatTicks: 4, totalTicks: 16, midpoint: 8,    numBeats: 4,  vexBeatValue: 4 },
     '3/8':  { beats: 3, beatValue: 8, compound: false, beatTicks: 2, totalTicks: 6,  midpoint: null,  numBeats: 3,  vexBeatValue: 8 },

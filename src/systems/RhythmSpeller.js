@@ -181,8 +181,9 @@ function resolveTimeSig(subdivision, timeSigInfo) {
         const beatSize = timeSigInfo.beatTicks ?? (compound ? 3 : 4);
         const midpoint = timeSigInfo.midpoint ?? null;
         const ticksPerCell = timeSigInfo.ticksPerCell ?? TICKS_PER_CELL[subdivision] ?? 1;
-        // Split at beats for sub-beat subdivisions (sixteenth, or eighth in compound)
-        const splitAtBeats = timeSigInfo.splitAtBeats ?? (ticksPerCell < beatSize);
+        // Split at beats only for sub-beat subdivisions (sixteenth level).
+        // Eighth note subdivisions should allow quarter notes without ties.
+        const splitAtBeats = timeSigInfo.splitAtBeats ?? (ticksPerCell * 2 < beatSize);
         return { ticksPerCell, compound, beatSize, midpoint, splitAtBeats };
     }
     // Legacy: derive from subdivision name (assumes 4/4 or 12/8)
