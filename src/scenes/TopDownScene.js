@@ -297,7 +297,8 @@ export class TopDownScene extends Phaser.Scene {
     // ── PLAYER ────────────────────────────────────────────────────────────
 
     _createPlayer() {
-        this.player = this.physics.add.sprite(WORLD_W / 2, WORLD_H / 2, 'player-avatar', 0);
+        const texKey = this.textures.exists('player-avatar') ? 'player-avatar' : 'char1-walk';
+        this.player = this.physics.add.sprite(WORLD_W / 2, WORLD_H / 2, texKey, 0);
         this.player.setScale(2.5);
         this.player.body.setSize(18, 16);
         this.player.body.setOffset(7, 14);

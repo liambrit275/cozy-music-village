@@ -157,12 +157,12 @@ export class LoginScene extends Phaser.Scene {
         // Sync profile → legacy localStorage keys (safe, wrapped in try-catch)
         try { UserProfileManager.syncProfileToLocalStorage(username); } catch (e) { console.warn('Sync error:', e); }
 
-        // Recompose avatar
-        if (profile?.avatar) {
+        // Recompose avatar from profile (only if profile has avatar data)
+        if (profile?.avatar && typeof profile.avatar === 'object' && profile.avatar.body != null) {
             try {
                 const boot = this.scene.get('BootScene');
                 if (boot && boot._composeAvatar) boot._composeAvatar(profile.avatar);
-            } catch (e) { /* ignore */ }
+            } catch (e) { console.warn('Avatar recompose failed:', e); }
         }
 
         // New account or no instrument → pick instrument
