@@ -34,8 +34,9 @@ const RHYTHM_SUBS = [
 // Beat-count groups: simple/compound are paired, chosen at runtime by subdivision
 const RHYTHM_METERS = [
     { id: '4', label: '4/4 (12/8)', simple: '4/4', compound: '12/8' },
-    { id: '2', label: '2/4 (6/8)',  simple: '2/4', compound: '6/8' },
     { id: '3', label: '3/4 (9/8)',  simple: '3/4', compound: '9/8' },
+    { id: '2', label: '2/4 (6/8)',  simple: '2/4', compound: '6/8' },
+    { id: '1', label: '1/4 (3/8)',  simple: '1/4', compound: '3/8' },
 ];
 
 const CLEF_OPTIONS = [
