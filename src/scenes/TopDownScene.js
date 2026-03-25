@@ -112,7 +112,7 @@ export class TopDownScene extends Phaser.Scene {
             this._progression.storyLevelEncounters = this.rescuedCount || 0;
             this._progression.save(this.playerData);
             // Also sync to user profile
-            UserProfileManager.syncLocalStorageToProfile();
+            try { UserProfileManager.syncLocalStorageToProfile(); } catch (e) { /* ignore */ }
             const msg = this.add.text(this.cameras.main.width / 2, 50, 'Game saved!', {
                 font: 'bold 14px monospace', fill: '#50d0b0',
                 stroke: '#000', strokeThickness: 3,

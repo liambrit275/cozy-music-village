@@ -1,5 +1,4 @@
-// LoginScene: Username + password login. Pure Phaser UI (no HTML overlays).
-// Uses document-level keydown for text input (same reliable pattern as rhythm reading).
+// LoginScene: Username + password login. Pure Phaser UI.
 
 import { UserProfileManager } from '../systems/UserProfileManager.js';
 
@@ -10,13 +9,25 @@ export class LoginScene extends Phaser.Scene {
         const { width, height } = this.cameras.main;
         this.cameras.main.setBackgroundColor('#0c1420');
 
-        // Auto-login if already signed in
-        const active = UserProfileManager.getActiveUser();
-        if (active) {
-            const profile = UserProfileManager._loadProfile(active);
-            if (profile) { this._onLoginSuccess(active, profile); return; }
+        // Auto-login if already signed in — MUST use delayedCall,
+        // calling scene.start() inside create() corrupts Phaser's scene manager
+        try {
+            const active = UserProfileManager.getActiveUser();
+            if (active) {
+                const profile = UserProfileManager._loadProfile(active);
+                if (profile) {
+                    this.time.delayedCall(1, () => this._onLoginSuccess(active, profile));
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Auto-login failed:', e);
         }
 
+        this._buildUI(width, height);
+    }
+
+    _buildUI(width, height) {
         // Title
         this.add.text(width / 2, height * 0.12, 'MUSIC THEORY\nVILLAGE', {
             font: 'bold 40px monospace', fill: '#e8d098',
@@ -27,13 +38,15 @@ export class LoginScene extends Phaser.Scene {
             font: '14px monospace', fill: '#687880',
         }).setOrigin(0.5);
 
-        // Existing players list
-        const users = UserProfileManager.getUserList();
-        if (users.length > 0) {
-            this.add.text(width / 2, height * 0.90, 'Players: ' + users.join(', '), {
-                font: '11px monospace', fill: '#556666',
-            }).setOrigin(0.5);
-        }
+        // Existing players
+        try {
+            const users = UserProfileManager.getUserList();
+            if (users.length > 0) {
+                this.add.text(width / 2, height * 0.90, 'Players: ' + users.join(', '), {
+                    font: '11px monospace', fill: '#556666',
+                }).setOrigin(0.5);
+            }
+        } catch (e) { /* ignore */ }
 
         // Error display
         this._errorText = this.add.text(width / 2, height * 0.74, '', {
@@ -69,7 +82,7 @@ export class LoginScene extends Phaser.Scene {
         this._btn(width / 2 - 70, by, 'SIGN IN', '#50d0b0', '#0c1420', () => this._doLogin());
         this._btn(width / 2 + 70, by, 'NEW ACCOUNT', '#243848', '#90c8c0', () => this._doRegister());
 
-        // Document-level keyboard (reliable)
+        // Keyboard
         this._keyHandler = (e) => {
             if (!this.scene.isActive('LoginScene')) return;
             const k = e.key;
@@ -108,41 +121,48 @@ export class LoginScene extends Phaser.Scene {
     }
 
     _render() {
-        const c = '|';
-        this._userTxt.setText(this._username + (this._focus === 'username' ? c : ''));
-        this._passTxt.setText('*'.repeat(this._password.length) + (this._focus === 'password' ? c : ''));
+        if (!this._userTxt || !this._passTxt) return;
+        this._userTxt.setText(this._username + (this._focus === 'username' ? '|' : ''));
+        this._passTxt.setText('*'.repeat(this._password.length) + (this._focus === 'password' ? '|' : ''));
     }
 
     _doLogin() {
         if (!this._username || !this._password) { this._errorText.setText('Enter username and password'); return; }
-        const r = UserProfileManager.loginSync(this._username, this._password);
-        if (!r.ok) { this._errorText.setText(r.error); return; }
-        this._onLoginSuccess(r.username, r.profile);
+        try {
+            const r = UserProfileManager.loginSync(this._username, this._password);
+            if (!r.ok) { this._errorText.setText(r.error); return; }
+            this._onLoginSuccess(r.username, r.profile);
+        } catch (e) {
+            this._errorText.setText('Error: ' + e.message);
+        }
     }
 
     _doRegister() {
         if (!this._username || !this._password) { this._errorText.setText('Enter username and password'); return; }
-        const r = UserProfileManager.registerSync(this._username, this._password);
-        if (!r.ok) { this._errorText.setText(r.error); return; }
-        // Migrate existing localStorage data into the new profile
-        UserProfileManager.migrateFromLegacy(r.username);
-        UserProfileManager.loginSync(this._username, this._password);
-        const profile = UserProfileManager._loadProfile(r.username);
-        this._onLoginSuccess(r.username, profile, true);
+        try {
+            const r = UserProfileManager.registerSync(this._username, this._password);
+            if (!r.ok) { this._errorText.setText(r.error); return; }
+            try { UserProfileManager.migrateFromLegacy(r.username); } catch (e) { /* ignore */ }
+            UserProfileManager.loginSync(this._username, this._password);
+            const profile = UserProfileManager._loadProfile(r.username);
+            this._onLoginSuccess(r.username, profile, true);
+        } catch (e) {
+            this._errorText.setText('Error: ' + e.message);
+        }
     }
 
     _onLoginSuccess(username, profile, isNew = false) {
         this.game.registry.set('activeUser', username);
 
-        // SYNC BRIDGE: copy profile data → legacy localStorage keys
-        UserProfileManager.syncProfileToLocalStorage(username);
+        // Sync profile → legacy localStorage keys (safe, wrapped in try-catch)
+        try { UserProfileManager.syncProfileToLocalStorage(username); } catch (e) { console.warn('Sync error:', e); }
 
-        // Recompose avatar if profile has one
+        // Recompose avatar
         if (profile?.avatar) {
-            const boot = this.scene.get('BootScene');
-            if (boot && boot._composeAvatar) {
-                try { boot._composeAvatar(profile.avatar); } catch (e) { /* ignore */ }
-            }
+            try {
+                const boot = this.scene.get('BootScene');
+                if (boot && boot._composeAvatar) boot._composeAvatar(profile.avatar);
+            } catch (e) { /* ignore */ }
         }
 
         // New account or no instrument → pick instrument

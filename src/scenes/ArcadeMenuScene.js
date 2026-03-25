@@ -88,7 +88,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor('#0c1420');
 
         // Sync any changes back to user profile (e.g. after a game)
-        UserProfileManager.syncLocalStorageToProfile();
+        try { UserProfileManager.syncLocalStorageToProfile(); } catch (e) { /* ignore */ }
 
         // Load saved settings
         const saved = this.pm.loadArcadeSettings();
@@ -370,7 +370,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
                 font: '12px monospace', fill: '#90c8c0'
             }).setOrigin(0.5);
 
-            const board = UserProfileManager.getLeaderboard(col.key);
+            const board = (function() { try { return UserProfileManager.getLeaderboard(col.key); } catch { return []; } })();
             for (let i = 0; i < 5; i++) {
                 const entry = board[i];
                 const text = entry ? (entry.username + ' ' + entry.score) : '--';

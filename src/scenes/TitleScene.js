@@ -81,21 +81,22 @@ export class TitleScene extends Phaser.Scene {
             });
 
         // Username + log out
-        const activeUser = UserProfileManager.getActiveUser();
-        if (activeUser) {
-            this.add.text(16, 10, activeUser, { font: 'bold 14px monospace', fill: '#50d0b0' });
-            const logout = this.add.text(16, 30, 'Log out', {
-                font: '11px monospace', fill: '#687880',
-            }).setInteractive({ useHandCursor: true });
-            logout.on('pointerover', () => logout.setStyle({ fill: '#e08868' }));
-            logout.on('pointerout', () => logout.setStyle({ fill: '#687880' }));
-            logout.on('pointerdown', () => {
-                // Save current state to profile before logging out
-                UserProfileManager.syncLocalStorageToProfile();
-                UserProfileManager.logout();
-                this.scene.start('LoginScene');
-            });
-        }
+        try {
+            const activeUser = UserProfileManager.getActiveUser();
+            if (activeUser) {
+                this.add.text(16, 10, activeUser, { font: 'bold 14px monospace', fill: '#50d0b0' });
+                const logout = this.add.text(16, 30, 'Log out', {
+                    font: '11px monospace', fill: '#687880',
+                }).setInteractive({ useHandCursor: true });
+                logout.on('pointerover', () => logout.setStyle({ fill: '#e08868' }));
+                logout.on('pointerout', () => logout.setStyle({ fill: '#687880' }));
+                logout.on('pointerdown', () => {
+                    try { UserProfileManager.syncLocalStorageToProfile(); } catch (e) { /* ignore */ }
+                    try { UserProfileManager.logout(); } catch (e) { /* ignore */ }
+                    this.scene.start('LoginScene');
+                });
+            }
+        } catch (e) { /* ignore - user features just won't show */ }
     }
 
     goToPractice() {
