@@ -31,6 +31,15 @@ const RHYTHM_SUBS = [
     { id: 'triplet',   label: 'Triplet' },
 ];
 
+const RHYTHM_TIME_SIGS = [
+    { id: '4/4', label: '4/4', group: 'simple' },
+    { id: '2/4', label: '2/4', group: 'simple' },
+    { id: '3/4', label: '3/4', group: 'simple' },
+    { id: '6/8', label: '6/8', group: 'compound' },
+    { id: '12/8', label: '12/8', group: 'compound' },
+    { id: '3/8', label: '3/8', group: 'compound' },
+];
+
 const CLEF_OPTIONS = [
     { id: 'treble', label: 'TREBLE' },
     { id: 'bass',   label: 'BASS' },
@@ -46,6 +55,7 @@ const DEFAULT_SETTINGS = {
     tonesKey: 'random',
     noteRanges: ['onStaff'],
     rhythmSubs: ['quarter'],
+    rhythmTimeSigs: ['4/4'],
     tapLatencyMs: 0,
     characterKey: 'avatar',
     sounds: {
@@ -84,6 +94,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         if (!Array.isArray(this.settings.tones)) this.settings.tones = DEFAULT_SETTINGS.tones.slice();
         if (!Array.isArray(this.settings.noteRanges)) this.settings.noteRanges = DEFAULT_SETTINGS.noteRanges.slice();
         if (!Array.isArray(this.settings.rhythmSubs)) this.settings.rhythmSubs = DEFAULT_SETTINGS.rhythmSubs.slice();
+        if (!Array.isArray(this.settings.rhythmTimeSigs)) this.settings.rhythmTimeSigs = DEFAULT_SETTINGS.rhythmTimeSigs.slice();
         if (!this.settings.sounds) this.settings.sounds = { ...DEFAULT_SETTINGS.sounds };
 
         this.selectedMode = 'tones';
@@ -246,13 +257,27 @@ export class ArcadeMenuScene extends Phaser.Scene {
         // Rhythm subdivisions (for rhythm / rhythmReading / all)
         if (mode === 'rhythm' || mode === 'rhythmReading' || mode === 'all') {
             this._settingsObjs.push(
-                this.add.text(width / 2 - 200, y, 'Rhythm:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
+                this.add.text(width / 2 - 200, y, 'Note values:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
             );
             RHYTHM_SUBS.forEach((s, i) => {
                 const x = width / 2 - 100 + i * 100;
                 const selected = this.settings.rhythmSubs.includes(s.id);
                 const btn = this._makeCheckBtn(x, y, s.label, selected, () => {
                     this._toggleSetting('rhythmSubs', s.id, btn);
+                });
+                this._settingsObjs.push(btn);
+            });
+            y += 24;
+
+            // Time signature toggles
+            this._settingsObjs.push(
+                this.add.text(width / 2 - 200, y, 'Time sigs:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
+            );
+            RHYTHM_TIME_SIGS.forEach((ts, i) => {
+                const x = width / 2 - 100 + i * 66;
+                const selected = this.settings.rhythmTimeSigs.includes(ts.id);
+                const btn = this._makeCheckBtn(x, y, ts.label, selected, () => {
+                    this._toggleSetting('rhythmTimeSigs', ts.id, btn);
                 });
                 this._settingsObjs.push(btn);
             });
@@ -286,6 +311,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         }
         if (mode === 'rhythm' || mode === 'rhythmReading' || mode === 'all') {
             this.settings.rhythmSubs = RHYTHM_SUBS.map(s => s.id);
+            this.settings.rhythmTimeSigs = RHYTHM_TIME_SIGS.map(ts => ts.id);
         }
         this._saveSettings();
         this._refreshSettings();

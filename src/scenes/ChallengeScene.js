@@ -106,6 +106,7 @@ export class ChallengeScene extends Phaser.Scene {
         this.customDegrees = Array.isArray(s.tones) && s.tones.length > 0 ? s.tones : null;
         this.customNoteRanges = Array.isArray(s.noteRanges) ? s.noteRanges : ['onStaff'];
         this.customRhythmSubs = Array.isArray(s.rhythmSubs) && s.rhythmSubs.length > 0 ? s.rhythmSubs : ['quarter'];
+        this.customTimeSigs = Array.isArray(s.rhythmTimeSigs) && s.rhythmTimeSigs.length > 0 ? s.rhythmTimeSigs : ['4/4'];
         this.tonesKey     = s.tonesKey  || 'random';
         this.showGrid     = s.showGrid  !== false;
         this.practiceMode = s.practice  === true;
@@ -1586,7 +1587,7 @@ export class ChallengeScene extends Phaser.Scene {
             this.scene.restart({ mode: this.mode, playerData: this.playerData,
                 clefSetting: this.clefSetting, returnScene: this.returnScene, returnData: this.returnData,
                 settings: { gradual: this.gradual, tones: this.customDegrees, noteRanges: this.customNoteRanges,
-                    rhythmSubs: this.customRhythmSubs, tonesKey: this.tonesKey, sounds: this.soundSettings } });
+                    rhythmSubs: this.customRhythmSubs, rhythmTimeSigs: this.customTimeSigs, tonesKey: this.tonesKey, sounds: this.soundSettings } });
         }).setDepth(61);
 
         this._makeBtn(width / 2 + 110, height * 0.82, 'MENU', '#142030', '#243848', () => {

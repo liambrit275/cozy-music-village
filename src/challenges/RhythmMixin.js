@@ -54,11 +54,18 @@ export const RhythmMixin = {
                 subKey = pickSubdivision(timeSig, [subKey]);
             }
         } else {
+            // Arcade custom mode: use selected time sigs and subdivisions
             const subs = this.customRhythmSubs;
+            const sigs = this.customTimeSigs || ['4/4'];
             subKey = subs[Math.floor(Math.random() * subs.length)];
             if (subKey === 'triplet') {
-                timeSig = '12/8';
+                // Triplet maps to compound meter eighth notes
+                const compoundSigs = sigs.filter(s => TIME_SIG_INFO[s]?.compound);
+                timeSig = compoundSigs.length ? compoundSigs[Math.floor(Math.random() * compoundSigs.length)] : '6/8';
                 subKey = 'eighth';
+            } else {
+                timeSig = sigs[Math.floor(Math.random() * sigs.length)];
+                subKey = pickSubdivision(timeSig, [subKey]);
             }
         }
 
