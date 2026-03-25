@@ -82,6 +82,14 @@ export class LoginScene extends Phaser.Scene {
         this._btn(width / 2 - 70, by, 'SIGN IN', '#50d0b0', '#0c1420', () => this._doLogin());
         this._btn(width / 2 + 70, by, 'NEW ACCOUNT', '#243848', '#90c8c0', () => this._doRegister());
 
+        // Teacher account link
+        const teacherLink = this.add.text(width / 2, by + 36, 'Create teacher account', {
+            font: '11px monospace', fill: '#556666',
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+        teacherLink.on('pointerover', () => teacherLink.setStyle({ fill: '#90c8c0' }));
+        teacherLink.on('pointerout', () => teacherLink.setStyle({ fill: '#556666' }));
+        teacherLink.on('pointerdown', () => this._doRegister('teacher'));
+
         // Keyboard
         this._keyHandler = (e) => {
             if (!this.scene.isActive('LoginScene')) return;
@@ -137,10 +145,10 @@ export class LoginScene extends Phaser.Scene {
         }
     }
 
-    _doRegister() {
+    _doRegister(role = 'student') {
         if (!this._username || !this._password) { this._errorText.setText('Enter username and password'); return; }
         try {
-            const r = UserProfileManager.registerSync(this._username, this._password);
+            const r = UserProfileManager.registerSync(this._username, this._password, role);
             if (!r.ok) { this._errorText.setText(r.error); return; }
             try { UserProfileManager.migrateFromLegacy(r.username); } catch (e) { /* ignore */ }
             UserProfileManager.loginSync(this._username, this._password);
@@ -163,6 +171,12 @@ export class LoginScene extends Phaser.Scene {
                 const boot = this.scene.get('BootScene');
                 if (boot && boot._composeAvatar) boot._composeAvatar(profile.avatar);
             } catch (e) { console.warn('Avatar recompose failed:', e); }
+        }
+
+        // Teacher → dashboard, Student → game
+        if (UserProfileManager.isTeacher(username)) {
+            this.scene.start('TeacherDashboardScene');
+            return;
         }
 
         // New account or no instrument → pick instrument

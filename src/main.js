@@ -9,6 +9,7 @@ import { ArcadeMenuScene }       from './scenes/ArcadeMenuScene.js';
 import { SettingsScene }         from './scenes/SettingsScene.js';
 import { LatencyTestScene }      from './scenes/LatencyTestScene.js';
 import { AvatarBuilderScene }    from './scenes/AvatarBuilderScene.js';
+import { TeacherDashboardScene } from './scenes/TeacherDashboardScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -40,6 +41,7 @@ const config = {
         SettingsScene,
         LatencyTestScene,
         AvatarBuilderScene,
+        TeacherDashboardScene,
     ]
 };
 

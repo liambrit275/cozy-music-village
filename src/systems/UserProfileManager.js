@@ -32,13 +32,13 @@ export class UserProfileManager {
         localStorage.setItem(USERS_KEY, JSON.stringify(users));
     }
 
-    static registerSync(username, password) {
+    static registerSync(username, password, role = 'student') {
         if (!username || username.length < 2) return { ok: false, error: 'Name must be 2+ chars' };
         if (!password || password.length < 3) return { ok: false, error: 'Password must be 3+ chars' };
         const clean = username.trim().toLowerCase();
         const users = this._loadUsers();
         if (users[clean]) return { ok: false, error: 'Name already taken' };
-        users[clean] = { hash: simpleHash(password), createdAt: Date.now() };
+        users[clean] = { hash: simpleHash(password), role, createdAt: Date.now() };
         this._saveUsers(users);
         // Create empty profile
         localStorage.setItem(PROFILE_PREFIX + clean, JSON.stringify({
@@ -64,6 +64,53 @@ export class UserProfileManager {
     static logout() { localStorage.removeItem(ACTIVE_KEY); }
     static getActiveUser() { return localStorage.getItem(ACTIVE_KEY) || null; }
     static getUserList() { return Object.keys(this._loadUsers()); }
+
+    static getRole(username) {
+        const users = this._loadUsers();
+        return users[username]?.role || 'student';
+    }
+
+    static isTeacher(username) {
+        return this.getRole(username || this.getActiveUser()) === 'teacher';
+    }
+
+    static deleteUser(username) {
+        const users = this._loadUsers();
+        if (!users[username]) return false;
+        delete users[username];
+        this._saveUsers(users);
+        localStorage.removeItem(PROFILE_PREFIX + username);
+        return true;
+    }
+
+    static resetUserProgress(username) {
+        const profile = this._loadProfile(username);
+        if (!profile) return false;
+        profile.storyProgress = null;
+        profile.arcadeScores = null;
+        this._saveProfile(username, profile);
+        return true;
+    }
+
+    /** Get all students with summary info for teacher dashboard. */
+    static getAllStudents() {
+        const users = this._loadUsers();
+        const students = [];
+        for (const [name, info] of Object.entries(users)) {
+            if (info.role === 'teacher') continue;
+            const profile = this._loadProfile(name) || {};
+            students.push({
+                username: name,
+                instrument: profile.instrument || 'none',
+                storyLevel: profile.storyProgress?.storyLevel || 1,
+                totalSessions: profile.storyProgress?.totalSessions || 0,
+                totalCorrect: profile.storyProgress?.totalCorrect || 0,
+                lastLogin: profile.lastLogin || info.createdAt || 0,
+                arcadeScores: profile.arcadeScores || {},
+            });
+        }
+        return students;
+    }
 
     // ── Profile CRUD ─────────────────────────────────────────
 

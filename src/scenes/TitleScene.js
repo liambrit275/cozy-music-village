@@ -95,6 +95,15 @@ export class TitleScene extends Phaser.Scene {
                     try { UserProfileManager.logout(); } catch (e) { /* ignore */ }
                     this.scene.start('LoginScene');
                 });
+                // Teacher dashboard button
+                if (UserProfileManager.isTeacher(activeUser)) {
+                    const dashBtn = this.add.text(16, 50, 'Teacher Dashboard', {
+                        font: '11px monospace', fill: '#687880',
+                    }).setInteractive({ useHandCursor: true });
+                    dashBtn.on('pointerover', () => dashBtn.setStyle({ fill: '#e8d098' }));
+                    dashBtn.on('pointerout', () => dashBtn.setStyle({ fill: '#687880' }));
+                    dashBtn.on('pointerdown', () => this.scene.start('TeacherDashboardScene'));
+                }
             }
         } catch (e) { /* ignore - user features just won't show */ }
     }
