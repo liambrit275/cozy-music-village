@@ -4,6 +4,7 @@
 
 import { getStoryLevel } from '../data/levels.js';
 import { ProgressionManager } from '../systems/ProgressionManager.js';
+import { UserProfileManager } from '../systems/UserProfileManager.js';
 
 const WORLD_W = 1600;
 const WORLD_H = 1400;
@@ -97,6 +98,26 @@ export class TopDownScene extends Phaser.Scene {
         settingsBtn.on('pointerdown', () => {
             this.scene.launch('SettingsScene', { callerKey: 'TopDownScene', pauseCaller: true });
             this.scene.pause('TopDownScene');
+        });
+
+        // Save button
+        const saveBtn = this.add.text(
+            this.cameras.main.width - 48, 14, 'SAVE',
+            { font: 'bold 11px monospace', fill: '#687880', backgroundColor: '#00000066', padding: { x: 6, y: 4 } }
+        ).setOrigin(1, 0).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+        saveBtn.on('pointerover', () => saveBtn.setStyle({ fill: '#50d0b0' }));
+        saveBtn.on('pointerout', () => saveBtn.setStyle({ fill: '#687880' }));
+        saveBtn.on('pointerdown', () => {
+            this._progression.storyLevel = this._storyLevel;
+            this._progression.storyLevelEncounters = this.rescuedCount || 0;
+            this._progression.save(this.playerData);
+            // Also sync to user profile
+            UserProfileManager.syncLocalStorageToProfile();
+            const msg = this.add.text(this.cameras.main.width / 2, 50, 'Game saved!', {
+                font: 'bold 14px monospace', fill: '#50d0b0',
+                stroke: '#000', strokeThickness: 3,
+            }).setOrigin(0.5).setScrollFactor(0).setDepth(25);
+            this.tweens.add({ targets: msg, alpha: 0, duration: 800, delay: 1000, onComplete: () => msg.destroy() });
         });
 
         // ── Resume handler (returns from SettingsScene / AvatarBuilder) ───

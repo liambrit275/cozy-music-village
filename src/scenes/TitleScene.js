@@ -1,6 +1,7 @@
 // TitleScene: Cozy title screen with Play / Practice split
 
-import { ProgressionManager } from '../systems/ProgressionManager.js';  // used by goToPractice
+import { ProgressionManager } from '../systems/ProgressionManager.js';
+import { UserProfileManager } from '../systems/UserProfileManager.js';
 
 export class TitleScene extends Phaser.Scene {
     constructor() {
@@ -78,6 +79,23 @@ export class TitleScene extends Phaser.Scene {
             .on('pointerdown', () => {
                 this.scene.launch('SettingsScene', { callerKey: null, pauseCaller: false });
             });
+
+        // Username + log out
+        const activeUser = UserProfileManager.getActiveUser();
+        if (activeUser) {
+            this.add.text(16, 10, activeUser, { font: 'bold 14px monospace', fill: '#50d0b0' });
+            const logout = this.add.text(16, 30, 'Log out', {
+                font: '11px monospace', fill: '#687880',
+            }).setInteractive({ useHandCursor: true });
+            logout.on('pointerover', () => logout.setStyle({ fill: '#e08868' }));
+            logout.on('pointerout', () => logout.setStyle({ fill: '#687880' }));
+            logout.on('pointerdown', () => {
+                // Save current state to profile before logging out
+                UserProfileManager.syncLocalStorageToProfile();
+                UserProfileManager.logout();
+                this.scene.start('LoginScene');
+            });
+        }
     }
 
     goToPractice() {

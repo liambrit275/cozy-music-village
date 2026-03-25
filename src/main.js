@@ -1,12 +1,14 @@
-import { BootScene }            from './scenes/BootScene.js';
-import { TitleScene }           from './scenes/TitleScene.js';
-import { CharacterSelectScene } from './scenes/CharacterSelectScene.js';
-import { TopDownScene }         from './scenes/TopDownScene.js';
-import { ChallengeScene }       from './scenes/ChallengeScene.js';
-import { ArcadeMenuScene }      from './scenes/ArcadeMenuScene.js';
-import { SettingsScene }        from './scenes/SettingsScene.js';
-import { LatencyTestScene }     from './scenes/LatencyTestScene.js';
-import { AvatarBuilderScene }   from './scenes/AvatarBuilderScene.js';
+import { BootScene }              from './scenes/BootScene.js';
+import { LoginScene }             from './scenes/LoginScene.js';
+import { InstrumentPickerScene }  from './scenes/InstrumentPickerScene.js';
+import { TitleScene }             from './scenes/TitleScene.js';
+import { CharacterSelectScene }   from './scenes/CharacterSelectScene.js';
+import { TopDownScene }           from './scenes/TopDownScene.js';
+import { ChallengeScene }        from './scenes/ChallengeScene.js';
+import { ArcadeMenuScene }       from './scenes/ArcadeMenuScene.js';
+import { SettingsScene }         from './scenes/SettingsScene.js';
+import { LatencyTestScene }      from './scenes/LatencyTestScene.js';
+import { AvatarBuilderScene }    from './scenes/AvatarBuilderScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -28,6 +30,8 @@ const config = {
     },
     scene: [
         BootScene,
+        LoginScene,
+        InstrumentPickerScene,
         TitleScene,
         CharacterSelectScene,
         TopDownScene,

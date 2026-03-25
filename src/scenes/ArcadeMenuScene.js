@@ -1,6 +1,7 @@
 // ArcadeMenuScene: Mode picker + settings for Arcade gameplay
 
 import { ProgressionManager } from '../systems/ProgressionManager.js';
+import { UserProfileManager } from '../systems/UserProfileManager.js';
 
 const SOLFEGE_DEGREES = [
     { degree: '1',  label: 'Do' },
@@ -85,6 +86,9 @@ export class ArcadeMenuScene extends Phaser.Scene {
     create() {
         const { width, height } = this.cameras.main;
         this.cameras.main.setBackgroundColor('#0c1420');
+
+        // Sync any changes back to user profile (e.g. after a game)
+        UserProfileManager.syncLocalStorageToProfile();
 
         // Load saved settings
         const saved = this.pm.loadArcadeSettings();
@@ -349,7 +353,6 @@ export class ArcadeMenuScene extends Phaser.Scene {
     // ── High scores ───────────────────────────────────────────
 
     _buildHighScores(width, y) {
-        const scores = this.pm.loadArcadeScores();
         const cols = [
             { label: 'TONES',      key: 'tones',         x: width / 2 - 290 },
             { label: 'NOTE READ',  key: 'noteReading',   x: width / 2 - 150 },
@@ -358,7 +361,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
             { label: 'ALL',        key: 'all',            x: width / 2 + 270 },
         ];
 
-        this.add.text(width / 2, y - 14, 'HIGH SCORES', {
+        this.add.text(width / 2, y - 14, 'LEADERBOARD', {
             font: '14px monospace', fill: '#e8d098'
         }).setOrigin(0.5);
 
@@ -367,10 +370,11 @@ export class ArcadeMenuScene extends Phaser.Scene {
                 font: '12px monospace', fill: '#90c8c0'
             }).setOrigin(0.5);
 
-            const list = scores[col.key] || [];
+            const board = UserProfileManager.getLeaderboard(col.key);
             for (let i = 0; i < 5; i++) {
-                const val = list[i] != null ? list[i].toString() : '--';
-                this.add.text(col.x, y + 28 + i * 18, `${i + 1}. ${val}`, {
+                const entry = board[i];
+                const text = entry ? (entry.username + ' ' + entry.score) : '--';
+                this.add.text(col.x, y + 28 + i * 18, (i + 1) + '. ' + text, {
                     font: '11px monospace', fill: '#90c8c0'
                 }).setOrigin(0.5);
             }

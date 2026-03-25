@@ -406,7 +406,7 @@ export class BootScene extends Phaser.Scene {
         this._createAnimIfNew('adventurer-attack', 'adventurer-attack', 0, 7, 12, 0);
 
         // ── TRANSITION ──────────────────────────────────────────────────────
-        this.scene.start('TitleScene');
+        this.scene.start('LoginScene');
     }
 
     /**
