@@ -218,14 +218,21 @@ export const RhythmReadingMixin = {
         const sub    = this._rrSub;
         const cellMs = this._rrCellMs;
         const n      = this._rrCells;
-        const COUNT_IN = 4;
+
+        // Count-in matches time signature's felt beats
+        const tsInfo = this._rrTimeSigInfo || TIME_SIG_INFO['4/4'];
+        const COUNT_IN = tsInfo.beats; // e.g. 4 for 4/4, 2 for 6/8, 3 for 3/4
+        const cellsPerBeat = sub.downbeats.length > 1
+            ? sub.downbeats[1] - sub.downbeats[0]
+            : sub.cells.length;
+        const beatMs = cellsPerBeat * cellMs;
 
         for (let b = 0; b < COUNT_IN; b++) {
             this._rrSchedule(() => {
                 this.messageText.setText(b < COUNT_IN - 1 ? `${COUNT_IN - b}...` : 'TAP!')
                     .setStyle({ fill: '#e8d098' });
                 this.audioEngine.playClick(b === 0);
-            }, b * this._rrQuarterMs);
+            }, b * beatMs);
         }
 
         this._rrSchedule(() => {
@@ -244,7 +251,7 @@ export const RhythmReadingMixin = {
                 if (this._rrState === 'recording') this._evaluateRhythmReading();
             }, n * cellMs + 200);
 
-        }, COUNT_IN * this._rrQuarterMs);
+        }, COUNT_IN * beatMs);
     },
 
     _onRrTap() {

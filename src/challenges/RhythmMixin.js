@@ -453,23 +453,25 @@ export const RhythmMixin = {
     _playRhythmCountIn(onComplete) {
         if (!this._rhythmPlaying) return;
 
+        // Count-in matches the time signature's felt beats
+        const tsInfo = this._rhythmTimeSigInfo || TIME_SIG_INFO['4/4'];
+        const nBeats = tsInfo.beats; // e.g. 4 for 4/4, 2 for 6/8, 3 for 3/4
         const sub = this._rhythmSub;
-        const cells = this._rhythmCells;
-        const cellMs = this._rhythmCellMs;
+        // Beat duration = cells per beat × cell duration
+        const cellsPerBeat = sub.downbeats.length > 1
+            ? sub.downbeats[1] - sub.downbeats[0]
+            : sub.cells.length;
+        const beatDuration = cellsPerBeat * this._rhythmCellMs;
 
-        let i = 0;
+        let b = 0;
         const tick = () => {
             if (!this._rhythmPlaying) return;
-
-            if (sub.downbeats.includes(i)) {
-                this.audioEngine.playClick(i === 0);
-            }
-
-            i++;
-            if (i < cells) {
-                this._rhythmPlayTimer = this.time.delayedCall(cellMs, tick);
+            this.audioEngine.playClick(b === 0);
+            b++;
+            if (b < nBeats) {
+                this._rhythmPlayTimer = this.time.delayedCall(beatDuration, tick);
             } else {
-                this._rhythmPlayTimer = this.time.delayedCall(cellMs, () => {
+                this._rhythmPlayTimer = this.time.delayedCall(beatDuration, () => {
                     if (this._rhythmPlaying && onComplete) onComplete();
                 });
             }
