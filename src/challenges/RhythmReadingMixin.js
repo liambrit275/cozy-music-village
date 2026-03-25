@@ -126,10 +126,12 @@ export const RhythmReadingMixin = {
         this._rrCellRects  = [];
         this._rrCellLabels = [];
 
+        // Augment time sig info with actual ticksPerCell from subdivision
+        const tsInfoAug = tsInfo && sub ? { ...tsInfo, ticksPerCell: sub.ticksPerCell } : tsInfo;
         let spelled = [];
         try {
-            spelled = spellPattern(groupGrid, subKey, tsInfo);
-            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80, -1, tsInfo);
+            spelled = spellPattern(groupGrid, subKey, tsInfoAug);
+            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80, -1, tsInfoAug);
         } catch (err) {
             console.error('RhythmReading notation error:', err);
         }

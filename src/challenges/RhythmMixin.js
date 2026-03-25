@@ -382,7 +382,11 @@ export const RhythmMixin = {
     _renderRhythmNotation() {
         try {
             const { width } = this.cameras.main;
-            const tsInfo = this._rhythmTimeSigInfo || null;
+            // Augment time sig info with actual ticksPerCell from subdivision
+            const baseTsInfo = this._rhythmTimeSigInfo || null;
+            const tsInfo = baseTsInfo && this._rhythmSub
+                ? { ...baseTsInfo, ticksPerCell: this._rhythmSub.ticksPerCell }
+                : baseTsInfo;
             let spelled = spellPattern(this._userRhythm, this._rhythmSubKey, tsInfo);
             const cursorTick = this._rhythmKeyboard ? this._rhythmKeyboard._cursorTick : -1;
             const selectedTicks = this._rhythmKeyboard ? this._rhythmKeyboard.effectiveTicks : -1;

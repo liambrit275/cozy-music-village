@@ -787,10 +787,13 @@ export class ChallengeScene extends Phaser.Scene {
             const pattern = this._rhythmPattern;
             let gid = 0;
             const answerGrid = pattern.map(v => { if (v) gid++; return gid; });
-            const spelled = spellPattern(answerGrid, this._rhythmSubKey, this._rhythmTimeSigInfo);
+            const tsInfoAug = this._rhythmTimeSigInfo && this._rhythmSub
+                ? { ...this._rhythmTimeSigInfo, ticksPerCell: this._rhythmSub.ticksPerCell }
+                : this._rhythmTimeSigInfo;
+            const spelled = spellPattern(answerGrid, this._rhythmSubKey, tsInfoAug);
             const { width: w } = this.cameras.main;
             const notationY = this._rNotationY || (this._rGridY - 108);
-            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, w / 2, notationY, w - 100, -1, this._rhythmTimeSigInfo);
+            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, w / 2, notationY, w - 100, -1, tsInfoAug);
         } catch (err) {
             console.error('_showRhythmTimeoutUI notation error:', err);
         }
