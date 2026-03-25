@@ -50,8 +50,9 @@ export class RhythmNotationRenderer {
      * @param {number} cy - center y in game coordinates
      * @param {number} width - desired width in game coordinates (unused, we use NAT_STAVE_W)
      * @param {number} [cursorTick=-1] - tick position of keyboard cursor (-1 = none)
+     * @param {object} [timeSigInfo] - optional { numBeats, vexBeatValue, compound, beatTicks }
      */
-    render(notes, subdivision, cx, cy, width, cursorTick = -1) {
+    render(notes, subdivision, cx, cy, width, cursorTick = -1, timeSigInfo = null) {
         this.clear();
 
         if (typeof Vex === 'undefined') {
@@ -60,7 +61,7 @@ export class RhythmNotationRenderer {
         }
 
         try {
-            this._render(notes, subdivision, cx, cy, cursorTick);
+            this._render(notes, subdivision, cx, cy, cursorTick, timeSigInfo);
         } catch (err) {
             console.error('RhythmNotationRenderer error:', err);
         }
@@ -85,7 +86,7 @@ export class RhythmNotationRenderer {
         return { rect, sx, sy, cssScale };
     }
 
-    _render(notes, subdivision, cx, cy, cursorTick) {
+    _render(notes, subdivision, cx, cy, cursorTick, timeSigInfo) {
         const VF = Vex.Flow;
         const { rect, sx, sy, cssScale } = this._screenScale();
 
@@ -132,9 +133,18 @@ export class RhythmNotationRenderer {
         ctx.setFillStyle(NOTE_COLOR);
         ctx.setStrokeStyle(NOTE_COLOR);
 
+        // Determine time signature display string
+        const compound = timeSigInfo?.compound ?? (subdivision === 'triplet');
+        let timeSigStr;
+        if (timeSigInfo) {
+            timeSigStr = `${timeSigInfo.numBeats}/${timeSigInfo.vexBeatValue}`;
+        } else {
+            timeSigStr = compound ? '12/8' : '4/4';
+        }
+
         // Stave — percussion style (no clef)
         const stave = new VF.Stave(NAT_STAVE_X, NAT_STAVE_Y, NAT_STAVE_W);
-        stave.addTimeSignature(subdivision === 'triplet' ? '12/8' : '4/4');
+        stave.addTimeSignature(timeSigStr);
         stave.setContext(ctx);
 
         // Style stave lines muted blue-gray
@@ -178,8 +188,8 @@ export class RhythmNotationRenderer {
         let beams = [];
         if (subdivision === 'eighth' || subdivision === 'sixteenth' || subdivision === 'triplet') {
             try {
-                const beamGroups = subdivision === 'triplet'
-                    ? [new VF.Fraction(3, 8)]  // beam in groups of 3 eighth notes for 12/8
+                const beamGroups = compound
+                    ? [new VF.Fraction(3, 8)]  // beam in groups of 3 eighth notes for compound
                     : undefined;
                 beams = VF.Beam.generateBeams(vfNotes, { stem_direction: -1, groups: beamGroups });
                 beams.forEach(b => b.setStyle({ fillStyle: NOTE_COLOR, strokeStyle: NOTE_COLOR }));
@@ -187,8 +197,8 @@ export class RhythmNotationRenderer {
         }
 
         // Voice in SOFT mode (forgiving tick count)
-        const numBeats = subdivision === 'triplet' ? 12 : 4;
-        const beatValue = subdivision === 'triplet' ? 8 : 4;
+        const numBeats = timeSigInfo?.numBeats ?? (compound ? 12 : 4);
+        const beatValue = timeSigInfo?.vexBeatValue ?? (compound ? 8 : 4);
         const voice = new VF.Voice({ num_beats: numBeats, beat_value: beatValue })
             .setMode(VF.Voice.Mode.SOFT)
             .addTickables(vfNotes);

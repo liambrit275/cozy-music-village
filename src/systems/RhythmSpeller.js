@@ -1,6 +1,7 @@
 // RhythmSpeller: converts a boolean pattern + subdivision into SpelledNote[]
 // Merges adjacent note cells into sustained notes, splits at beat boundaries,
 // and produces properly-spelled notation with ties.
+// Supports multiple time signatures via optional timeSigInfo parameter.
 
 const TICKS_PER_CELL = {
     quarter:   4,
@@ -10,6 +11,7 @@ const TICKS_PER_CELL = {
 };
 
 // Map tick duration → VexFlow duration string (sorted largest first)
+// Used for simple meters (x/4) where 1 tick = sixteenth note
 const DURATION_MAP = [
     { ticks: 16, vex: 'w'  },
     { ticks: 12, vex: 'hd' },
@@ -21,8 +23,8 @@ const DURATION_MAP = [
     { ticks: 1,  vex: '16' },
 ];
 
-// In 12/8: each tick = one 8th note, 3 ticks = dotted quarter, 6 = dotted half, etc.
-const TRIPLET_DURATION_MAP = [
+// Compound meters (x/8) where 1 tick = eighth note
+const COMPOUND_DURATION_MAP = [
     { ticks: 12, vex: 'wd' },
     { ticks: 6,  vex: 'hd' },
     { ticks: 3,  vex: 'qd' },
@@ -41,7 +43,7 @@ const REST_DURATION_MAP = [
     { ticks: 1,  vex: '16' },
 ];
 
-const TRIPLET_REST_MAP = [
+const COMPOUND_REST_MAP = [
     { ticks: 12, vex: 'wd' },
     { ticks: 6,  vex: 'hd' },
     { ticks: 3,  vex: 'qd' },
@@ -49,10 +51,10 @@ const TRIPLET_REST_MAP = [
     { ticks: 1,  vex: '8'  },
 ];
 
-function ticksToVexDuration(ticks, isTriplet, isRest) {
+function ticksToVexDuration(ticks, compound, isRest) {
     const map = isRest
-        ? (isTriplet ? TRIPLET_REST_MAP : REST_DURATION_MAP)
-        : (isTriplet ? TRIPLET_DURATION_MAP : DURATION_MAP);
+        ? (compound ? COMPOUND_REST_MAP : REST_DURATION_MAP)
+        : (compound ? COMPOUND_DURATION_MAP : DURATION_MAP);
     for (const entry of map) {
         if (entry.ticks === ticks) return entry;
     }
@@ -60,7 +62,7 @@ function ticksToVexDuration(ticks, isTriplet, isRest) {
     for (const entry of map) {
         if (entry.ticks <= ticks) return entry;
     }
-    return { ticks: 1, vex: isTriplet ? '8' : '16' };
+    return { ticks: 1, vex: compound ? '8' : '16' };
 }
 
 /**
@@ -100,34 +102,29 @@ function mergeEvents(groupGrid, ticksPerCell) {
  * Get the maximum ticks a single note/rest can span from `pos`.
  *
  * Rules:
- *  1. Always split at the half-bar midpoint (tick 8 in 4/4, tick 6 in 12/8).
- *  2a. For compound meter (12/8 / triplet): ALWAYS split at beat boundaries
- *      (every 3 eighth-note ticks). Compound beats are dotted-quarter groups
- *      and notes must not cross them.
- *  2b. For simple meter (sixteenth): split at beat boundaries only when the
- *      note starts in the last portion of the beat (< half a beat before the
- *      boundary). This lets 8th and quarter values cross beat lines naturally.
+ *  1. Split at the half-bar midpoint (if defined).
+ *  2. Split at beat boundaries when splitAtBeats is true.
+ *     Notes must not cross beat lines — they get tied at the boundary instead.
+ *
+ * @param {number} pos - current tick position
+ * @param {number} remaining - ticks left in the event
+ * @param {number} beatSize - ticks per beat (4 for simple, 3 for compound)
+ * @param {number|null} midpoint - tick position of half-bar split (null = no midpoint)
+ * @param {boolean} splitAtBeats - whether to enforce beat boundary splits
  */
-function maxDurationAt(pos, remaining, isTriplet, splitAtBeats) {
+function maxDurationAt(pos, remaining, beatSize, midpoint, splitAtBeats) {
     let limit = remaining;
-    const beatSize = isTriplet ? 3 : 4;
-    const midpoint = isTriplet ? 6 : 8;
 
-    // Rule 1: half-bar midpoint — always mandatory
-    if (pos < midpoint && pos + limit > midpoint) {
+    // Rule 1: half-bar midpoint — always mandatory (when defined)
+    if (midpoint != null && pos < midpoint && pos + limit > midpoint) {
         limit = midpoint - pos;
     }
 
-    // Rule 2: beat boundaries
+    // Rule 2: beat boundaries — always split, never cross a beat line
     if (splitAtBeats) {
         const nextBeat = (Math.floor(pos / beatSize) + 1) * beatSize;
-        const portionBeforeBeat = nextBeat - pos;
         if (pos + limit > nextBeat) {
-            // 12/8: always split at dotted-quarter beat boundaries
-            // Simple: only split when starting late in the beat
-            if (isTriplet || portionBeforeBeat < beatSize / 2) {
-                limit = Math.min(limit, portionBeforeBeat);
-            }
+            limit = Math.min(limit, nextBeat - pos);
         }
     }
 
@@ -137,7 +134,7 @@ function maxDurationAt(pos, remaining, isTriplet, splitAtBeats) {
 /**
  * Split a single event at beat boundaries into properly-spelled SpelledNotes.
  */
-function splitEvent(event, isTriplet, splitAtBeats = false) {
+function splitEvent(event, compound, beatSize, midpoint, splitAtBeats) {
     const result = [];
     let remaining = event.durationTicks;
     let pos = event.startTick;
@@ -145,8 +142,8 @@ function splitEvent(event, isTriplet, splitAtBeats = false) {
 
     let safety = 0;
     while (remaining > 0 && safety++ < 64) {
-        const maxTicks = maxDurationAt(pos, remaining, isTriplet, splitAtBeats);
-        const best = ticksToVexDuration(maxTicks, isTriplet, isRest);
+        const maxTicks = maxDurationAt(pos, remaining, beatSize, midpoint, splitAtBeats);
+        const best = ticksToVexDuration(maxTicks, compound, isRest);
         const useTicks = best.ticks;
 
         if (useTicks <= 0) {
@@ -172,27 +169,49 @@ function splitEvent(event, isTriplet, splitAtBeats = false) {
 }
 
 /**
+ * Resolve time signature parameters from subdivision name or explicit timeSigInfo.
+ *
+ * @param {string} subdivision - 'quarter' | 'eighth' | 'sixteenth' | 'triplet'
+ * @param {object} [timeSigInfo] - optional override: { compound, beatTicks, midpoint, ticksPerCell }
+ * @returns {{ ticksPerCell, compound, beatSize, midpoint, splitAtBeats }}
+ */
+function resolveTimeSig(subdivision, timeSigInfo) {
+    if (timeSigInfo) {
+        const compound = timeSigInfo.compound ?? false;
+        const beatSize = timeSigInfo.beatTicks ?? (compound ? 3 : 4);
+        const midpoint = timeSigInfo.midpoint ?? null;
+        const ticksPerCell = timeSigInfo.ticksPerCell ?? TICKS_PER_CELL[subdivision] ?? 1;
+        // Split at beats for sub-beat subdivisions (sixteenth, or eighth in compound)
+        const splitAtBeats = timeSigInfo.splitAtBeats ?? (ticksPerCell < beatSize);
+        return { ticksPerCell, compound, beatSize, midpoint, splitAtBeats };
+    }
+    // Legacy: derive from subdivision name (assumes 4/4 or 12/8)
+    const compound = subdivision === 'triplet';
+    const beatSize = compound ? 3 : 4;
+    const midpoint = compound ? 6 : 8;
+    const ticksPerCell = TICKS_PER_CELL[subdivision] ?? 1;
+    const splitAtBeats = subdivision === 'sixteenth' || subdivision === 'triplet';
+    return { ticksPerCell, compound, beatSize, midpoint, splitAtBeats };
+}
+
+/**
  * Convert a group-ID grid into properly-spelled notation.
  * Merges cells in the same group, splits at beat boundaries, adds ties.
  *
  * @param {number[]} groupGrid - 0 = rest, positive number = note group ID
  * @param {string} subdivision - 'quarter' | 'eighth' | 'sixteenth' | 'triplet'
- * @param {object} [options]
- * @param {boolean} [options.perCell=false] - If true, each cell is its own note tied
- *   to its neighbours in the same group, making ties explicit at subdivision resolution.
+ * @param {object} [timeSigInfo] - optional time signature info from levels.js TIME_SIG_INFO
+ *   { compound, beatTicks, midpoint, ticksPerCell }
  * @returns {SpelledNote[]}
  */
-export function spellPattern(groupGrid, subdivision) {
-    const ticksPerCell = TICKS_PER_CELL[subdivision];
-    const isTriplet    = subdivision === 'triplet';
-    // 16th and triplet subdivisions split at quarter-note beat boundaries (with conditions);
-    // quarter and eighth only split at the half-bar midpoint.
-    const splitAtBeats = subdivision === 'sixteenth' || subdivision === 'triplet';
+export function spellPattern(groupGrid, subdivision, timeSigInfo) {
+    const { ticksPerCell, compound, beatSize, midpoint, splitAtBeats } =
+        resolveTimeSig(subdivision, timeSigInfo);
 
     const events = mergeEvents(groupGrid, ticksPerCell);
     const spelled = [];
     for (const event of events) {
-        spelled.push(...splitEvent(event, isTriplet, splitAtBeats));
+        spelled.push(...splitEvent(event, compound, beatSize, midpoint, splitAtBeats));
     }
     return spelled;
 }
@@ -206,12 +225,13 @@ export function spellPattern(groupGrid, subdivision) {
  * @param {number} cursorTick - current cursor position in ticks
  * @param {number} selectedTicks - the currently selected duration in ticks
  * @param {string} subdivision - 'quarter' | 'eighth' | 'sixteenth' | 'triplet'
+ * @param {object} [timeSigInfo] - optional time signature info
  * @returns {SpelledNote[]}
  */
-export function splitRestsAtCursor(spelled, cursorTick, selectedTicks, subdivision) {
+export function splitRestsAtCursor(spelled, cursorTick, selectedTicks, subdivision, timeSigInfo) {
     if (cursorTick < 0 || selectedTicks <= 0) return spelled;
-    const isTriplet = subdivision === 'triplet';
-    const splitAtBeats = subdivision === 'sixteenth' || subdivision === 'triplet';
+    const { compound, beatSize, midpoint, splitAtBeats } =
+        resolveTimeSig(subdivision, timeSigInfo);
 
     const result = [];
     for (const note of spelled) {
@@ -233,7 +253,7 @@ export function splitRestsAtCursor(spelled, cursorTick, selectedTicks, subdivisi
                 type: 'rest',
                 startTick: pos,
                 durationTicks: chunkSize,
-            }, isTriplet, splitAtBeats);
+            }, compound, beatSize, midpoint, splitAtBeats);
             if (subNotes.length === 0) break;
             result.push(...subNotes);
             const consumed = subNotes.reduce((sum, n) => sum + n.durationTicks, 0);

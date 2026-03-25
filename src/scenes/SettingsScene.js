@@ -12,7 +12,7 @@ import {
 } from '../systems/AudioEngine.js';
 
 const PANEL_W = 640;
-const PANEL_H = 460;
+const PANEL_H = 550;
 const BG_COLOR     = 0x0c1420;
 const BORDER_COLOR = 0x243848;
 const TITLE_COLOR  = '#e8d098';
@@ -249,8 +249,57 @@ export class SettingsScene extends Phaser.Scene {
             if (initVol >= 1.0) incBtn.setStyle({ fill: '#1a2838' });
         });
 
-        // ── Edit Avatar button ────────────────────────────────
-        const avatarBtn = this.add.text(px + 24, py + PANEL_H - 44, 'EDIT AVATAR', {
+        // ── Instrument picker ─────────────────────────────────
+        {
+            const iy = py + 378;
+            this.add.rectangle(width / 2, iy - 12, PANEL_W - 40, 1, 0x243848, 0.6);
+            this.add.text(px + 24, iy, 'INSTRUMENT', {
+                font: 'bold 11px monospace', fill: '#687880',
+            }).setOrigin(0, 0.5);
+
+            const instruments = [
+                { id: 'piano',   label: 'Piano' },
+                { id: 'guitar',  label: 'Guitar' },
+                { id: 'violin',  label: 'Violin' },
+                { id: 'cello',   label: 'Cello' },
+                { id: 'ukulele', label: 'Ukulele' },
+                { id: 'vocal',   label: 'Vocal' },
+            ];
+            const current = this.settings.instrument || 'piano';
+            const instBtns = [];
+
+            instruments.forEach((inst, ki) => {
+                const bx = px + 120 + ki * 78;
+                const active = inst.id === current;
+                const btn = this.add.text(bx, iy, inst.label, {
+                    font: '11px monospace',
+                    fill: active ? '#e8d098' : '#90c8c0',
+                    backgroundColor: active ? '#1a2838' : '#142030',
+                    padding: { x: 6, y: 4 },
+                }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
+
+                btn.on('pointerdown', () => {
+                    this.settings.instrument = inst.id;
+                    this._save();
+                    instBtns.forEach(b => {
+                        b.setStyle({
+                            fill: '#90c8c0',
+                            backgroundColor: '#142030',
+                        });
+                    });
+                    btn.setStyle({
+                        fill: '#e8d098',
+                        backgroundColor: '#1a2838',
+                    });
+                });
+                instBtns.push(btn);
+            });
+        }
+
+        // ── Bottom buttons row ────────────────────────────────
+        const btnY = py + PANEL_H - 44;
+
+        const avatarBtn = this.add.text(px + 24, btnY, 'EDIT AVATAR', {
             font: 'bold 13px monospace', fill: '#90c8c0',
             backgroundColor: '#142030', padding: { x: 10, y: 6 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
@@ -259,6 +308,21 @@ export class SettingsScene extends Phaser.Scene {
         avatarBtn.on('pointerdown', () => {
             this.scene.pause('SettingsScene');
             this.scene.launch('AvatarBuilderScene', { callerScene: 'SettingsScene' });
+        });
+
+        const latencyBtn = this.add.text(px + PANEL_W - 24, btnY, 'TAP LATENCY', {
+            font: 'bold 13px monospace', fill: '#90c8c0',
+            backgroundColor: '#142030', padding: { x: 10, y: 6 },
+        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true });
+        latencyBtn.on('pointerover', () => latencyBtn.setStyle({ fill: '#e8d098' }));
+        latencyBtn.on('pointerout',  () => latencyBtn.setStyle({ fill: '#90c8c0' }));
+        latencyBtn.on('pointerdown', () => {
+            this._close();
+            this.scene.start('LatencyTestScene', {
+                returnScene: this.callerKey || 'TitleScene',
+                returnData: {},
+                settings: this.settings,
+            });
         });
 
         // ── Hint text ─────────────────────────────────────────

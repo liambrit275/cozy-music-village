@@ -245,7 +245,7 @@ export class BootScene extends Phaser.Scene {
         this.load.image('rest-eighth',    'assets/symbols/rest_eighth.png');
         this.load.image('rest-sixteenth', 'assets/symbols/rest_sixteenth.png');
 
-        // ── ZONE BACKGROUNDS (used by ArcadeBattleScene, RhythmReadingScene) ─
+        // ── ZONE BACKGROUNDS ─────────────────────────────────────────────────
         this.load.image('bg-forest',      'assets/backgrounds/forest.png');
         this.load.image('bg-village',     'assets/backgrounds/village.png');
         this.load.image('bg-caves',       'assets/backgrounds/caves.png');
@@ -253,7 +253,7 @@ export class BootScene extends Phaser.Scene {
         this.load.image('bg-underworld',  'assets/backgrounds/underworld.png');
         this.load.image('bg-tower',       'assets/backgrounds/tower.png');
 
-        // ── MONSTER SPRITESHEETS (used by ArcadeBattleScene) ────────────────
+        // ── MONSTER SPRITESHEETS ──────────────────────────────────────────────
         // Keys match `monster-${spriteKey}` from monsters.js
         this.load.spritesheet('monster-slime',       'assets/monsters/slime.png',       { frameWidth: 118, frameHeight: 79 });
         this.load.spritesheet('monster-glowWisp',    'assets/monsters/glow-wisp.png',   { frameWidth: 48,  frameHeight: 48 });
@@ -267,16 +267,16 @@ export class BootScene extends Phaser.Scene {
         this.load.spritesheet('monster-guardCaptain', 'assets/monsters/treant.png',      { frameWidth: 80,  frameHeight: 84 });
         this.load.spritesheet('monster-werewolf',     'assets/monsters/werewolf.png',    { frameWidth: 96,  frameHeight: 76 });
 
-        // ── HIT EFFECT (used by ArcadeBattleScene) ──────────────────────────
+        // ── HIT EFFECT ────────────────────────────────────────────────────────
         this.load.spritesheet('hit-effect', 'assets/effects/hit.png', { frameWidth: 31, frameHeight: 32 });
 
-        // ── NPC / GUIDE CHARACTERS (used by npcs.js, PracticeScene, ArcadeBattleScene) ─
+        // ── NPC / GUIDE CHARACTERS ───────────────────────────────────────────
         this.load.spritesheet('sunny-bunny',    'assets/characters/bunny.png',    { frameWidth: 24, frameHeight: 42 });
         this.load.spritesheet('sunny-froggy',   'assets/characters/froggy.png',   { frameWidth: 60, frameHeight: 38 });
         this.load.spritesheet('sunny-dragon',   'assets/characters/dragon.png',   { frameWidth: 144, frameHeight: 176 });
         this.load.spritesheet('sunny-mushroom', 'assets/characters/mushroom.png', { frameWidth: 41, frameHeight: 30 });
 
-        // ── HERO CHARACTER (used by ArcadeMenuScene / ArcadeBattleScene) ────
+        // ── HERO CHARACTER ──────────────────────────────────────────────────
         this.load.spritesheet('adventurer-idle',   'assets/characters/adventurer-idle.png',   { frameWidth: 128, frameHeight: 96 });
         this.load.spritesheet('adventurer-run',    'assets/characters/adventurer-run.png',    { frameWidth: 128, frameHeight: 96 });
         this.load.spritesheet('adventurer-attack', 'assets/characters/adventurer-attack.png', { frameWidth: 128, frameHeight: 96 });
@@ -316,6 +316,34 @@ export class BootScene extends Phaser.Scene {
         this._createAnimIfNew('avatar-walk-right', 'player-avatar', 16, 23, 8, -1);
         this._createAnimIfNew('avatar-walk-left',  'player-avatar', 24, 31, 8, -1);
         this._createAnimIfNew('avatar-idle',       'player-avatar', 0,  0,  1, 0);
+
+        // ── FARMER NPC — compose from layered sprites ─────────────────────
+        const farmerSettings = {
+            body: 3,
+            eyeColor: '#7a5030',
+            hairStyle: 'gentleman',
+            hairColor: '#909090',   // Grey
+            outfit: 'overalls',
+            outfitColor: '#3060b0', // Blue overalls
+            bottom: 'pants',
+            bottomColor: '#7a5030', // Brown pants
+            shoesColor: '#7a5030',
+            blush: false,
+            lipstick: false,
+            accessory: 'beard',
+        };
+        const farmerCanvas = BootScene._composeLayeredAvatar(this.textures, farmerSettings);
+        if (this.textures.exists('farmer-walk')) this.textures.remove('farmer-walk');
+        this.textures.addCanvas('farmer-walk', farmerCanvas);
+        const farmerTex = this.textures.get('farmer-walk');
+        for (let i = 0; i < 32; i++) {
+            farmerTex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+        }
+        this._createAnimIfNew('farmer-walk-down',  'farmer-walk', 0,  7,  8, -1);
+        this._createAnimIfNew('farmer-walk-up',    'farmer-walk', 8,  15, 8, -1);
+        this._createAnimIfNew('farmer-walk-right', 'farmer-walk', 16, 23, 8, -1);
+        this._createAnimIfNew('farmer-walk-left',  'farmer-walk', 24, 31, 8, -1);
+        this._createAnimIfNew('farmer-idle',       'farmer-walk', 0,  0,  1, 0);
 
         // ── FARM ANIMAL ANIMATIONS (4 cols × 5 rows) ────────────────────────
         const farmNames = [

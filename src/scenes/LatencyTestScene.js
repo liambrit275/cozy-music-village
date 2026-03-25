@@ -1,6 +1,6 @@
 // LatencyTestScene: Tap along with a metronome to calibrate tap latency.
 // Measures average offset between user taps and click times,
-// saves the result so RhythmReadingScene can compensate.
+// saves the result so ChallengeScene can compensate.
 
 import { AudioEngine } from '../systems/AudioEngine.js';
 import { ProgressionManager } from '../systems/ProgressionManager.js';
@@ -18,7 +18,7 @@ export class LatencyTestScene extends Phaser.Scene {
     }
 
     init(data) {
-        this.returnScene = data.returnScene || 'PracticeMenuScene';
+        this.returnScene = data.returnScene || 'ArcadeMenuScene';
         this.returnData  = data.returnData  || {};
         this.settings    = data.settings    || {};
     }

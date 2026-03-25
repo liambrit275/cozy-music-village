@@ -1,4 +1,4 @@
-// PracticeMenuScene: Mode picker + settings for Practice gameplay
+// ArcadeMenuScene: Mode picker + settings for Arcade gameplay
 
 import { ProgressionManager } from '../systems/ProgressionManager.js';
 
@@ -63,9 +63,9 @@ const TONE_KEYS = [
     { id: 'A',  label: 'A'  }, { id: 'Bb', label: 'Bb' }, { id: 'B',  label: 'B'  },
 ];
 
-export class PracticeMenuScene extends Phaser.Scene {
+export class ArcadeMenuScene extends Phaser.Scene {
     constructor() {
-        super({ key: 'PracticeMenuScene' });
+        super({ key: 'ArcadeMenuScene' });
     }
 
     init(data) {
@@ -124,9 +124,9 @@ export class PracticeMenuScene extends Phaser.Scene {
         this.selectAllBtn = this._makeToggleBtn(width / 2 + 130, 116, 'SELECT ALL', () => this._selectAll());
 
         // --- Settings gear button (top right) ---
-        this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#687880',
-            padding: { x: 6, y: 4 }
+        this.add.text(width - 16, 10, '⚙', {
+            font: 'bold 28px monospace', fill: '#687880',
+            padding: { x: 4, y: 2 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
             .on('pointerover', function() { this.setStyle({ fill: '#90c8c0' }); })
             .on('pointerout',  function() { this.setStyle({ fill: '#687880' }); })
@@ -146,7 +146,7 @@ export class PracticeMenuScene extends Phaser.Scene {
         // --- LATENCY ---
         this._makeBtn(width / 2 + 200, height - 36, 'LATENCY', '#0c1420', '#243848', () => {
             this.scene.start('LatencyTestScene', {
-                returnScene: 'PracticeMenuScene',
+                returnScene: 'ArcadeMenuScene',
                 returnData:  { playerData: this.playerData },
                 settings:    this.settings,
             });
@@ -384,7 +384,7 @@ export class PracticeMenuScene extends Phaser.Scene {
             mode: this.selectedMode,
             playerData,
             clefSetting: this.settings.clef,
-            returnScene: 'PracticeMenuScene',
+            returnScene: 'ArcadeMenuScene',
             settings: this.settings,
         });
     }

@@ -13,6 +13,7 @@ import { ZONES } from '../data/zones.js';
 import { MidiInput } from '../systems/MidiInput.js';
 import { RhythmKeyboardInput } from '../systems/RhythmKeyboardInput.js';
 import { VILLAGERS } from '../data/villagers.js';
+import { TIME_SIG_INFO, buildSubdivision, pickSubdivision, getLevelChallengeTypes, getStoryLevel, getInstrumentNoteConfig, normalizeInstrumentId } from '../data/levels.js';
 
 // Difficulty tiers for tone challenges
 const TONES_TIERS = [
@@ -113,7 +114,7 @@ export class ChallengeScene extends Phaser.Scene {
         this.mode = data.mode || 'all';
         this.playerData = data.playerData || { hp: 100, maxHp: 100, attack: 30, defense: 5, level: 1 };
         this.clefSetting = data.clefSetting || 'treble';
-        this.returnScene = data.returnScene || 'PracticeMenuScene';
+        this.returnScene = data.returnScene || 'ArcadeMenuScene';
         this.returnData = data.returnData || null;
 
         this.storyBattle = data.storyBattle || false;
@@ -134,6 +135,12 @@ export class ChallengeScene extends Phaser.Scene {
         this.practiceMode = s.practice  === true;
         this.soundSettings = s.sounds || null;
         this.tapLatencyMs = s.tapLatencyMs || 0;
+
+        // Story level system
+        this.storyLevelId = data.storyLevel || null;
+        this._storyLevel = this.storyLevelId ? getStoryLevel(this.storyLevelId) : null;
+        this._showFarmerTutorial = data.showTutorial === true && !!this._storyLevel;
+        this._levelUpTo = null;
 
         // Theme-specific state
         this.villagerKey = data.monsterKey || null;
@@ -156,6 +163,22 @@ export class ChallengeScene extends Phaser.Scene {
         // Tones drone tracking
         this._droneActive = false;
         this._droneQuestionsLeft = 0;
+
+        // Farmer tutorial UI refs
+        this._farmerUI = [];
+
+        // Ensure we have a ProgressionManager for story mode
+        if (!this.progression && this.storyBattle) {
+            this.progression = new ProgressionManager();
+            this.progression.load();
+        }
+
+        // Load instrument setting for note reading clef/range
+        {
+            const pm = this.progression || new ProgressionManager();
+            const arcSettings = pm.loadArcadeSettings();
+            this._instrumentId = normalizeInstrumentId(arcSettings.instrument);
+        }
 
         // Systems
         this.musicTheory = new MusicTheory();
@@ -232,9 +255,13 @@ export class ChallengeScene extends Phaser.Scene {
         }).setDepth(10);
 
         // Settings gear button
-        this._makeBtn(width - 50, height - 24, '⚙', '#142030', '#243848', () => {
-            this._openSettings();
-        }).setDepth(10);
+        const gearBtn = this.add.text(width - 50, height - 24, '⚙', {
+            font: 'bold 28px monospace', fill: '#e8f0f0',
+            backgroundColor: '#142030', padding: { x: 12, y: 4 }
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(10);
+        gearBtn.on('pointerover', () => gearBtn.setStyle({ backgroundColor: '#243848' }));
+        gearBtn.on('pointerout',  () => gearBtn.setStyle({ backgroundColor: '#142030' }));
+        gearBtn.on('pointerdown', () => this._openSettings());
 
         // Cleanup
         this.events.on('shutdown', () => {
@@ -286,8 +313,109 @@ export class ChallengeScene extends Phaser.Scene {
             if (v.rhythmNote != null) this.audioEngine.setRhythmNoteLevel(v.rhythmNote);
         });
 
-        // Start first entity
-        this._spawnNextEntity();
+        // Show farmer tutorial for new story levels, then spawn first entity
+        if (this._showFarmerTutorial && this._storyLevel) {
+            this._displayFarmerTutorial(() => this._spawnNextEntity());
+        } else {
+            this._spawnNextEntity();
+        }
+    }
+
+    // ===================== FARMER TUTORIAL =====================
+
+    _displayFarmerTutorial(onDismiss) {
+        const { width, height } = this.cameras.main;
+        const level = this._storyLevel;
+        this._farmerUI = [];
+
+        // Dark overlay
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.6).setDepth(50);
+        this._farmerUI.push(overlay);
+
+        // Dialogue panel
+        const panelW = Math.min(600, width - 60);
+        const panelH = 210;
+        const panelX = width / 2;
+        const panelY = height / 2 - 20;
+
+        const bg = this.add.rectangle(panelX, panelY, panelW, panelH, 0x142030, 1)
+            .setStrokeStyle(2, 0x50d0b0).setDepth(51);
+        this._farmerUI.push(bg);
+
+        // Farmer portrait — use a player body sprite as the farmer
+        const portraitX = panelX - panelW / 2 + 36;
+        const portraitY = panelY - panelH / 2 + 48;
+        if (this.textures.exists('body-3')) {
+            const portrait = this.add.image(portraitX, portraitY, 'body-3', 0)
+                .setScale(2.5).setDepth(52);
+            this._farmerUI.push(portrait);
+
+        }
+
+        // Content offset (shifted right for portrait)
+        const contentX = panelX - panelW / 2 + 72;
+
+        // Level badge
+        const badge = this.add.text(contentX, panelY - panelH / 2 + 16,
+            `Level ${level.id}: ${level.title}`, {
+            font: 'bold 16px monospace', fill: '#e8d098',
+            stroke: '#000000', strokeThickness: 3
+        }).setDepth(52);
+        this._farmerUI.push(badge);
+
+        // Farmer name
+        const nameTag = this.add.text(contentX, panelY - panelH / 2 + 42,
+            'Farmer:', {
+            font: 'bold 13px monospace', fill: '#50d0b0',
+            stroke: '#000000', strokeThickness: 2
+        }).setDepth(52);
+        this._farmerUI.push(nameTag);
+
+        // Tutorial text (word-wrapped)
+        const tutText = this.add.text(panelX - panelW / 2 + 20, panelY - panelH / 2 + 72,
+            level.tutorial, {
+            font: '13px monospace', fill: '#c8d8e0',
+            stroke: '#000000', strokeThickness: 1,
+            wordWrap: { width: panelW - 40 },
+            lineSpacing: 4,
+        }).setDepth(52);
+        this._farmerUI.push(tutText);
+
+        // "Got it!" button
+        const btnW = 120, btnH = 36;
+        const btnX = panelX;
+        const btnY = panelY + panelH / 2 + 30;
+
+        const btnBg = this.add.rectangle(btnX, btnY, btnW, btnH, 0x50d0b0, 1)
+            .setDepth(51).setInteractive({ useHandCursor: true });
+        this._farmerUI.push(btnBg);
+
+        const btnLabel = this.add.text(btnX, btnY, "Got it!", {
+            font: 'bold 14px monospace', fill: '#0c1420',
+        }).setOrigin(0.5).setDepth(52);
+        this._farmerUI.push(btnLabel);
+
+        btnBg.on('pointerover', () => btnBg.setFillStyle(0x68e0c0));
+        btnBg.on('pointerout', () => btnBg.setFillStyle(0x50d0b0));
+        btnBg.on('pointerdown', () => {
+            this._farmerUI.forEach(o => o.destroy());
+            this._farmerUI = [];
+            this._showFarmerTutorial = false;
+            if (onDismiss) onDismiss();
+        });
+
+        // Also allow SPACE/ENTER to dismiss
+        const keyHandler = (e) => {
+            if (e.code === 'Space' || e.code === 'Enter') {
+                e.preventDefault();
+                document.removeEventListener('keydown', keyHandler);
+                this._farmerUI.forEach(o => o.destroy());
+                this._farmerUI = [];
+                this._showFarmerTutorial = false;
+                if (onDismiss) onDismiss();
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
     }
 
     _openSettings() {
@@ -489,6 +617,11 @@ export class ChallengeScene extends Phaser.Scene {
             this._escapeTimer = this.time.delayedCall(escapeMs, () => {
                 if (!this._gameOverFlag) this._triggerEscape();
             });
+
+            // Visual timer bar under the animal (all modes except rhythmReading)
+            if (this._challengeType !== 'rhythmReading') {
+                this._buildEscapeTimerBar(escapeMs);
+            }
         }
 
         const startDelay = this.practiceMode ? 400 : 800;
@@ -512,23 +645,12 @@ export class ChallengeScene extends Phaser.Scene {
         this._encounterTimerTotal = seconds;
         this._encounterTimerStart = this.time.now;
 
-        // Visual countdown text
-        if (!this._encounterTimerText) {
-            this._encounterTimerText = this.add.text(this.cameras.main.width / 2, GROUND_Y + 16, '', {
-                font: 'bold 14px monospace', fill: '#e8d098',
-                stroke: '#000000', strokeThickness: 2
-            }).setOrigin(0.5).setDepth(10);
-        }
-        this._encounterTimerText.setVisible(true);
-
-        // Update every 250ms
+        // Update every 250ms (visual bar is handled by escape timer bar)
         this._encounterTimerLoop = this.time.addEvent({
             delay: 250, loop: true,
             callback: () => {
                 const elapsed = (this.time.now - this._encounterTimerStart) / 1000;
                 const remaining = Math.max(0, this._encounterTimerTotal - elapsed);
-                this._encounterTimerText.setText(`⏱ ${Math.ceil(remaining)}s`);
-                if (remaining <= 5) this._encounterTimerText.setStyle({ fill: '#e08868' });
                 if (remaining <= 0) this._encounterTimerExpired();
             }
         });
@@ -551,9 +673,6 @@ export class ChallengeScene extends Phaser.Scene {
             this._encounterTimerLoop.remove(false);
             this._encounterTimerLoop = null;
         }
-        if (this._encounterTimerText) {
-            this._encounterTimerText.setVisible(false);
-        }
     }
 
     _cancelEscapeTimer() {
@@ -561,6 +680,7 @@ export class ChallengeScene extends Phaser.Scene {
             this._escapeTimer.remove(false);
             this._escapeTimer = null;
         }
+        this._destroyEscapeTimerBar();
     }
 
     _resetEscapeTimer() {
@@ -570,14 +690,70 @@ export class ChallengeScene extends Phaser.Scene {
             this._escapeTimer = this.time.delayedCall(escapeMs, () => {
                 if (!this._gameOverFlag) this._triggerEscape();
             });
+            if (this._challengeType !== 'rhythmReading') {
+                this._buildEscapeTimerBar(escapeMs);
+            }
         }
+    }
+
+    _buildEscapeTimerBar(durationMs) {
+        this._destroyEscapeTimerBar();
+
+        const entityX = this._entitySprite?.x || (this.cameras.main.width - 150);
+        const barW = 80;
+        const barH = 6;
+        const barY = GROUND_Y + 16;
+
+        this._escapeBarBg = this.add.rectangle(entityX, barY, barW, barH, 0x1a2838)
+            .setStrokeStyle(1, 0x336644).setDepth(10);
+        this._escapeBarFill = this.add.rectangle(entityX, barY, barW, barH, 0x50d0b0)
+            .setDepth(10);
+
+        this._escapeBarStart = this.time.now;
+        this._escapeBarDuration = durationMs;
+
+        this._escapeBarLoop = this.time.addEvent({
+            delay: 100, loop: true,
+            callback: () => {
+                if (!this._escapeBarFill) return;
+                const elapsed = this.time.now - this._escapeBarStart;
+                const ratio = Math.max(0, 1 - elapsed / this._escapeBarDuration);
+                this._escapeBarFill.setScale(ratio, 1);
+                // Color: green → yellow → red
+                const color = ratio > 0.5 ? 0x50d0b0 : ratio > 0.25 ? 0xe8d098 : 0xe08868;
+                this._escapeBarFill.setFillStyle(color);
+            }
+        });
+    }
+
+    _destroyEscapeTimerBar() {
+        if (this._escapeBarLoop) {
+            this._escapeBarLoop.remove(false);
+            this._escapeBarLoop = null;
+        }
+        if (this._escapeBarBg) { this._escapeBarBg.destroy(); this._escapeBarBg = null; }
+        if (this._escapeBarFill) { this._escapeBarFill.destroy(); this._escapeBarFill = null; }
     }
 
     _triggerEscape() {
         this._cancelEscapeTimer();
         this._cancelEncounterTimer();
         this._questionActive = false;
+
         const { width } = this.cameras.main;
+        const isRhythm = this._challengeType === 'rhythm' && this._rhythmPattern;
+
+        // Animate animal leaving first
+        const afterLeave = () => {
+            if (isRhythm) {
+                // Ear rhythm: show answer and let user listen before continuing
+                this._stopRhythmPlayback();
+                this._showRhythmTimeoutUI();
+            } else {
+                this._animalGotAway();
+            }
+        };
+
         if (this._entitySprite && this._entitySprite.active) {
             this.tweens.add({
                 targets: this._entitySprite,
@@ -586,12 +762,86 @@ export class ChallengeScene extends Phaser.Scene {
                 ease: 'Power2',
                 onComplete: () => {
                     if (this._entitySprite) { this._entitySprite.destroy(); this._entitySprite = null; }
-                    this._animalGotAway();
+                    afterLeave();
                 }
             });
         } else {
-            this._animalGotAway();
+            afterLeave();
         }
+    }
+
+    /**
+     * When ear rhythm runs out of time, pause and let the user listen
+     * to the answer as many times as they want before continuing.
+     */
+    _showRhythmTimeoutUI() {
+        this._stopRhythmPlayback();
+        this.messageText.setText("Time's up! Here's the answer:");
+
+        // Show answer in grid cells — notes green, rests dimmed
+        if (this.showGrid && this._rhythmCellRects) {
+            const pattern = this._rhythmPattern;
+            for (let i = 0; i < this._rhythmCells; i++) {
+                if (!this._rhythmCellRects[i]) continue;
+                if (pattern[i]) {
+                    this._rhythmCellRects[i].setFillStyle(0x50d0b0);
+                    if (this._rhythmCellLabels[i]) this._rhythmCellLabels[i].setStyle({ fill: '#ffffff' });
+                } else {
+                    this._rhythmCellRects[i].setFillStyle(0x3a4a5a);
+                    if (this._rhythmCellLabels[i]) this._rhythmCellLabels[i].setStyle({ fill: '#556666' });
+                }
+            }
+        }
+
+        // Show answer in sheet music notation (no rests — sustain previous note)
+        try {
+            const pattern = this._rhythmPattern;
+            let gid = 0;
+            const answerGrid = pattern.map(v => { if (v) gid++; return gid; });
+            const spelled = spellPattern(answerGrid, this._rhythmSubKey, this._rhythmTimeSigInfo);
+            const { width: w } = this.cameras.main;
+            const notationY = this._rNotationY || (this._rGridY - 108);
+            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, w / 2, notationY, w - 100, -1, this._rhythmTimeSigInfo);
+        } catch (err) {
+            console.error('_showRhythmTimeoutUI notation error:', err);
+        }
+
+        const { width, height } = this.cameras.main;
+        const btnY = height * 0.88;
+        const btnStyle = { fontSize: '20px', fill: '#ffffff', backgroundColor: '#335566',
+                           padding: { x: 16, y: 8 }, align: 'center' };
+
+        const playAnswerBtn = this.add.text(width * 0.35, btnY, 'Play Answer', btnStyle)
+            .setOrigin(0.5).setInteractive({ useHandCursor: true });
+        const continueBtn = this.add.text(width * 0.65, btnY, 'Next Question', btnStyle)
+            .setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        this._compareUI = [playAnswerBtn, continueBtn];
+
+        const self = this;
+        playAnswerBtn.on('pointerdown', () => {
+            if (self._comparePlayTimer) { self._comparePlayTimer.remove(false); self._comparePlayTimer = null; }
+            const pattern = self._rhythmPattern;
+            const sub = self._rhythmSub;
+            const cellMs = self._rhythmCellMs;
+            let i = 0;
+            const tick = () => {
+                if (sub?.downbeats?.includes(i)) self.audioEngine.playClick(i === 0);
+                if (pattern[i]) self.audioEngine.playDrumNote();
+                i++;
+                if (i < pattern.length) {
+                    self._comparePlayTimer = self.time.delayedCall(cellMs, tick);
+                }
+            };
+            tick();
+        });
+
+        continueBtn.on('pointerdown', () => {
+            if (self._comparePlayTimer) { self._comparePlayTimer.remove(false); self._comparePlayTimer = null; }
+            self._clearCompareUI();
+            self._clearRhythmUI();
+            self._animalGotAway();
+        });
     }
 
     _animalGotAway() {
@@ -1025,6 +1275,12 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.mode === 'rhythm') return 'rhythm';
         if (this.mode === 'rhythmReading') return 'rhythmReading';
 
+        // Story level system — pick from level's enabled challenge types
+        if (this._storyLevel) {
+            const types = getLevelChallengeTypes(this._storyLevel);
+            return types[Math.floor(Math.random() * types.length)];
+        }
+
         // Story mode — use the entity's specific type; mixed → pick one random type
         if (this.storyBattle && this._entityData) {
             const et = this._getEntityChallengeType();
@@ -1444,6 +1700,11 @@ export class ChallengeScene extends Phaser.Scene {
     }
 
     _getTonesPool() {
+        // Story level system — use level's tone degrees
+        if (this._storyLevel?.tones?.degrees?.length) {
+            return this._storyLevel.tones.degrees;
+        }
+
         if (this.storyBattle && this._entityData) {
             const zone = this._getEntityZone();
             if (zone && ZONES[zone]) {
@@ -1461,6 +1722,13 @@ export class ChallengeScene extends Phaser.Scene {
     // ===================== NOTE READING =====================
 
     _getNoteReadingConfig() {
+        // Story level system — use instrument profile for clef + range
+        if (this._storyLevel?.noteReading) {
+            const nr = this._storyLevel.noteReading;
+            const instConfig = getInstrumentNoteConfig(this._instrumentId, this._storyLevel.id);
+            return { posRange: instConfig.posRange, accidentals: nr.accidentals || false, clef: instConfig.clef };
+        }
+
         if (this.gradual) return null;
 
         const ranges = this.customNoteRanges;
@@ -1484,9 +1752,11 @@ export class ChallengeScene extends Phaser.Scene {
         this.droneText.setVisible(false);
 
         const noteConfig = this._getNoteReadingConfig();
-        this._currentNoteQuestion = this.noteReadingEngine.buildQuestion(this.session.round, this.clefSetting, noteConfig);
+        // Use instrument-derived clef if available, otherwise fall back to scene setting
+        const clefForQuestion = noteConfig?.clef || this.clefSetting;
+        this._currentNoteQuestion = this.noteReadingEngine.buildQuestion(this.session.round, clefForQuestion, noteConfig);
         if (!this._currentNoteQuestion) {
-            this._currentNoteQuestion = this.noteReadingEngine.buildQuestion(this.session.round, this.clefSetting);
+            this._currentNoteQuestion = this.noteReadingEngine.buildQuestion(this.session.round, clefForQuestion);
             if (!this._currentNoteQuestion) {
                 console.warn('NoteReading: buildQuestion returned null, falling back to tone');
                 this._challengeType = 'tone';
@@ -1496,19 +1766,21 @@ export class ChallengeScene extends Phaser.Scene {
         }
 
         const staffCX = width / 2;
-        const staffCY = height * 0.18;
+        const staffCY = height * 0.22;
         this.staffRenderer.draw(staffCX, staffCY, 340, this._currentNoteQuestion);
 
-        this.messageText.setY(height - 100);
+        this.messageText.setY(GROUND_Y + 16);
 
         if (this.pianoKeys.length === 0) {
-            this._buildPianoKeys(width, height);
+            // Place keyboard directly below the staff with a small gap
+            const keyboardCenterY = staffCY + 130;
+            this._buildPianoKeys(width, height, keyboardCenterY);
         }
         this._staffVisible = true;
         this._questionActive = true;
     }
 
-    _buildPianoKeys(width, height) {
+    _buildPianoKeys(width, height, centerY) {
         this._clearPianoKeys();
 
         // Note reading keyboard: 2 octaves starting from C
@@ -1517,7 +1789,7 @@ export class ChallengeScene extends Phaser.Scene {
             this._submitNoteReading(kd.noteName);
         }, (kd) => {
             return _WHITE_NOTES.has(kd.noteName) ? kd.noteName : null;
-        }, () => true);
+        }, () => true, centerY ? { centerY } : undefined);
     }
 
     _submitNoteReading(answer) {
@@ -1601,18 +1873,53 @@ export class ChallengeScene extends Phaser.Scene {
         this._droneActive = false;
         this.droneText.setVisible(false);
 
+        // Pick time signature and subdivision from level config or defaults
+        let timeSig = '4/4';
         let subKey;
-        if (this.gradual) {
+
+        if (this._storyLevel?.rhythm) {
+            const lr = this._storyLevel.rhythm;
+            const sigs = lr.timeSigs?.length ? lr.timeSigs : ['4/4'];
+            timeSig = sigs[Math.floor(Math.random() * sigs.length)];
+            subKey = pickSubdivision(timeSig, lr.subdivisions || ['quarter']);
+        } else if (this.gradual) {
             const available = ['quarter'];
             if (this.session.round >= 10) available.push('eighth');
             if (this.session.round >= 20) available.push('sixteenth');
             if (this.session.round >= 30) available.push('triplet');
             subKey = available[Math.floor(Math.random() * available.length)];
+            // Gradual time signature progression
+            const availSigs = ['4/4'];
+            if (this.session.round >= 5) availSigs.push('2/4', '3/4');
+            if (this.session.round >= 15) availSigs.push('6/8');
+            if (this.session.round >= 25) availSigs.push('9/8', '12/8');
+            if (this.session.round >= 35) availSigs.push('3/8');
+            if (subKey === 'triplet') {
+                // Triplet subdivision only works in compound meters
+                const compoundSigs = availSigs.filter(s => TIME_SIG_INFO[s]?.compound);
+                timeSig = compoundSigs.length ? compoundSigs[Math.floor(Math.random() * compoundSigs.length)] : '12/8';
+                subKey = 'eighth'; // compound eighth = triplet feel
+            } else {
+                timeSig = availSigs[Math.floor(Math.random() * availSigs.length)];
+                subKey = pickSubdivision(timeSig, [subKey]);
+            }
         } else {
             const subs = this.customRhythmSubs;
             subKey = subs[Math.floor(Math.random() * subs.length)];
+            if (subKey === 'triplet') {
+                timeSig = '12/8';
+                subKey = 'eighth';
+            }
         }
-        const sub = RHYTHM_SUBDIVISIONS[subKey];
+
+        // Build subdivision config from time sig + note value
+        const tsInfo = TIME_SIG_INFO[timeSig];
+        let sub = buildSubdivision(timeSig, subKey);
+        if (!sub) {
+            // Fallback to legacy 4/4 subdivisions
+            sub = RHYTHM_SUBDIVISIONS[subKey] || RHYTHM_SUBDIVISIONS.quarter;
+        }
+
         const cells = sub.cells.length;
         const cellMs = (60000 / RHYTHM_BPM) * sub.cellFraction;
 
@@ -1631,6 +1938,8 @@ export class ChallengeScene extends Phaser.Scene {
         this._rhythmPattern = pattern;
         this._rhythmSub = sub;
         this._rhythmSubKey = subKey;
+        this._rhythmTimeSig = timeSig;
+        this._rhythmTimeSigInfo = tsInfo || null;
         this._rhythmCells = cells;
         this._rhythmCellMs = cellMs;
         this._userRhythm = new Array(cells).fill(0);
@@ -1916,14 +2225,15 @@ export class ChallengeScene extends Phaser.Scene {
     _renderRhythmNotation() {
         try {
             const { width } = this.cameras.main;
-            let spelled = spellPattern(this._userRhythm, this._rhythmSubKey);
+            const tsInfo = this._rhythmTimeSigInfo || null;
+            let spelled = spellPattern(this._userRhythm, this._rhythmSubKey, tsInfo);
             const cursorTick = this._rhythmKeyboard ? this._rhythmKeyboard._cursorTick : -1;
             const selectedTicks = this._rhythmKeyboard ? this._rhythmKeyboard.effectiveTicks : -1;
             if (cursorTick >= 0 && selectedTicks > 0) {
-                spelled = splitRestsAtCursor(spelled, cursorTick, selectedTicks, this._rhythmSubKey);
+                spelled = splitRestsAtCursor(spelled, cursorTick, selectedTicks, this._rhythmSubKey, tsInfo);
             }
             const notationY = this._rNotationY || (this._rGridY - 108);
-            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, width / 2, notationY, width - 100, cursorTick);
+            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, width / 2, notationY, width - 100, cursorTick, tsInfo);
         } catch (err) {
             console.error('_renderRhythmNotation error:', err);
         }
@@ -2285,23 +2595,56 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrBpm       = 72 + Math.floor(Math.random() * 61);
         this._rrQuarterMs = 60000 / this._rrBpm;
 
+        // Pick time signature and subdivision from level config or defaults
+        let timeSig = '4/4';
         let subKey;
-        if (this.gradual) {
+
+        if (this._storyLevel?.rhythm) {
+            const lr = this._storyLevel.rhythm;
+            const sigs = lr.timeSigs?.length ? lr.timeSigs : ['4/4'];
+            timeSig = sigs[Math.floor(Math.random() * sigs.length)];
+            subKey = pickSubdivision(timeSig, lr.subdivisions || ['quarter']);
+        } else if (this.gradual) {
             const available = ['quarter'];
             if (this.session.round >= 10) available.push('eighth');
             if (this.session.round >= 20) available.push('sixteenth');
             if (this.session.round >= 30) available.push('triplet');
             subKey = available[Math.floor(Math.random() * available.length)];
+            // Gradual time signature progression
+            const availSigs = ['4/4'];
+            if (this.session.round >= 5) availSigs.push('2/4', '3/4');
+            if (this.session.round >= 15) availSigs.push('6/8');
+            if (this.session.round >= 25) availSigs.push('9/8', '12/8');
+            if (this.session.round >= 35) availSigs.push('3/8');
+            if (subKey === 'triplet') {
+                const compoundSigs = availSigs.filter(s => TIME_SIG_INFO[s]?.compound);
+                timeSig = compoundSigs.length ? compoundSigs[Math.floor(Math.random() * compoundSigs.length)] : '12/8';
+                subKey = 'eighth';
+            } else {
+                timeSig = availSigs[Math.floor(Math.random() * availSigs.length)];
+                subKey = pickSubdivision(timeSig, [subKey]);
+            }
         } else {
             const subs = this.customRhythmSubs;
             subKey = subs[Math.floor(Math.random() * subs.length)];
+            if (subKey === 'triplet') {
+                timeSig = '12/8';
+                subKey = 'eighth';
+            }
         }
-        const sub    = RHYTHM_SUBDIVISIONS[subKey];
+
+        const tsInfo = TIME_SIG_INFO[timeSig];
+        let sub = buildSubdivision(timeSig, subKey);
+        if (!sub) {
+            sub = RHYTHM_SUBDIVISIONS[subKey] || RHYTHM_SUBDIVISIONS.quarter;
+        }
         const n      = sub.cells.length;
         const cellMs = this._rrQuarterMs * sub.cellFraction;
 
         this._rrSubKey  = subKey;
         this._rrSub     = sub;
+        this._rrTimeSig = timeSig;
+        this._rrTimeSigInfo = tsInfo || null;
         this._rrCells   = n;
         this._rrCellMs  = cellMs;
 
@@ -2338,8 +2681,8 @@ export class ChallengeScene extends Phaser.Scene {
 
         let spelled = [];
         try {
-            spelled = spellPattern(groupGrid, subKey);
-            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80);
+            spelled = spellPattern(groupGrid, subKey, tsInfo);
+            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80, -1, tsInfo);
         } catch (err) {
             console.error('RhythmReading notation error:', err);
         }
@@ -2350,7 +2693,8 @@ export class ChallengeScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(5);
         this._rrUI.push(title);
 
-        const bpmTxt = this.add.text(width / 2, height * 0.22 + 65, `\u2669= ${this._rrBpm}`, {
+        const bpmLabel = tsInfo?.compound ? `\u2669.= ${this._rrBpm}` : `\u2669= ${this._rrBpm}`;
+        const bpmTxt = this.add.text(width / 2, height * 0.22 + 65, bpmLabel, {
             font: '12px monospace', fill: '#687880', stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(5);
         this._rrUI.push(bpmTxt);
@@ -2720,6 +3064,16 @@ export class ChallengeScene extends Phaser.Scene {
 
         if (this.progression) {
             this.progression.recordBattle(true, this.session.correctAnswers || 0, this.session.totalAnswers || 0);
+
+            // Story level progression
+            if (this._storyLevel) {
+                this.progression.recordStoryEncounter();
+                const newLevel = this.progression.advanceStoryLevel(this._storyLevel.encountersToAdvance);
+                if (newLevel) {
+                    this._levelUpTo = newLevel; // show level-up message in victory UI
+                }
+            }
+
             this.progression.save(this.playerStats);
         }
 
@@ -2741,7 +3095,18 @@ export class ChallengeScene extends Phaser.Scene {
             font: '13px monospace', fill: '#90c8c0'
         }).setOrigin(0.5).setDepth(61);
 
-        this._makeBtn(width / 2, height / 2 + 70, 'CONTINUE', '#113311', '#225522', () => {
+        // Story level-up announcement
+        if (this._levelUpTo) {
+            const nextLevel = getStoryLevel(this._levelUpTo);
+            const lvlText = nextLevel ? `Level ${this._levelUpTo}: ${nextLevel.title}` : `Level ${this._levelUpTo}`;
+            this.add.text(width / 2, height / 2 + 50, `NEW LEVEL — ${lvlText}`, {
+                font: 'bold 14px monospace', fill: '#f0e060',
+                stroke: '#000', strokeThickness: 3
+            }).setOrigin(0.5).setDepth(61);
+        }
+
+        const btnY = this._levelUpTo ? height / 2 + 80 : height / 2 + 70;
+        this._makeBtn(width / 2, btnY, 'CONTINUE', '#113311', '#225522', () => {
             this.audioEngine.dispose();
             this._returnFromStoryBattle(true);
         }).setDepth(61);
@@ -2807,7 +3172,7 @@ export class ChallengeScene extends Phaser.Scene {
             isSpecial: this._entityData?.isSpecial || this._entityData?.isBoss || false,
         };
 
-        const returnKey = this.returnScene || 'PracticeMenuScene';
+        const returnKey = this.returnScene || 'ArcadeMenuScene';
         const underlying = this.scene.get(returnKey);
         if (underlying && underlying._onBattleResult) {
             underlying._onBattleResult(resultData);
@@ -2959,7 +3324,7 @@ export class ChallengeScene extends Phaser.Scene {
 
     _returnToSource() {
         if (this.isSidescrollMode) {
-            const returnKey = this.returnScene || 'PracticeMenuScene';
+            const returnKey = this.returnScene || 'ArcadeMenuScene';
             const underlying = this.scene.get(returnKey);
             if (underlying && underlying._onBattleResult) {
                 underlying._onBattleResult({
@@ -2970,10 +3335,8 @@ export class ChallengeScene extends Phaser.Scene {
             }
             this.scene.stop('ChallengeScene');
             this.scene.resume(returnKey);
-        } else if (this.returnScene === 'RegionMapScene' && this.returnData) {
-            this.scene.start('RegionMapScene', this.returnData);
         } else {
-            this.scene.start('PracticeMenuScene', { playerData: this.playerData });
+            this.scene.start('ArcadeMenuScene', { playerData: this.playerData });
         }
     }
 

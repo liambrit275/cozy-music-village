@@ -3,16 +3,10 @@ import { TitleScene }           from './scenes/TitleScene.js';
 import { CharacterSelectScene } from './scenes/CharacterSelectScene.js';
 import { TopDownScene }         from './scenes/TopDownScene.js';
 import { ChallengeScene }       from './scenes/ChallengeScene.js';
-import { PracticeMenuScene }    from './scenes/PracticeMenuScene.js';
-import { RhythmReadingScene }   from './scenes/RhythmReadingScene.js';
+import { ArcadeMenuScene }      from './scenes/ArcadeMenuScene.js';
 import { SettingsScene }        from './scenes/SettingsScene.js';
-import { PracticeScene }        from './scenes/PracticeScene.js';
 import { LatencyTestScene }     from './scenes/LatencyTestScene.js';
 import { AvatarBuilderScene }   from './scenes/AvatarBuilderScene.js';
-import { LocationInfoScene }    from './scenes/LocationInfoScene.js';
-import { RegionMapScene }       from './scenes/RegionMapScene.js';
-import { SidescrollScene }      from './scenes/SidescrollScene.js';
-import { WorldMapScene }        from './scenes/WorldMapScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -38,16 +32,10 @@ const config = {
         CharacterSelectScene,
         TopDownScene,
         ChallengeScene,
-        PracticeMenuScene,
-        RhythmReadingScene,
+        ArcadeMenuScene,
         SettingsScene,
-        PracticeScene,
         LatencyTestScene,
         AvatarBuilderScene,
-        LocationInfoScene,
-        RegionMapScene,
-        SidescrollScene,
-        WorldMapScene
     ]
 };
 

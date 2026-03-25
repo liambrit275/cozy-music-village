@@ -12,6 +12,8 @@ export class ProgressionManager {
         this.completedEncounters = {}; // { zoneName: [0, 1, 2, ...] } — indices of helped villagers
         this.totalSessions = 0;
         this.totalCorrect = 0;
+        this.storyLevel = 1;            // current story level (1-9)
+        this.storyLevelEncounters = 0;  // encounters completed in current level
     }
 
     getCurrentZone() {
@@ -73,6 +75,26 @@ export class ProgressionManager {
         this.totalCorrect += correctAnswers;
     }
 
+    /** Record a successful story encounter. Returns true if level advanced. */
+    recordStoryEncounter() {
+        this.storyLevelEncounters++;
+        return false; // Caller should check advanceStoryLevel()
+    }
+
+    /** Advance to next story level if enough encounters completed. Returns new level or null. */
+    advanceStoryLevel(requiredEncounters) {
+        if (this.storyLevelEncounters >= requiredEncounters && this.storyLevel <= 9) {
+            this.storyLevel++;
+            this.storyLevelEncounters = 0;
+            return this.storyLevel;
+        }
+        return null;
+    }
+
+    getStoryLevel() {
+        return this.storyLevel;
+    }
+
     save(playerData) {
         const saveData = {
             currentZone: this.currentZone,
@@ -80,6 +102,8 @@ export class ProgressionManager {
             completedEncounters: this.completedEncounters,
             totalSessions: this.totalSessions,
             totalCorrect: this.totalCorrect,
+            storyLevel: this.storyLevel,
+            storyLevelEncounters: this.storyLevelEncounters,
             player: playerData,
             timestamp: Date.now()
         };
@@ -102,6 +126,8 @@ export class ProgressionManager {
             this.completedEncounters = data.completedEncounters || data.defeatedEncounters || {};
             this.totalSessions = data.totalSessions || data.totalBattles || 0;
             this.totalCorrect = data.totalCorrect || 0;
+            this.storyLevel = data.storyLevel || 1;
+            this.storyLevelEncounters = data.storyLevelEncounters || 0;
             return data.player || null;
         } catch (e) {
             console.warn('Failed to load save:', e);

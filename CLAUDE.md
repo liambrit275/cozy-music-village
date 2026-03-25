@@ -29,24 +29,18 @@ BootScene → TitleScene ─┬→ AvatarBuilderScene → CharacterSelectScene �
                         │                                                    ↓
                         │                                          ChallengeScene (story)
                         │
-                        ├→ WorldMapScene → RegionMapScene → LocationInfoScene → ChallengeScene (arcade)
-                        │
-                        └→ PracticeMenuScene ─┬→ PracticeScene (friendly practice)
-                                              ├→ RhythmReadingScene
-                                              ├→ LatencyTestScene
-                                              └→ ChallengeScene (practice mode)
+                        └→ ArcadeMenuScene ─┬→ LatencyTestScene
+                                            └→ ChallengeScene (arcade / practice mode)
 
 SettingsScene — launched as overlay from any scene
-SidescrollScene — side-scrolling zone progression (launched from TopDownScene)
 ```
 
-All 15 scenes are registered in `src/main.js`. Scene data is passed via `scene.start('SceneName', { ... })`.
+All 9 scenes are registered in `src/main.js`. Scene data is passed via `scene.start('SceneName', { ... })`.
 
 ### Key State
 
 - **`playerData`** — plain object passed between scenes (character appearance, stats)
 - **`ProgressionManager`** — story mode zone unlocks, reconstructed from `localStorage` each scene
-- **`WorldMapProgress`** — arcade mode completion tracking in `localStorage`
 - **`AudioEngine`** — created fresh per challenge scene, not shared between scenes
 
 ### Challenge Types (ChallengeScene)
@@ -107,5 +101,4 @@ Zone-to-degrees mapping lives in `src/data/zones.js` (6 zones, progressively unl
 | Key | System | Contents |
 |-----|--------|----------|
 | `music-theory-rpg-save` | ProgressionManager | Story mode zone unlocks, encounters |
-| `music-theory-world-map` | WorldMapProgress | Arcade completion, high scores |
 | `arcade-settings` | AudioEngine | Preset preferences (drone/interval/click/rhythm) |

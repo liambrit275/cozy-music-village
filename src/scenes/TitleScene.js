@@ -69,9 +69,9 @@ export class TitleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Settings gear
-        this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#687880',
-            padding: { x: 6, y: 4 }
+        this.add.text(width - 16, 10, '⚙', {
+            font: 'bold 28px monospace', fill: '#687880',
+            padding: { x: 4, y: 2 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
             .on('pointerover', function() { this.setStyle({ fill: '#90c8c0' }); })
             .on('pointerout',  function() { this.setStyle({ fill: '#687880' }); })
@@ -83,7 +83,7 @@ export class TitleScene extends Phaser.Scene {
     goToPractice() {
         const pm = new ProgressionManager();
         const playerData = pm.load();
-        this.scene.start('PracticeMenuScene', { playerData });
+        this.scene.start('ArcadeMenuScene', { playerData });
     }
 
     createButton(x, y, text, callback, bgColor = '#142030', hoverColor = '#243848') {
