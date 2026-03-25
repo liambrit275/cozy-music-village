@@ -31,13 +31,11 @@ const RHYTHM_SUBS = [
     { id: 'triplet',   label: 'Triplet' },
 ];
 
-const RHYTHM_TIME_SIGS = [
-    { id: '4/4', label: '4/4', group: 'simple' },
-    { id: '2/4', label: '2/4', group: 'simple' },
-    { id: '3/4', label: '3/4', group: 'simple' },
-    { id: '6/8', label: '6/8', group: 'compound' },
-    { id: '12/8', label: '12/8', group: 'compound' },
-    { id: '3/8', label: '3/8', group: 'compound' },
+// Beat-count groups: simple/compound are paired, chosen at runtime by subdivision
+const RHYTHM_METERS = [
+    { id: '4', label: '4/4 (12/8)', simple: '4/4', compound: '12/8', beats: 4 },
+    { id: '2', label: '2/4 (6/8)',  simple: '2/4', compound: '6/8',  beats: 2 },
+    { id: '3', label: '3/4 (3/8)',  simple: '3/4', compound: '3/8',  beats: 3 },
 ];
 
 const CLEF_OPTIONS = [
@@ -55,7 +53,7 @@ const DEFAULT_SETTINGS = {
     tonesKey: 'random',
     noteRanges: ['onStaff'],
     rhythmSubs: ['quarter'],
-    rhythmTimeSigs: ['4/4'],
+    rhythmMeters: ['4'],
     tapLatencyMs: 0,
     characterKey: 'avatar',
     sounds: {
@@ -94,7 +92,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         if (!Array.isArray(this.settings.tones)) this.settings.tones = DEFAULT_SETTINGS.tones.slice();
         if (!Array.isArray(this.settings.noteRanges)) this.settings.noteRanges = DEFAULT_SETTINGS.noteRanges.slice();
         if (!Array.isArray(this.settings.rhythmSubs)) this.settings.rhythmSubs = DEFAULT_SETTINGS.rhythmSubs.slice();
-        if (!Array.isArray(this.settings.rhythmTimeSigs)) this.settings.rhythmTimeSigs = DEFAULT_SETTINGS.rhythmTimeSigs.slice();
+        if (!Array.isArray(this.settings.rhythmMeters)) this.settings.rhythmMeters = DEFAULT_SETTINGS.rhythmMeters.slice();
         if (!this.settings.sounds) this.settings.sounds = { ...DEFAULT_SETTINGS.sounds };
 
         this.selectedMode = 'tones';
@@ -269,15 +267,15 @@ export class ArcadeMenuScene extends Phaser.Scene {
             });
             y += 24;
 
-            // Time signature toggles
+            // Meter toggles (beat count pairs: simple/compound)
             this._settingsObjs.push(
-                this.add.text(width / 2 - 200, y, 'Time sigs:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
+                this.add.text(width / 2 - 200, y, 'Meters:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
             );
-            RHYTHM_TIME_SIGS.forEach((ts, i) => {
-                const x = width / 2 - 100 + i * 66;
-                const selected = this.settings.rhythmTimeSigs.includes(ts.id);
-                const btn = this._makeCheckBtn(x, y, ts.label, selected, () => {
-                    this._toggleSetting('rhythmTimeSigs', ts.id, btn);
+            RHYTHM_METERS.forEach((m, i) => {
+                const x = width / 2 - 100 + i * 120;
+                const selected = this.settings.rhythmMeters.includes(m.id);
+                const btn = this._makeCheckBtn(x, y, m.label, selected, () => {
+                    this._toggleSetting('rhythmMeters', m.id, btn);
                 });
                 this._settingsObjs.push(btn);
             });
@@ -311,7 +309,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         }
         if (mode === 'rhythm' || mode === 'rhythmReading' || mode === 'all') {
             this.settings.rhythmSubs = RHYTHM_SUBS.map(s => s.id);
-            this.settings.rhythmTimeSigs = RHYTHM_TIME_SIGS.map(ts => ts.id);
+            this.settings.rhythmMeters = RHYTHM_METERS.map(m => m.id);
         }
         this._saveSettings();
         this._refreshSettings();
