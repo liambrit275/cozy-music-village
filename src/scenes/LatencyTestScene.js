@@ -25,7 +25,7 @@ export class LatencyTestScene extends Phaser.Scene {
 
     async create() {
         const { width, height } = this.cameras.main;
-        this.cameras.main.setBackgroundColor('#06080e');
+        this.cameras.main.setBackgroundColor('#142030');
 
         this._state      = 'idle';
         this._timers     = [];
@@ -58,7 +58,7 @@ export class LatencyTestScene extends Phaser.Scene {
 
     _buildUI(width, height) {
         this.add.text(width / 2, 28, 'LATENCY CALIBRATION', {
-            font: 'bold 26px monospace', fill: '#ffaa00',
+            font: 'bold 26px monospace', fill: '#e8d098',
             stroke: '#000', strokeThickness: 4
         }).setOrigin(0.5);
 
@@ -66,7 +66,7 @@ export class LatencyTestScene extends Phaser.Scene {
             'A metronome will play. Tap Spacebar (or click) on every beat.',
             `First ${WARMUP} beats are warm-up — then ${MEASURE} beats are measured.`,
         ].join('\n'), {
-            font: '12px monospace', fill: '#5566aa', align: 'center'
+            font: '12px monospace', fill: '#687880', align: 'center'
         }).setOrigin(0.5);
 
         // Beat dots
@@ -75,46 +75,46 @@ export class LatencyTestScene extends Phaser.Scene {
         const dotsY  = height / 2 - 30;
         for (let i = 0; i < TOTAL; i++) {
             const x = width / 2 - ((TOTAL - 1) / 2 - i) * dotGap;
-            const dot = this.add.circle(x, dotsY, 12, 0x121820);
-            dot.setStrokeStyle(2, 0x2a3a50);
+            const dot = this.add.circle(x, dotsY, 12, 0x142030);
+            dot.setStrokeStyle(2, 0x243848);
             this._dots.push(dot);
         }
 
         // Labels under dot groups
         const wCenterX = width / 2 - ((TOTAL - 1) / 2 - (WARMUP / 2 - 0.5)) * dotGap;
         const mCenterX = width / 2 - ((TOTAL - 1) / 2 - (WARMUP + MEASURE / 2 - 0.5)) * dotGap;
-        this.add.text(wCenterX, dotsY + 24, 'WARM-UP',  { font: '10px monospace', fill: '#334455' }).setOrigin(0.5);
-        this.add.text(mCenterX, dotsY + 24, 'MEASURED', { font: '10px monospace', fill: '#2a4466' }).setOrigin(0.5);
+        this.add.text(wCenterX, dotsY + 24, 'WARM-UP',  { font: '10px monospace', fill: '#1a2838' }).setOrigin(0.5);
+        this.add.text(mCenterX, dotsY + 24, 'MEASURED', { font: '10px monospace', fill: '#1a2838' }).setOrigin(0.5);
 
         // Divider between warmup and measured
         const divX = width / 2 - ((TOTAL - 1) / 2 - WARMUP) * dotGap + dotGap / 2 - dotGap;
-        this.add.line(0, 0, divX, dotsY - 20, divX, dotsY + 20, 0x2a3a50).setOrigin(0);
+        this.add.line(0, 0, divX, dotsY - 20, divX, dotsY + 20, 0x243848).setOrigin(0);
 
         // Tap flash ring — shows each tap visually
-        this._tapRing = this.add.circle(width / 2, dotsY + 60, 20, 0x0d1520);
-        this._tapRing.setStrokeStyle(2, 0x1a2a40);
+        this._tapRing = this.add.circle(width / 2, dotsY + 60, 20, 0x142030);
+        this._tapRing.setStrokeStyle(2, 0x243848);
         this._tapRingLabel = this.add.text(width / 2, dotsY + 60, 'TAP', {
-            font: 'bold 11px monospace', fill: '#1a2a40'
+            font: 'bold 11px monospace', fill: '#243848'
         }).setOrigin(0.5);
 
         // Status text
         this.msgText = this.add.text(width / 2, height / 2 + 50, 'Press START, then tap on every beat', {
-            font: '14px monospace', fill: '#778899', align: 'center',
+            font: '14px monospace', fill: '#90c8c0', align: 'center',
             wordWrap: { width: width - 60 }
         }).setOrigin(0.5);
 
         // Saved offset display
         const saved = this.settings.tapLatencyMs || 0;
         this.savedText = this.add.text(width / 2, height / 2 + 80, this._offsetLabel('Saved', saved), {
-            font: '12px monospace', fill: '#334455'
+            font: '12px monospace', fill: '#1a2838'
         }).setOrigin(0.5);
 
         // Buttons
         const btnY = height - 40;
-        this._startBtn = this._makeBtn(width / 2,       btnY, '▶  START',   '#0f2211', '#1a3d1a', () => this._startTest());
-        this._saveBtn  = this._makeBtn(width / 2,       btnY, 'SAVE & BACK','#112233', '#1a3355', () => this._save()).setVisible(false);
-        this._retryBtn = this._makeBtn(width / 2 + 170, btnY, 'RETRY',      '#221122', '#3a1a44', () => this._reset()).setVisible(false);
-        this._makeBtn(70, btnY, '← BACK', '#1a1122', '#2a2244', () => this._leave());
+        this._startBtn = this._makeBtn(width / 2,       btnY, '▶  START',   '#142030', '#243848', () => this._startTest());
+        this._saveBtn  = this._makeBtn(width / 2,       btnY, 'SAVE & BACK','#142030', '#243848', () => this._save()).setVisible(false);
+        this._retryBtn = this._makeBtn(width / 2 + 170, btnY, 'RETRY',      '#142030', '#243848', () => this._reset()).setVisible(false);
+        this._makeBtn(70, btnY, '← BACK', '#142030', '#243848', () => this._leave());
     }
 
     // ── Test flow ──────────────────────────────────────────────
@@ -126,8 +126,8 @@ export class LatencyTestScene extends Phaser.Scene {
         this._startBtn.setVisible(false);
         this._saveBtn.setVisible(false);
         this._retryBtn.setVisible(false);
-        this._dots.forEach(d => { d.setFillStyle(0x121820); d.setStrokeStyle(2, 0x2a3a50); });
-        this.msgText.setText('Tap on every beat...').setStyle({ fill: '#44ff88' });
+        this._dots.forEach(d => { d.setFillStyle(0x142030); d.setStrokeStyle(2, 0x243848); });
+        this.msgText.setText('Tap on every beat...').setStyle({ fill: '#50d0b0' });
 
         for (let i = 0; i < TOTAL; i++) {
             this._schedule(() => {
@@ -135,7 +135,7 @@ export class LatencyTestScene extends Phaser.Scene {
 
                 const isWarmup = i < WARMUP;
                 this.audioEngine.playClick(i % 4 === 0);
-                this._pulseDot(i, isWarmup ? 0xffaa00 : 0x3377cc);
+                this._pulseDot(i, isWarmup ? 0xe8d098 : 0x90c8c0);
 
                 // Record the real clock time of each measured click
                 if (!isWarmup) this._clickTimes.push(performance.now());
@@ -161,12 +161,12 @@ export class LatencyTestScene extends Phaser.Scene {
     }
 
     _flashTapRing() {
-        this._tapRing.setFillStyle(0x1a3a77).setStrokeStyle(2, 0x4488ff);
-        this._tapRingLabel.setStyle({ fill: '#88ccff' });
+        this._tapRing.setFillStyle(0x243848).setStrokeStyle(2, 0x50d0b0);
+        this._tapRingLabel.setStyle({ fill: '#90c8c0' });
         this.time.delayedCall(120, () => {
             if (!this._tapRing.scene) return;
-            this._tapRing.setFillStyle(0x0d1520).setStrokeStyle(2, 0x1a2a40);
-            this._tapRingLabel.setStyle({ fill: '#1a2a40' });
+            this._tapRing.setFillStyle(0x142030).setStrokeStyle(2, 0x243848);
+            this._tapRingLabel.setStyle({ fill: '#243848' });
         });
     }
 
@@ -175,7 +175,7 @@ export class LatencyTestScene extends Phaser.Scene {
         this._stopAll();
 
         if (this._clickTimes.length === 0 || this._rawTaps.length === 0) {
-            this.msgText.setText('No taps detected! Press RETRY and tap on every beat.').setStyle({ fill: '#ff6655' });
+            this.msgText.setText('No taps detected! Press RETRY and tap on every beat.').setStyle({ fill: '#e08868' });
             this._retryBtn.setVisible(true);
             return;
         }
@@ -222,7 +222,7 @@ export class LatencyTestScene extends Phaser.Scene {
 
         const matched = offsets2.length;
         if (matched === 0) {
-            this.msgText.setText('Taps too far from beats. Try again closer to each click.').setStyle({ fill: '#ff8844' });
+            this.msgText.setText('Taps too far from beats. Try again closer to each click.').setStyle({ fill: '#e08868' });
             this._retryBtn.setVisible(true);
             return;
         }
@@ -236,7 +236,7 @@ export class LatencyTestScene extends Phaser.Scene {
                    : '(near-perfect timing!)';
         this.msgText.setText(
             `Result: ${sign}${avg} ms  ${feel}\n${matched}/${MEASURE} beats matched`
-        ).setStyle({ fill: Math.abs(avg) > 100 ? '#ffcc44' : '#66ff88' });
+        ).setStyle({ fill: Math.abs(avg) > 100 ? '#e8d098' : '#50d0b0' });
 
         this._saveBtn.setVisible(true);
         this._retryBtn.setVisible(true);
@@ -252,10 +252,10 @@ export class LatencyTestScene extends Phaser.Scene {
         this._stopAll();
         this._state = 'idle';
         this._lastTap = null;
-        this._dots.forEach(d => { d.setFillStyle(0x121820); d.setStrokeStyle(2, 0x2a3a50); });
-        this._tapRing.setFillStyle(0x0d1520).setStrokeStyle(2, 0x1a2a40);
-        this._tapRingLabel.setStyle({ fill: '#1a2a40' });
-        this.msgText.setText('Press START, then tap on every beat').setStyle({ fill: '#778899' });
+        this._dots.forEach(d => { d.setFillStyle(0x142030); d.setStrokeStyle(2, 0x243848); });
+        this._tapRing.setFillStyle(0x142030).setStrokeStyle(2, 0x243848);
+        this._tapRingLabel.setStyle({ fill: '#243848' });
+        this.msgText.setText('Press START, then tap on every beat').setStyle({ fill: '#90c8c0' });
         const saved = this.settings.tapLatencyMs || 0;
         this.savedText.setText(this._offsetLabel('Saved', saved));
         this._startBtn.setVisible(true);
@@ -291,18 +291,18 @@ export class LatencyTestScene extends Phaser.Scene {
     _pulseDot(i, color) {
         const dot = this._dots[i];
         if (!dot || !dot.scene) return;
-        dot.setFillStyle(color).setStrokeStyle(2, 0xaabbdd);
+        dot.setFillStyle(color).setStrokeStyle(2, 0x90c8c0);
         this.time.delayedCall(260, () => {
             if (!dot.scene) return;
             const isWarmup = i < WARMUP;
-            dot.setFillStyle(isWarmup ? 0x1a1000 : 0x0d1830)
-               .setStrokeStyle(2, isWarmup ? 0x3a2a00 : 0x1a3055);
+            dot.setFillStyle(isWarmup ? 0x142030 : 0x142030)
+               .setStrokeStyle(2, isWarmup ? 0x243848 : 0x243848);
         });
     }
 
     _makeBtn(x, y, label, bg, hover, cb) {
         const btn = this.add.text(x, y, label, {
-            font: 'bold 18px monospace', fill: '#ffffff',
+            font: 'bold 18px monospace', fill: '#e8f0f0',
             backgroundColor: bg, padding: { x: 16, y: 8 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: hover }));

@@ -7,11 +7,13 @@
 //
 // question shape: { clef, noteName, accidental, octave }
 
-const PANEL_BG = '#faf5ee';
-const NOTE_COLOR = '#2a2418';
-const STAVE_COLOR = '#998866';
-const TEXT_COLOR = '#887766';
-const BORDER_COLOR = '#bbaa88';
+// Clean white sheet music
+const PANEL_BG      = '#ffffff';
+const PANEL_BG_DARK = '#f4f4f4';
+const NOTE_COLOR    = '#000000';
+const STAVE_COLOR   = '#888888';
+const TEXT_COLOR    = '#000000';
+const BORDER_COLOR  = '#cccccc';
 const ACC_MAP  = { sharp: '#', flat: 'b' };
 
 // Native VexFlow rendering dimensions (before CSS scaling).
@@ -98,9 +100,10 @@ export class VexFlowStaffRenderer {
             top:             `${top}px`,
             width:           `${NAT_PANEL_W}px`,
             height:          `${NAT_PANEL_H}px`,
-            background:      PANEL_BG,
-            border:          `1px solid ${BORDER_COLOR}`,
-            borderRadius:    '6px',
+            background:      `linear-gradient(180deg, ${PANEL_BG} 0%, ${PANEL_BG_DARK} 100%)`,
+            border:          `2px solid ${BORDER_COLOR}`,
+            borderRadius:    '8px',
+            boxShadow:       '0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
             overflow:        'visible',
             transformOrigin: 'top left',
             transform:       `scale(${cssScale})`,

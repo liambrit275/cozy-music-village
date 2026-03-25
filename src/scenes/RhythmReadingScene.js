@@ -55,7 +55,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
     async create() {
         const { width, height } = this.cameras.main;
-        this.cameras.main.setBackgroundColor('#1a150e');
+        this.cameras.main.setBackgroundColor('#0c1420');
 
         // ── Background + ground ──────────────────────────────
         const bgKey = ZONE_BGS[Math.floor(Math.random() * ZONE_BGS.length)];
@@ -156,12 +156,12 @@ export class RhythmReadingScene extends Phaser.Scene {
 
     _buildHUD(width, height) {
         this.scoreText = this.add.text(20, 12, 'Score: 0', {
-            font: 'bold 18px monospace', fill: '#ffcc00',
+            font: 'bold 18px monospace', fill: '#e8d098',
             stroke: '#000', strokeThickness: 3
         }).setDepth(10);
 
         this.roundText = this.add.text(width - 20, 12, 'Round 1', {
-            font: '14px monospace', fill: '#eedd88',
+            font: '14px monospace', fill: '#e8d098',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(1, 0).setDepth(10);
 
@@ -171,17 +171,17 @@ export class RhythmReadingScene extends Phaser.Scene {
         }).setDepth(10);
 
         this.slainText = this.add.text(width / 2, 12, '', {
-            font: '14px monospace', fill: '#88ff88',
+            font: '14px monospace', fill: '#50d0b0',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5, 0).setDepth(10);
 
         this.add.text(width / 2, height - 12, 'SIGHT-TAP', {
-            font: '11px monospace', fill: '#334455',
+            font: '11px monospace', fill: '#1a2838',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5, 1).setDepth(10);
 
         this.msgText = this.add.text(width / 2, GROUND_Y + 22, '', {
-            font: 'bold 16px monospace', fill: '#ffffff',
+            font: 'bold 16px monospace', fill: '#e8f0f0',
             stroke: '#000', strokeThickness: 3, align: 'center',
             wordWrap: { width: width - 60 }
         }).setOrigin(0.5, 0).setDepth(10);
@@ -190,23 +190,23 @@ export class RhythmReadingScene extends Phaser.Scene {
         this._hpBarBg     = this.add.graphics().setDepth(8);
         this._hpBarFg     = this.add.graphics().setDepth(9);
         this._hpBarText   = this.add.text(0, 0, '', {
-            font: '11px monospace', fill: '#ffffff', stroke: '#000', strokeThickness: 2
+            font: '11px monospace', fill: '#e8f0f0', stroke: '#000', strokeThickness: 2
         }).setDepth(10);
         this._mHpBarBg    = this.add.graphics().setDepth(8);
         this._mHpBarFg    = this.add.graphics().setDepth(9);
         this._monsterName = this.add.text(0, 0, '', {
-            font: 'bold 13px monospace', fill: '#ffaaaa',
+            font: 'bold 13px monospace', fill: '#e08868',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5, 1).setDepth(10);
 
         // Tempo display
         this._bpmText = this.add.text(width / 2, height - 14, '♩= --', {
-            font: '13px monospace', fill: '#887766',
+            font: '13px monospace', fill: '#687880',
             stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5, 1).setDepth(10);
 
         // Quit button
-        this._makeBtn(50, height - 24, 'QUIT', '#221111', '#443333', () => this._leave())
+        this._makeBtn(50, height - 24, 'QUIT', '#142030', '#243848', () => this._leave())
             .setDepth(10);
     }
 
@@ -396,7 +396,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
             const lbl = this.add.text(cx, cy, sub.cells[i], {
                 font: isDB ? 'bold 14px monospace' : '11px monospace',
-                fill: isNote ? (isDB ? '#aa9977' : '#887766') : '#2a2418'
+                fill: isNote ? (isDB ? '#687880' : '#687880') : '#142030'
             }).setOrigin(0.5);
 
             this._gridCellRects.push(bg);
@@ -428,7 +428,7 @@ export class RhythmReadingScene extends Phaser.Scene {
                 .setStrokeStyle(1, isNote ? 0x334466 : 0x1a2233);
             if (this._gridCellLabels[i]) {
                 this._gridCellLabels[i].setStyle({
-                    fill: isNote ? (isDB ? '#aa9977' : '#887766') : '#2a2418'
+                    fill: isNote ? (isDB ? '#687880' : '#687880') : '#142030'
                 });
             }
         }
@@ -453,7 +453,7 @@ export class RhythmReadingScene extends Phaser.Scene {
         const COUNT_IN = 4;
         for (let b = 0; b < COUNT_IN; b++) {
             this._schedule(() => {
-                this.msgText.setText(b < COUNT_IN - 1 ? `${COUNT_IN - b}...` : 'TAP!').setStyle({ fill: '#ffcc00' });
+                this.msgText.setText(b < COUNT_IN - 1 ? `${COUNT_IN - b}...` : 'TAP!').setStyle({ fill: '#e8d098' });
                 this.audioEngine.playClick(b === 0);
             }, b * this._quarterMs);
         }
@@ -462,7 +462,7 @@ export class RhythmReadingScene extends Phaser.Scene {
             this._state    = 'recording';
             this._barStart = performance.now();
             this._resetGridColors();
-            this.msgText.setText('TAP!').setStyle({ fill: '#44ff88' });
+            this.msgText.setText('TAP!').setStyle({ fill: '#50d0b0' });
 
             // Metronome clicks on downbeats during the bar
             sub.downbeats.forEach(di => {
@@ -513,7 +513,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
         const cell = this._gridCellAt(t);
         this._gridCellRects[cell]?.setFillStyle(0x2255aa).setStrokeStyle(2, 0x66aaff);
-        if (this._gridCellLabels[cell]) this._gridCellLabels[cell].setStyle({ fill: '#88ccff' });
+        if (this._gridCellLabels[cell]) this._gridCellLabels[cell].setStyle({ fill: '#90c8c0' });
     }
 
     // ── Evaluation ────────────────────────────────────────────
@@ -557,12 +557,12 @@ export class RhythmReadingScene extends Phaser.Scene {
         this._resetGridColors();
         results.forEach((res, ei) => {
             const cell = this._onsetCells[ei];
-            if (res.hit) this._flashGridCell(cell, 0x114422, 0x44ff66, '#44ff66');
-            else         this._flashGridCell(cell, 0x332200, 0xff8800, '#ff8800');
+            if (res.hit) this._flashGridCell(cell, 0x142030, 0x50d0b0, '#50d0b0');
+            else         this._flashGridCell(cell, 0x243848, 0xff8800, '#ff8800');
         });
         this._taps.forEach((tap, ti) => {
             if (!usedTaps.has(ti))
-                this._flashGridCell(this._gridCellAt(tap), 0x331111, 0xff3333, '#ff3333');
+                this._flashGridCell(this._gridCellAt(tap), 0x142030, 0xff3333, '#ff3333');
         });
 
         const passed = accuracy >= 0.70 && extraTaps <= Math.max(1, Math.floor(total * 0.3));
@@ -580,7 +580,7 @@ export class RhythmReadingScene extends Phaser.Scene {
                 this.playerSprite.play(`${this._charKey}-attack`).once('animationcomplete',
                     () => { if (!this._gameOverFlag) this.playerSprite.play(`${this._charKey}-idle`); });
 
-            this._showDamageNumber(this._monsterX, GROUND_Y - MONSTER_H - 20, dmg, '#44ff66', false);
+            this._showDamageNumber(this._monsterX, GROUND_Y - MONSTER_H - 20, dmg, '#50d0b0', false);
 
             // Push monster back
             const pushback = Math.min(SPAWN_X - this._monsterX, 120 + Math.floor(accuracy * 100));
@@ -594,7 +594,7 @@ export class RhythmReadingScene extends Phaser.Scene {
             const avgErr   = results.filter(r=>r.hit&&r.error!=null).reduce((s,r)=>s+Math.abs(r.error),0) / Math.max(1,hits);
             this.msgText.setText(
                 `${pct}%  ${hits}/${total}  -${dmg} HP  +${pts} pts${extraStr}\n±${Math.round(avgErr)}ms avg`
-            ).setStyle({ fill: '#66ff88' });
+            ).setStyle({ fill: '#50d0b0' });
             this.audioEngine.playCorrect();
         } else {
             // Monster attacks player
@@ -606,7 +606,7 @@ export class RhythmReadingScene extends Phaser.Scene {
                 this.playerSprite.play(`${this._charKey}-hurt`).once('animationcomplete',
                     () => { if (!this._gameOverFlag) this.playerSprite.play(`${this._charKey}-idle`); });
 
-            this._showDamageNumber(PLAYER_X, GROUND_Y - 80, dmg, '#ffaa44', true);
+            this._showDamageNumber(PLAYER_X, GROUND_Y - 80, dmg, '#e08868', true);
             this._updatePlayerHpBar();
 
             const extraStr = extraTaps > 0 ? `  ${extraTaps} extra` : '';
@@ -632,7 +632,7 @@ export class RhythmReadingScene extends Phaser.Scene {
     _monsterDefeated() {
         this.session.villagersHelped++;
         this.slainText.setText(`✦ ${this.session.villagersHelped} helped`);
-        this.msgText.setText(`${this._currentMonsterData?.name} is happy again!`).setStyle({ fill: '#ffcc00' });
+        this.msgText.setText(`${this._currentMonsterData?.name} is happy again!`).setStyle({ fill: '#e8d098' });
         this.audioEngine.playCorrect();
 
         if (this._monsterSprite) {
@@ -652,15 +652,15 @@ export class RhythmReadingScene extends Phaser.Scene {
         this.cameras.main.shake(200, 0.008);
         this.add.rectangle(width/2, height/2, width, height, 0x000000, 0.7).setDepth(60);
         this.add.text(width/2, height/2 - 40, 'OUT OF ENERGY!', {
-            font: 'bold 48px monospace', fill: '#ffaa44',
+            font: 'bold 48px monospace', fill: '#e08868',
             stroke: '#000', strokeThickness: 6
         }).setOrigin(0.5).setDepth(61);
         this.add.text(width/2, height/2 + 20, `Score: ${this.session.score}`, {
-            font: 'bold 24px monospace', fill: '#ffcc00',
+            font: 'bold 24px monospace', fill: '#e8d098',
             stroke: '#000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(61);
         this.add.text(width/2, height/2 + 55, `Villagers Helped: ${this.session.villagersHelped}`, {
-            font: '18px monospace', fill: '#aaffaa', stroke: '#000', strokeThickness: 3
+            font: '18px monospace', fill: '#90c8c0', stroke: '#000', strokeThickness: 3
         }).setOrigin(0.5).setDepth(61);
 
         this.time.delayedCall(3500, () => this._leave());
@@ -711,7 +711,7 @@ export class RhythmReadingScene extends Phaser.Scene {
 
     _makeBtn(x, y, label, bg, hover, cb) {
         const btn = this.add.text(x, y, label, {
-            font: 'bold 16px monospace', fill: '#ffffff',
+            font: 'bold 16px monospace', fill: '#e8f0f0',
             backgroundColor: bg, padding: { x: 14, y: 7 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: hover }));

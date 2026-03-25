@@ -10,15 +10,14 @@ export class TitleScene extends Phaser.Scene {
     create() {
         const { width, height } = this.cameras.main;
 
-        // Warm background
-        this.cameras.main.setBackgroundColor('#1a150e');
+        this.cameras.main.setBackgroundColor('#0c1420');
 
-        // Floating leaf/note particles
+        // Floating particles
         for (let i = 0; i < 40; i++) {
             const x = Math.random() * width;
             const y = Math.random() * height;
             const size = Math.random() * 2 + 1;
-            const colors = [0xffcc66, 0x88cc66, 0xffaa44, 0x66aa44];
+            const colors = [0x90c8c0, 0x50d0b0, 0xe8d098, 0x687880];
             const color = colors[Math.floor(Math.random() * colors.length)];
             const leaf = this.add.circle(x, y, size, color, Math.random() * 0.3 + 0.15);
             this.tweens.add({
@@ -34,48 +33,48 @@ export class TitleScene extends Phaser.Scene {
         // Title
         this.add.text(width / 2, height / 4 - 10, 'MUSIC THEORY\nVILLAGE', {
             font: 'bold 48px monospace',
-            fill: '#ffcc00',
+            fill: '#e8d098',
             align: 'center',
-            stroke: '#2a1a00',
+            stroke: '#0c1420',
             strokeThickness: 6
         }).setOrigin(0.5);
 
         // Subtitle
         this.add.text(width / 2, height / 4 + 80, 'Train Your Ear, Help the Village', {
             font: '18px monospace',
-            fill: '#aabb88'
+            fill: '#90c8c0'
         }).setOrigin(0.5);
 
         // --- Mode selection ---
         this.add.text(width / 2, height / 2 - 10, 'WHAT WOULD YOU LIKE TO DO?', {
             font: '14px monospace',
-            fill: '#aa9977'
+            fill: '#687880'
         }).setOrigin(0.5);
 
-        // PLAY button — go to character screen then top-down rescue game
-        this.createButton(width / 2 - 100, height / 2 + 40, '▶  PLAY', () => {
+        // STORY button
+        this.createButton(width / 2 - 100, height / 2 + 40, '▶  STORY', () => {
             this.scene.start('CharacterSelectScene', { isNewGame: true });
-        }, '#1a2a18', '#2a5522');
+        }, '#142030', '#243848');
 
-        // PRACTICE button (jump straight to challenge settings)
-        this.createButton(width / 2 + 100, height / 2 + 40, 'PRACTICE', () => {
+        // ARCADE button
+        this.createButton(width / 2 + 100, height / 2 + 40, 'ARCADE', () => {
             this.goToPractice();
-        }, '#2a2510', '#886622');
+        }, '#142030', '#243848');
 
         // Instructions
         this.add.text(width / 2, height - 50, 'Identify intervals, tap rhythms, and read notes to help the village!', {
             font: '13px monospace',
-            fill: '#776655',
+            fill: '#687880',
             align: 'center'
         }).setOrigin(0.5);
 
         // Settings gear
         this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#665544',
+            font: 'bold 20px monospace', fill: '#687880',
             padding: { x: 6, y: 4 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
-            .on('pointerover', function() { this.setStyle({ fill: '#bbaa88' }); })
-            .on('pointerout',  function() { this.setStyle({ fill: '#665544' }); })
+            .on('pointerover', function() { this.setStyle({ fill: '#90c8c0' }); })
+            .on('pointerout',  function() { this.setStyle({ fill: '#687880' }); })
             .on('pointerdown', () => {
                 this.scene.launch('SettingsScene', { callerKey: null, pauseCaller: false });
             });
@@ -87,20 +86,20 @@ export class TitleScene extends Phaser.Scene {
         this.scene.start('PracticeMenuScene', { playerData });
     }
 
-    createButton(x, y, text, callback, bgColor = '#2a2a1a', hoverColor = '#3a3a2a') {
+    createButton(x, y, text, callback, bgColor = '#142030', hoverColor = '#243848') {
         const btn = this.add.text(x, y, text, {
             font: 'bold 22px monospace',
-            fill: '#ffffff',
+            fill: '#e8f0f0',
             backgroundColor: bgColor,
             padding: { x: 24, y: 12 },
             align: 'center'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         btn.on('pointerover', () => {
-            btn.setStyle({ fill: '#ffcc00', backgroundColor: hoverColor });
+            btn.setStyle({ fill: '#e8d098', backgroundColor: hoverColor });
         });
         btn.on('pointerout', () => {
-            btn.setStyle({ fill: '#ffffff', backgroundColor: bgColor });
+            btn.setStyle({ fill: '#e8f0f0', backgroundColor: bgColor });
         });
         btn.on('pointerdown', callback);
 

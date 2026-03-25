@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Running the Game
 
@@ -13,33 +13,69 @@ python3 -m http.server 8080
 
 The game **cannot** be opened as a `file://` URL — Phaser and ES modules require an HTTP server.
 
+## Tech Stack
+
+- **Phaser 3.80.1** — game engine (Canvas/WebGL, scene management, input, physics)
+- **Tone.js 14.7.77** — Web Audio synthesis (drone, intervals, metronome, rhythm playback)
+- **VexFlow 4** — music notation rendering (SVG overlays for staff and rhythm notation)
+- **Bravura** — SMuFL music font for clef glyphs
+- All loaded via CDN `<script>` tags in `index.html`. No bundler, no package.json.
+
 ## Architecture
 
 ### Scene Flow
 ```
-BootScene → MenuScene → OverworldScene ↔ BattleScene → VictoryScene
-                                ↑                              |
-                                └──────────────────────────────┘
+BootScene → TitleScene ─┬→ AvatarBuilderScene → CharacterSelectScene → TopDownScene
+                        │                                                    ↓
+                        │                                          ChallengeScene (story)
+                        │
+                        ├→ WorldMapScene → RegionMapScene → LocationInfoScene → ChallengeScene (arcade)
+                        │
+                        └→ PracticeMenuScene ─┬→ PracticeScene (friendly practice)
+                                              ├→ RhythmReadingScene
+                                              ├→ LatencyTestScene
+                                              └→ ChallengeScene (practice mode)
+
+SettingsScene — launched as overlay from any scene
+SidescrollScene — side-scrolling zone progression (launched from TopDownScene)
 ```
 
-Scene data is passed via `scene.start('SceneName', { progression, playerData, ... })`. The `ProgressionManager` and `playerData` (plain object) are the two key pieces of cross-scene state. `ProgressionManager` is never serialized as a class across scenes — it's reconstructed from `localStorage`.
+All 15 scenes are registered in `src/main.js`. Scene data is passed via `scene.start('SceneName', { ... })`.
+
+### Key State
+
+- **`playerData`** — plain object passed between scenes (character appearance, stats)
+- **`ProgressionManager`** — story mode zone unlocks, reconstructed from `localStorage` each scene
+- **`WorldMapProgress`** — arcade mode completion tracking in `localStorage`
+- **`AudioEngine`** — created fresh per challenge scene, not shared between scenes
+
+### Challenge Types (ChallengeScene)
+
+`ChallengeScene.js` (~3000 lines) is the unified challenge scene handling all 4 question types:
+
+1. **Tone identification** — hear an interval over a drone, identify the scale degree (solfege)
+2. **Note reading** — see a note on staff (VexFlow), identify pitch name via keyboard
+3. **Rhythm transcription** — hear a rhythm pattern, reproduce it on a grid (click/draw/keyboard)
+4. **Rhythm reading** — see sheet music notation (VexFlow), tap the rhythm in time
+
+It runs in 3 modes: **story** (villager rescue), **arcade** (timed encounters), and **practice** (no pressure, NPC tips).
 
 ### Key Design Patterns
 
+**AudioEngine must be `await`ed before use.** `Tone.start()` requires a user gesture (browser policy). Challenge scenes call `await this.audioEngine.init()` in `create()`.
+
+**VexFlow renders as DOM overlays.** `VexFlowStaffRenderer` and `RhythmNotationRenderer` create SVG `<div>` elements positioned over the Phaser canvas with CSS scaling. They must be `.clear()`'d when leaving a scene.
+
+**RhythmSpeller converts grid → notation.** `spellPattern(groupGrid, subdivision)` takes a numeric array (0 = rest, positive = note group ID, same adjacent IDs = sustained note) and returns `SpelledNote[]` with proper durations, ties, and beat-boundary splits. Has safety guards against infinite loops.
+
+**Rhythm grading is coverage-based (transcription) and DP-based (reading).** Transcription checks cell coverage (any note where pattern expects one). Reading uses dynamic programming to optimally match tap times to expected onsets.
+
 ## Project Harmony: Core Rules
+
 - **No Violence:** Never use screen shakes, red flashes, or aggressive movement.
 - **Input Parity:** MIDI, Keyboard, and On-Screen Buttons must always be functional.
-- **Octave-Agnostic:** In "Serenade" mode, the pitch register (octave) does not matter for note-matching.
-- **Asset Path:** Always prioritize the `/Cozy_Game_Assets` directory.
-- **Scene Logic:** `ArcadeMode` and `StoryMode` must share the same `EncounterScene` logic to ensure feature parity.
-
-**CombatManager is UI-agnostic.** It drives the battle turn machine (state enum in `COMBAT_STATES`) and fires `onStateChange(state, data)` callbacks. `BattleScene` registers that callback and handles all rendering. Adding new combat mechanics means touching `CombatManager`, then updating `BattleScene.handleStateChange()`.
-
-**AudioEngine must be `await`ed before use.** `Tone.start()` requires a user gesture (browser policy). `BattleScene.create()` is `async` and calls `await this.audioEngine.init()`. The engine is created fresh per battle — it is not shared between scenes.
-
-**Monster sprite scaling is normalized by frame height.** `Monster.js` calculates `targetHeight / frameH` so all monsters display at a consistent visual size regardless of source sprite dimensions. The raw frame dimensions are defined in `src/data/monsters.js` and must match the actual PNG sprite sheets exactly.
-
-**ProgressionManager controls available scale degrees.** `zone.scaleDegrees` from `zones.js` determines which solfege buttons appear in battle. When adding a new zone or reordering unlocks, edit `ZONES` in `src/data/zones.js`.
+- **Octave-Agnostic:** In serenade/tone mode, pitch register (octave) does not matter.
+- **Asset Path:** Always prioritize the `/assets/cozy/` directory for active assets.
 
 ### Context Management
 
@@ -47,29 +83,29 @@ Never glob or list the contents of `Legacy Collection/` broadly — it contains 
 
 ### Asset Paths
 
-All Legacy Collection assets live directly in `project-root/Legacy Collection/`.
+Active assets live in `assets/cozy/` with subdirectories:
+- `animals/` — farm animal spritesheets (bunny, chicken, pig, goat, etc.)
+- `backgrounds/` — zone background images
+- `characters/` — 8 player body base sprites (char1–char8)
+- `clothes/` — 19 clothing tops/bottoms
+- `hair/` — 13 hairstyles
+- `effects/` — visual effects (hit, particles, bed)
+- `ui/` — UI elements
+- `environment/` — ground tiles, terrain
 
-Sprite sheet frame dimensions (px) for reference:
-| Key | Width×Height | Frames |
-|---|---|---|
-| player-idle/run/attack/hurt | 128×96 | 4/12/6/3 |
-| slime | 118×79 | 4 |
-| frog | 63×68 | 6 |
-| ogre | 144×80 | 4 |
-| hellHound | 64×48 | 11 |
-| fireSkull | 96×112 | 8 |
-| vampire | 121×110 | 4 |
-| witch | 55×93 | 5 |
-| demon | 160×144 | 6 |
-| hellBeast | 80×160 | 6 |
-| nightmare | 160×96 | 4 |
-| werewolf | 96×76 | 5 |
-| hit-effect | 31×32 | 3 |
-
-If you add a new sprite, measure its actual pixel dimensions with `sips -g pixelWidth -g pixelHeight <file>` and update both `monsters.js` and `BootScene.js`.
+If you add a new sprite, measure its actual pixel dimensions with `sips -g pixelWidth -g pixelHeight <file>` and update both `villagers.js`/`monsters.js` and `BootScene.js`.
 
 ### Scale Degrees & Solfege
+
 Defined in `src/systems/MusicTheory.js` as `SCALE_DEGREES`. The 12 movable-Do names:
 `Do Ra Re Me Mi Fa Fi Sol Le La Te Ti` (1 b2 2 b3 3 4 #4 5 b6 6 b7 7).
 
-Zone-to-degrees mapping lives in `src/data/zones.js`.
+Zone-to-degrees mapping lives in `src/data/zones.js` (6 zones, progressively unlocking more degrees).
+
+### Save State Keys
+
+| Key | System | Contents |
+|-----|--------|----------|
+| `music-theory-rpg-save` | ProgressionManager | Story mode zone unlocks, encounters |
+| `music-theory-world-map` | WorldMapProgress | Arcade completion, high scores |
+| `arcade-settings` | AudioEngine | Preset preferences (drone/interval/click/rhythm) |

@@ -208,7 +208,7 @@ export class SidescrollScene extends Phaser.Scene {
         if (isSpecial) {
             const bossTag = this.add.text(x, y - (data.frameHeight * scale) / 2 - 18,
                 '✨ HELP ME', {
-                    font: 'bold 13px monospace', fill: '#ffcc00',
+                    font: 'bold 13px monospace', fill: '#e8d098',
                     stroke: '#000000', strokeThickness: 3
                 }).setOrigin(0.5);
             // Attach so it follows the sprite
@@ -225,27 +225,27 @@ export class SidescrollScene extends Phaser.Scene {
 
         // Fixed to camera (scrollFactor 0)
         this.hudZoneName = this.add.text(width / 2, 14, zone.name, {
-            font: 'bold 16px monospace', fill: '#ffee88',
+            font: 'bold 16px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 3
         }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
 
         this.add.rectangle(width / 2, 36, 202, 14, 0x000000, 0.7)
             .setScrollFactor(0).setDepth(10);
-        this.hudHpBar = this.add.rectangle(width / 2 - 99, 30, 198, 10, 0x44ff44)
+        this.hudHpBar = this.add.rectangle(width / 2 - 99, 30, 198, 10, 0x50d0b0)
             .setOrigin(0, 0).setScrollFactor(0).setDepth(10);
 
         this.hudHpText = this.add.text(width / 2, 36, '', {
-            font: '10px monospace', fill: '#ffffff', stroke: '#000000', strokeThickness: 2
+            font: '10px monospace', fill: '#e8f0f0', stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5).setScrollFactor(0).setDepth(10);
 
         this.hudLevelText = this.add.text(width - 14, 14, '', {
-            font: '13px monospace', fill: '#eedd88', stroke: '#000000', strokeThickness: 2
+            font: '13px monospace', fill: '#e8d098', stroke: '#000000', strokeThickness: 2
         }).setOrigin(1, 0).setScrollFactor(0).setDepth(10);
 
         // Controls hint (bottom)
         this.add.text(14, this.cameras.main.height - 14,
             '← → Move   ↑/Space Jump   M Map', {
-                font: '11px monospace', fill: '#446655', stroke: '#000000', strokeThickness: 2
+                font: '11px monospace', fill: '#687880', stroke: '#000000', strokeThickness: 2
             }).setScrollFactor(0).setDepth(10);
 
         this._updateHud();
@@ -255,7 +255,7 @@ export class SidescrollScene extends Phaser.Scene {
         const p = this.playerData;
         const ratio = Math.max(0, p.hp / p.maxHp);
         this.hudHpBar.setScale(ratio, 1);
-        const col = ratio > 0.5 ? 0x44ff44 : ratio > 0.25 ? 0xffaa00 : 0xff4444;
+        const col = ratio > 0.5 ? 0x50d0b0 : ratio > 0.25 ? 0xe8d098 : 0xe08868;
         this.hudHpBar.setFillStyle(col);
         this.hudHpText.setText(`HP ${Math.ceil(p.hp)}/${p.maxHp}`);
         this.hudLevelText.setText(`Lv.${p.level}`);
@@ -268,11 +268,11 @@ export class SidescrollScene extends Phaser.Scene {
         const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.65)
             .setScrollFactor(0).setDepth(20);
         const title = this.add.text(width / 2, height / 2 - 20, zone.name, {
-            font: 'bold 36px monospace', fill: '#ffcc00',
+            font: 'bold 36px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 6
         }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
         const sub = this.add.text(width / 2, height / 2 + 30, zone.description, {
-            font: '16px monospace', fill: '#aaccff', stroke: '#000000', strokeThickness: 3
+            font: '16px monospace', fill: '#90c8c0', stroke: '#000000', strokeThickness: 3
         }).setOrigin(0.5).setScrollFactor(0).setDepth(20);
 
         this.time.delayedCall(2200, () => {
@@ -394,7 +394,7 @@ export class SidescrollScene extends Phaser.Scene {
 
             // Name tag
             const tag = this.add.text(x, animalY - 30, region.animalName, {
-                font: 'bold 10px monospace', fill: '#ffcc00',
+                font: 'bold 10px monospace', fill: '#e8d098',
                 stroke: '#000000', strokeThickness: 2
             }).setOrigin(0.5);
             this.events.on('update', () => {
@@ -407,7 +407,7 @@ export class SidescrollScene extends Phaser.Scene {
             // Cage bars
             const cageW = 100, cageH = 120;
             const cage = this.add.graphics();
-            cage.lineStyle(3, 0x888888, 0.7);
+            cage.lineStyle(3, 0x687880, 0.7);
             for (let bx = x - cageW / 2; bx <= x + cageW / 2; bx += 14) {
                 cage.lineBetween(bx, animalY - cageH / 2, bx, animalY + cageH / 2);
             }
@@ -416,7 +416,7 @@ export class SidescrollScene extends Phaser.Scene {
 
             // "Help me!" tag
             const helpTag = this.add.text(x, animalY - cageH / 2 - 10, `Save ${region.animalName}!`, {
-                font: 'bold 10px monospace', fill: '#ff9966',
+                font: 'bold 10px monospace', fill: '#e08868',
                 stroke: '#000000', strokeThickness: 2
             }).setOrigin(0.5);
 
@@ -517,7 +517,7 @@ export class SidescrollScene extends Phaser.Scene {
 
             const { width, height } = this.cameras.main;
             const msg = this.add.text(width / 2, height / 2, 'Keep trying!', {
-                font: 'bold 28px monospace', fill: '#ff8888',
+                font: 'bold 28px monospace', fill: '#e08868',
                 stroke: '#000000', strokeThickness: 5
             }).setScrollFactor(0).setDepth(20).setOrigin(0.5);
             this.tweens.add({
@@ -531,7 +531,7 @@ export class SidescrollScene extends Phaser.Scene {
         const { width } = this.cameras.main;
         const lines = [`+${xp} XP`, gold ? `+${gold} Gold` : ''].filter(Boolean).join('  ');
         const popup = this.add.text(width / 2, 80, lines, {
-            font: 'bold 20px monospace', fill: '#ffcc00',
+            font: 'bold 20px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 4
         }).setScrollFactor(0).setDepth(20).setOrigin(0.5);
         this.tweens.add({
@@ -579,7 +579,7 @@ export class SidescrollScene extends Phaser.Scene {
 
         // ── Phase 1: Cage with animal ──
         const cage = this.add.graphics().setScrollFactor(0).setDepth(27);
-        cage.lineStyle(3, 0x888888, 0.8);
+        cage.lineStyle(3, 0x687880, 0.8);
         const cageW = 160, cageH = 160;
         for (let bx = width / 2 - cageW / 2; bx <= width / 2 + cageW / 2; bx += 18) {
             cage.lineBetween(bx, animalY - cageH / 2, bx, animalY + cageH / 2);
@@ -592,7 +592,7 @@ export class SidescrollScene extends Phaser.Scene {
         animalSprite.play(region.animalAnimKey);
 
         const breakText = this.add.text(width / 2, height * 0.12, 'The cage is breaking!', {
-            font: 'bold 20px monospace', fill: '#ffcc00',
+            font: 'bold 20px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setScrollFactor(0).setDepth(28);
 
@@ -614,7 +614,7 @@ export class SidescrollScene extends Phaser.Scene {
                     width / 2 + Phaser.Math.Between(-40, 40),
                     animalY + Phaser.Math.Between(-30, 30),
                     Phaser.Math.Between(4, 12), Phaser.Math.Between(8, 20),
-                    0x888888, 0.8
+                    0x687880, 0.8
                 ).setScrollFactor(0).setDepth(27);
                 this.tweens.add({
                     targets: frag,
@@ -639,7 +639,7 @@ export class SidescrollScene extends Phaser.Scene {
                 const sparkle = this.add.circle(
                     width / 2 + Phaser.Math.Between(-60, 60),
                     animalY + Phaser.Math.Between(-50, 50),
-                    Phaser.Math.Between(2, 5), 0xffcc00, 0.8
+                    Phaser.Math.Between(2, 5), 0xe8d098, 0.8
                 ).setScrollFactor(0).setDepth(27);
                 this.tweens.add({
                     targets: sparkle, y: sparkle.y - 40, alpha: 0,
@@ -653,13 +653,13 @@ export class SidescrollScene extends Phaser.Scene {
                 const animalName = npc ? npc.name : region.animalName;
 
                 const rescueTitle = this.add.text(width / 2, height * 0.08, `${animalName} RESCUED!`, {
-                    font: 'bold 32px monospace', fill: '#ffcc00',
+                    font: 'bold 32px monospace', fill: '#e8d098',
                     stroke: '#000000', strokeThickness: 6
                 }).setOrigin(0.5).setScrollFactor(0).setDepth(28).setAlpha(0);
                 this.tweens.add({ targets: rescueTitle, alpha: 1, duration: 400 });
 
                 // Golden glow
-                const glow = this.add.circle(width / 2, animalY, 55, 0xffcc00, 0.15)
+                const glow = this.add.circle(width / 2, animalY, 55, 0xe8d098, 0.15)
                     .setScrollFactor(0).setDepth(26);
                 this.tweens.add({
                     targets: glow, alpha: { from: 0.1, to: 0.3 },
@@ -673,14 +673,14 @@ export class SidescrollScene extends Phaser.Scene {
                     const bubbleW = 500, bubbleH = 90;
                     const bx = width / 2 - bubbleW / 2;
 
-                    bubbleG.fillStyle(0x1e2840, 0.9);
+                    bubbleG.fillStyle(0x1a2838, 0.9);
                     bubbleG.fillTriangle(width / 2, dialogueY - 12, width / 2 - 10, dialogueY, width / 2 + 10, dialogueY);
                     bubbleG.fillRoundedRect(bx, dialogueY, bubbleW, bubbleH, 12);
-                    bubbleG.lineStyle(1, 0xffcc00, 0.5);
+                    bubbleG.lineStyle(1, 0xe8d098, 0.5);
                     bubbleG.strokeRoundedRect(bx, dialogueY, bubbleW, bubbleH, 12);
 
                     this.add.text(width / 2, dialogueY + bubbleH / 2, npc.saved, {
-                        font: '13px monospace', fill: '#ddeeff',
+                        font: '13px monospace', fill: '#e8f0f0',
                         fontStyle: 'italic', align: 'center',
                         wordWrap: { width: bubbleW - 30 }, lineSpacing: 3
                     }).setOrigin(0.5).setScrollFactor(0).setDepth(28);
@@ -692,20 +692,20 @@ export class SidescrollScene extends Phaser.Scene {
                     ? `New area unlocked: ${ZONES[nextZoneKey].name}`
                     : 'All friends rescued!';
                 this.add.text(width / 2, height * 0.82, nextText, {
-                    font: '14px monospace', fill: '#aaccff',
+                    font: '14px monospace', fill: '#90c8c0',
                     stroke: '#000000', strokeThickness: 3
                 }).setOrigin(0.5).setScrollFactor(0).setDepth(28);
 
                 // Continue button
                 const contBtn = this.add.text(width / 2, height * 0.90, 'CONTINUE  ▶', {
-                    font: 'bold 18px monospace', fill: '#ffffff',
-                    backgroundColor: '#224422', padding: { x: 24, y: 10 }
+                    font: 'bold 18px monospace', fill: '#e8f0f0',
+                    backgroundColor: '#243848', padding: { x: 24, y: 10 }
                 }).setOrigin(0.5).setScrollFactor(0).setDepth(28).setAlpha(0);
 
                 this.time.delayedCall(1500, () => {
                     contBtn.setAlpha(1).setInteractive({ useHandCursor: true });
-                    contBtn.on('pointerover', () => contBtn.setStyle({ backgroundColor: '#336633' }));
-                    contBtn.on('pointerout',  () => contBtn.setStyle({ backgroundColor: '#224422' }));
+                    contBtn.on('pointerover', () => contBtn.setStyle({ backgroundColor: '#1a2838' }));
+                    contBtn.on('pointerout',  () => contBtn.setStyle({ backgroundColor: '#243848' }));
                     contBtn.on('pointerdown', () => {
                         // Reload scene so rescued animal appears
                         if (nextZoneKey) {
@@ -738,7 +738,7 @@ export class SidescrollScene extends Phaser.Scene {
         const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
             .setScrollFactor(0).setDepth(25);
         this.add.text(width / 2, height / 2 - 60, 'LEVEL COMPLETE!', {
-            font: 'bold 42px monospace', fill: '#ffcc00',
+            font: 'bold 42px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 7
         }).setOrigin(0.5).setScrollFactor(0).setDepth(26);
 
@@ -748,17 +748,17 @@ export class SidescrollScene extends Phaser.Scene {
             : 'All zones mastered!';
 
         this.add.text(width / 2, height / 2 + 10, subText, {
-            font: '18px monospace', fill: '#aaccff', stroke: '#000000', strokeThickness: 3
+            font: '18px monospace', fill: '#90c8c0', stroke: '#000000', strokeThickness: 3
         }).setOrigin(0.5).setScrollFactor(0).setDepth(26);
 
         const continueBtn = this.add.text(width / 2, height / 2 + 80, 'CONTINUE  ▶', {
-            font: 'bold 22px monospace', fill: '#ffffff',
-            backgroundColor: '#1a4422', padding: { x: 28, y: 12 }
+            font: 'bold 22px monospace', fill: '#e8f0f0',
+            backgroundColor: '#142030', padding: { x: 28, y: 12 }
         }).setOrigin(0.5).setScrollFactor(0).setDepth(26)
           .setInteractive({ useHandCursor: true });
 
-        continueBtn.on('pointerover', () => continueBtn.setStyle({ backgroundColor: '#2a6633' }));
-        continueBtn.on('pointerout',  () => continueBtn.setStyle({ backgroundColor: '#1a4422' }));
+        continueBtn.on('pointerover', () => continueBtn.setStyle({ backgroundColor: '#243848' }));
+        continueBtn.on('pointerout',  () => continueBtn.setStyle({ backgroundColor: '#142030' }));
         continueBtn.on('pointerdown', () => {
             if (nextZoneKey) {
                 this.progression.setZone(nextZoneKey);

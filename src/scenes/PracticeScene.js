@@ -132,17 +132,17 @@ export class PracticeScene extends Phaser.Scene {
 
         // ── Title ────────────────────────────────────────────────────────────
         this.add.text(width / 2, 18, 'PRACTICE MODE', {
-            font: 'bold 22px monospace', fill: '#eedd88',
+            font: 'bold 22px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(5);
 
         this._questionCountText = this.add.text(width - 20, 14, 'Q: 0', {
-            font: '13px monospace', fill: '#556677'
+            font: '13px monospace', fill: '#687880'
         }).setOrigin(1, 0).setDepth(5);
 
         // ── Message area ─────────────────────────────────────────────────────
         this.messageText = this.add.text(width / 2, 50, '', {
-            font: 'bold 16px monospace', fill: '#ffffff',
+            font: 'bold 16px monospace', fill: '#e8f0f0',
             stroke: '#000000', strokeThickness: 3, align: 'center'
         }).setOrigin(0.5).setDepth(5);
 
@@ -151,12 +151,12 @@ export class PracticeScene extends Phaser.Scene {
 
         // ── NEXT button ───────────────────────────────────────────────────────
         this.nextBtn = this.add.text(width - 80, height - 36, 'NEXT  ▶', {
-            font: 'bold 16px monospace', fill: '#ffffff',
-            backgroundColor: '#113311', padding: { x: 16, y: 8 }
+            font: 'bold 16px monospace', fill: '#e8f0f0',
+            backgroundColor: '#142030', padding: { x: 16, y: 8 }
         }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true })
             .setVisible(false);
-        this.nextBtn.on('pointerover', () => this.nextBtn.setStyle({ backgroundColor: '#225522' }));
-        this.nextBtn.on('pointerout',  () => this.nextBtn.setStyle({ backgroundColor: '#113311' }));
+        this.nextBtn.on('pointerover', () => this.nextBtn.setStyle({ backgroundColor: '#243848' }));
+        this.nextBtn.on('pointerout',  () => this.nextBtn.setStyle({ backgroundColor: '#142030' }));
         this.nextBtn.on('pointerdown', () => this._nextQuestion());
 
         // ── BACK button ───────────────────────────────────────────────────────
@@ -170,17 +170,17 @@ export class PracticeScene extends Phaser.Scene {
 
         // ── SPACE to replay ───────────────────────────────────────────────────
         this.add.text(width / 2, height - 36, 'SPACE: replay', {
-            font: '11px monospace', fill: '#334455'
+            font: '11px monospace', fill: '#1a2838'
         }).setOrigin(0.5).setDepth(5);
 
         this.input.keyboard.on('keydown-SPACE', () => this._replayAudio());
 
         // ── Settings gear ─────────────────────────────────────────────────────
         this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#887766', padding: { x: 6, y: 4 }
+            font: 'bold 20px monospace', fill: '#687880', padding: { x: 6, y: 4 }
         }).setOrigin(1, 0).setDepth(10).setInteractive({ useHandCursor: true })
-            .on('pointerover', function() { this.setStyle({ fill: '#ffcc66' }); })
-            .on('pointerout',  function() { this.setStyle({ fill: '#887766' }); })
+            .on('pointerover', function() { this.setStyle({ fill: '#e8d098' }); })
+            .on('pointerout',  function() { this.setStyle({ fill: '#687880' }); })
             .on('pointerdown', () => this._openSettings());
 
         this.input.keyboard.on('keydown-ESC', () => this._openSettings());
@@ -363,7 +363,7 @@ export class PracticeScene extends Phaser.Scene {
         // Show key label at circle center
         if (!this._keyLabel) {
             this._keyLabel = this.add.text(cx, cy, '', {
-                font: 'bold 36px monospace', fill: '#aaccff',
+                font: 'bold 36px monospace', fill: '#90c8c0',
                 stroke: '#000000', strokeThickness: 4
             }).setOrigin(0.5).setDepth(4);
         }
@@ -386,11 +386,11 @@ export class PracticeScene extends Phaser.Scene {
             if (!info) return;
             const btn = this.add.text(x, y, `${info.solfege}\n${degree}`, {
                 font: 'bold 14px monospace', fill: info.color,
-                backgroundColor: '#2a2418', padding: { x: 9, y: 5 },
+                backgroundColor: '#142030', padding: { x: 9, y: 5 },
                 stroke: '#000000', strokeThickness: 2, align: 'center'
             }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(5);
-            btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#3a3020' }));
-            btn.on('pointerout',  () => btn.setStyle({ backgroundColor: '#2a2418' }));
+            btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#243848' }));
+            btn.on('pointerout',  () => btn.setStyle({ backgroundColor: '#142030' }));
             btn.on('pointerdown', () => this._submitTone(degree));
             this.solfegeButtons.push(btn);
         });
@@ -404,12 +404,12 @@ export class PracticeScene extends Phaser.Scene {
 
         if (correct) {
             this.messageText.setText(`✓ Correct!  ${info?.solfege} (${this._currentDegree})`);
-            this.messageText.setStyle({ fill: '#44ff88' });
+            this.messageText.setStyle({ fill: '#50d0b0' });
             this._showTip(`✓ ${info?.solfege} (${this._currentDegree})!\n${tip}`);
         } else {
             const wrongInfo = SCALE_DEGREES[selected];
             this.messageText.setText(`✗ It was ${info?.solfege} (${this._currentDegree})`);
-            this.messageText.setStyle({ fill: '#ff6644' });
+            this.messageText.setStyle({ fill: '#e08868' });
             this._showTip(`It was ${info?.solfege} (${this._currentDegree}).\n${tip}\n\nYou answered: ${wrongInfo?.solfege} (${selected})`);
         }
 
@@ -423,7 +423,7 @@ export class PracticeScene extends Phaser.Scene {
         this.solfegeButtons.forEach(btn => {
             const deg = btn.text.split('\n')[1];
             if (deg === this._currentDegree) {
-                btn.setStyle({ fill: '#ffcc00', backgroundColor: '#332200' });
+                btn.setStyle({ fill: '#e8d098', backgroundColor: '#332200' });
             } else if (deg === selected && !correct) {
                 btn.setStyle({ fill: '#ff4422', backgroundColor: '#330a00' });
             } else {
@@ -438,7 +438,7 @@ export class PracticeScene extends Phaser.Scene {
         this.solfegeButtons.forEach(b => b.destroy());
         this.solfegeButtons = [];
         if (this._keyLabel) { this._keyLabel.setVisible(false); }
-        this.messageText.setStyle({ fill: '#ffffff' });
+        this.messageText.setStyle({ fill: '#e8f0f0' });
     }
 
     _getDegreesPool() {
@@ -521,11 +521,11 @@ export class PracticeScene extends Phaser.Scene {
 
         if (correct) {
             this.messageText.setText(`✓ Correct! It's ${name}!`);
-            this.messageText.setStyle({ fill: '#44ff88' });
+            this.messageText.setStyle({ fill: '#50d0b0' });
             this._showTip(`✓ Well done! That note is ${name}.\n\n${tipLines.join('\n')}`);
         } else {
             this.messageText.setText(`✗ It was ${name}.`);
-            this.messageText.setStyle({ fill: '#ff6644' });
+            this.messageText.setStyle({ fill: '#e08868' });
             this._showTip(`It was ${name}, not ${answer}.\n\n${tipLines.join('\n')}`);
         }
         this._waitForNext();
@@ -535,7 +535,7 @@ export class PracticeScene extends Phaser.Scene {
         this.pianoKeys.forEach(k => k.destroy());
         this.pianoKeys = [];
         this.staffRenderer.clear();
-        this.messageText.setStyle({ fill: '#ffffff' });
+        this.messageText.setStyle({ fill: '#e8f0f0' });
     }
 
     _getNoteReadingConfig() {
@@ -609,7 +609,7 @@ export class PracticeScene extends Phaser.Scene {
                 .setStrokeStyle(1, 0x2244aa).setDepth(3);
 
             const lbl = this.add.text(cx, gridY - cellH / 2 - 8, sub.cells[i], {
-                font: '9px monospace', fill: isDownbeat ? '#bbaa88' : '#887766'
+                font: '9px monospace', fill: isDownbeat ? '#90c8c0' : '#687880'
             }).setOrigin(0.5).setDepth(3);
 
             bg.setInteractive({ useHandCursor: true });
@@ -620,14 +620,14 @@ export class PracticeScene extends Phaser.Scene {
         }
 
         // SUBMIT button
-        const submitBtn = this._makeBtn(width / 2 + 40, height - 36, 'SUBMIT', '#1a3311', '#2a5522', () => {
+        const submitBtn = this._makeBtn(width / 2 + 40, height - 36, 'SUBMIT', '#142030', '#243848', () => {
             if (this._questionActive) this._submitRhythm();
         });
         submitBtn.setDepth(5);
         this.rhythmUI.push(submitBtn);
 
         // PLAY button
-        const playBtn = this._makeBtn(width / 2 - 90, height - 36, '▶ PLAY', '#112233', '#224455', () => {
+        const playBtn = this._makeBtn(width / 2 - 90, height - 36, '▶ PLAY', '#142030', '#243848', () => {
             this._stopRhythmLoop();
             this.time.delayedCall(100, () => this._startRhythmLoop());
         });
@@ -758,15 +758,15 @@ export class PracticeScene extends Phaser.Scene {
         const tip = RHYTHM_TIPS[this._rhythmSubKey] || '';
         if (passed) {
             this.messageText.setText(`✓ Great rhythm! (${Math.round(accuracy * 100)}% match)`);
-            this.messageText.setStyle({ fill: '#44ff88' });
+            this.messageText.setStyle({ fill: '#50d0b0' });
             this._showTip(`✓ Well done!\n\n${tip}`);
         } else {
             this.messageText.setText(`✗ Not quite — ${Math.round(accuracy * 100)}% match`);
-            this.messageText.setStyle({ fill: '#ff6644' });
+            this.messageText.setStyle({ fill: '#e08868' });
             this._showTip(`Keep trying! Listen for where the notes START.\n\n${tip}\n\nGreen = note, cells are where notes fall.`);
         }
 
-        this.messageText.setStyle({ fill: passed ? '#44ff88' : '#ff6644' });
+        this.messageText.setStyle({ fill: passed ? '#50d0b0' : '#e08868' });
         this.nextBtn.setVisible(true);
     }
 
@@ -778,7 +778,7 @@ export class PracticeScene extends Phaser.Scene {
         if (this._keyboardInput) { this._keyboardInput.disable(); this._keyboardInput = null; }
         // Clear cell refs
         for (let i = 0; i < 16; i++) delete this['_rhythmCell' + i];
-        this.messageText.setStyle({ fill: '#ffffff' });
+        this.messageText.setStyle({ fill: '#e8f0f0' });
     }
 
     // ── Settings ──────────────────────────────────────────────────────────────
@@ -794,7 +794,7 @@ export class PracticeScene extends Phaser.Scene {
 
     _makeBtn(x, y, label, bg, hover, cb) {
         const btn = this.add.text(x, y, label, {
-            font: 'bold 15px monospace', fill: '#ffffff',
+            font: 'bold 15px monospace', fill: '#e8f0f0',
             backgroundColor: bg, padding: { x: 16, y: 8 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: hover }));

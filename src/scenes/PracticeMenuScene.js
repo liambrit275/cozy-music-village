@@ -75,7 +75,7 @@ export class PracticeMenuScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.cameras.main;
-        this.cameras.main.setBackgroundColor('#1a150e');
+        this.cameras.main.setBackgroundColor('#0c1420');
 
         // Load saved settings
         const saved = this.pm.loadArcadeSettings();
@@ -90,9 +90,9 @@ export class PracticeMenuScene extends Phaser.Scene {
         this._settingsObjs = [];
 
         // Title
-        this.add.text(width / 2, 24, 'PRACTICE', {
-            font: 'bold 32px monospace', fill: '#ffcc00',
-            stroke: '#000000', strokeThickness: 4
+        this.add.text(width / 2, 24, 'ARCADE', {
+            font: 'bold 32px monospace', fill: '#e8d098',
+            stroke: '#0c1420', strokeThickness: 4
         }).setOrigin(0.5);
 
         this._buildUI(width, height);
@@ -101,7 +101,7 @@ export class PracticeMenuScene extends Phaser.Scene {
     _buildUI(width, height) {
         // --- Mode selector ---
         this.add.text(width / 2, 58, 'Choose Type:', {
-            font: '14px monospace', fill: '#aaaacc'
+            font: '14px monospace', fill: '#90c8c0'
         }).setOrigin(0.5);
 
         const modes = [
@@ -125,11 +125,11 @@ export class PracticeMenuScene extends Phaser.Scene {
 
         // --- Settings gear button (top right) ---
         this.add.text(width - 16, 14, '⚙', {
-            font: 'bold 20px monospace', fill: '#665544',
+            font: 'bold 20px monospace', fill: '#687880',
             padding: { x: 6, y: 4 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
-            .on('pointerover', function() { this.setStyle({ fill: '#ccaa77' }); })
-            .on('pointerout',  function() { this.setStyle({ fill: '#665544' }); })
+            .on('pointerover', function() { this.setStyle({ fill: '#90c8c0' }); })
+            .on('pointerout',  function() { this.setStyle({ fill: '#687880' }); })
             .on('pointerdown', () => {
                 this.scene.launch('SettingsScene', { callerKey: null, pauseCaller: false });
             });
@@ -141,10 +141,10 @@ export class PracticeMenuScene extends Phaser.Scene {
         this._buildHighScores(width, 400);
 
         // --- START ---
-        this._makeBtn(width / 2 + 60, height - 36, 'START', '#2a3a1a', '#3a4a2a', () => this._startArcade());
+        this._makeBtn(width / 2 + 60, height - 36, 'START', '#142030', '#243848', () => this._startArcade());
 
         // --- LATENCY ---
-        this._makeBtn(width / 2 + 200, height - 36, 'LATENCY', '#1a150e', '#2a2518', () => {
+        this._makeBtn(width / 2 + 200, height - 36, 'LATENCY', '#0c1420', '#243848', () => {
             this.scene.start('LatencyTestScene', {
                 returnScene: 'PracticeMenuScene',
                 returnData:  { playerData: this.playerData },
@@ -153,7 +153,7 @@ export class PracticeMenuScene extends Phaser.Scene {
         });
 
         // --- BACK ---
-        this._makeBtn(width / 2 - 120, height - 36, 'BACK', '#2a1a0e', '#443322', () => {
+        this._makeBtn(width / 2 - 120, height - 36, 'BACK', '#142030', '#243848', () => {
             this.scene.start('TitleScene');
         });
 
@@ -176,7 +176,7 @@ export class PracticeMenuScene extends Phaser.Scene {
         // Tones section (for tones / all)
         if (mode === 'tones' || mode === 'all') {
             this._settingsObjs.push(
-                this.add.text(width / 2, y, 'Tones:', { font: '12px monospace', fill: '#aaaacc' }).setOrigin(0.5)
+                this.add.text(width / 2, y, 'Tones:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0.5)
             );
             y += 18;
             SOLFEGE_DEGREES.forEach((d, i) => {
@@ -194,7 +194,7 @@ export class PracticeMenuScene extends Phaser.Scene {
 
             // Key selector
             this._settingsObjs.push(
-                this.add.text(width / 2 - 200, y, 'Key:', { font: '12px monospace', fill: '#aaaacc' }).setOrigin(0, 0.5)
+                this.add.text(width / 2 - 200, y, 'Key:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
             );
             if (!this.settings.tonesKey) this.settings.tonesKey = 'random';
             TONE_KEYS.forEach((k, i) => {
@@ -214,7 +214,7 @@ export class PracticeMenuScene extends Phaser.Scene {
         if (mode === 'noteReading' || mode === 'all') {
             // Clef
             this._settingsObjs.push(
-                this.add.text(width / 2 - 200, y, 'Clef:', { font: '12px monospace', fill: '#aaaacc' }).setOrigin(0, 0.5)
+                this.add.text(width / 2 - 200, y, 'Clef:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
             );
             CLEF_OPTIONS.forEach((c, i) => {
                 const x = width / 2 - 100 + i * 100;
@@ -230,7 +230,7 @@ export class PracticeMenuScene extends Phaser.Scene {
 
             // Ranges
             this._settingsObjs.push(
-                this.add.text(width / 2 - 200, y, 'Range:', { font: '12px monospace', fill: '#aaaacc' }).setOrigin(0, 0.5)
+                this.add.text(width / 2 - 200, y, 'Range:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
             );
             NOTE_RANGES.forEach((r, i) => {
                 const x = width / 2 - 100 + i * 105;
@@ -246,7 +246,7 @@ export class PracticeMenuScene extends Phaser.Scene {
         // Rhythm subdivisions (for rhythm / rhythmReading / all)
         if (mode === 'rhythm' || mode === 'rhythmReading' || mode === 'all') {
             this._settingsObjs.push(
-                this.add.text(width / 2 - 200, y, 'Rhythm:', { font: '12px monospace', fill: '#aaaacc' }).setOrigin(0, 0.5)
+                this.add.text(width / 2 - 200, y, 'Rhythm:', { font: '12px monospace', fill: '#90c8c0' }).setOrigin(0, 0.5)
             );
             RHYTHM_SUBS.forEach((s, i) => {
                 const x = width / 2 - 100 + i * 100;
@@ -267,11 +267,11 @@ export class PracticeMenuScene extends Phaser.Scene {
         if (idx >= 0) {
             if (arr.length > 1) {
                 arr.splice(idx, 1);
-                btn.setStyle({ fill: '#888888', backgroundColor: '#222222' });
+                btn.setStyle({ fill: '#687880', backgroundColor: '#142030' });
             }
         } else {
             arr.push(value);
-            btn.setStyle({ fill: '#ffcc00', backgroundColor: '#333311' });
+            btn.setStyle({ fill: '#e8d098', backgroundColor: '#243848' });
         }
         this._saveSettings();
     }
@@ -301,8 +301,8 @@ export class PracticeMenuScene extends Phaser.Scene {
         const on = this.settings.gradual;
         this.gradualBtn.setText(on ? '✓ GRADUAL' : '✗ GRADUAL');
         this.gradualBtn.setStyle({
-            backgroundColor: on ? '#2a3a1a' : '#222222',
-            fill: on ? '#ffcc00' : '#888888'
+            backgroundColor: on ? '#142030' : '#142030',
+            fill: on ? '#e8d098' : '#687880'
         });
     }
 
@@ -316,8 +316,8 @@ export class PracticeMenuScene extends Phaser.Scene {
         const on = this.settings.practice;
         this.practiceBtn.setText(on ? '✓ PRACTICE' : '✗ PRACTICE');
         this.practiceBtn.setStyle({
-            backgroundColor: on ? '#2a3320' : '#222222',
-            fill: on ? '#88ddaa' : '#888888'
+            backgroundColor: on ? '#142030' : '#142030',
+            fill: on ? '#50d0b0' : '#687880'
         });
     }
 
@@ -334,19 +334,19 @@ export class PracticeMenuScene extends Phaser.Scene {
         ];
 
         this.add.text(width / 2, y - 14, 'HIGH SCORES', {
-            font: '14px monospace', fill: '#ffcc44'
+            font: '14px monospace', fill: '#e8d098'
         }).setOrigin(0.5);
 
         cols.forEach(col => {
             this.add.text(col.x, y + 10, col.label, {
-                font: '12px monospace', fill: '#aaaadd'
+                font: '12px monospace', fill: '#90c8c0'
             }).setOrigin(0.5);
 
             const list = scores[col.key] || [];
             for (let i = 0; i < 5; i++) {
                 const val = list[i] != null ? list[i].toString() : '--';
                 this.add.text(col.x, y + 28 + i * 18, `${i + 1}. ${val}`, {
-                    font: '11px monospace', fill: '#cccccc'
+                    font: '11px monospace', fill: '#90c8c0'
                 }).setOrigin(0.5);
             }
         });
@@ -358,8 +358,8 @@ export class PracticeMenuScene extends Phaser.Scene {
         this.selectedMode = mode;
         Object.entries(this.modeBtns).forEach(([id, btn]) => {
             btn.setStyle({
-                backgroundColor: id === mode ? '#2a3a1a' : '#1a150e',
-                fill: id === mode ? '#ffcc00' : '#ffffff'
+                backgroundColor: id === mode ? '#142030' : '#0c1420',
+                fill: id === mode ? '#e8d098' : '#e8f0f0'
             });
         });
         this._refreshSettings();
@@ -394,8 +394,8 @@ export class PracticeMenuScene extends Phaser.Scene {
     _makeToggleBtn(x, y, label, cb) {
         const btn = this.add.text(x, y, label, {
             font: 'bold 13px monospace',
-            fill: '#ffffff',
-            backgroundColor: '#1a150e',
+            fill: '#e8f0f0',
+            backgroundColor: '#0c1420',
             padding: { x: 10, y: 6 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerdown', cb);
@@ -405,8 +405,8 @@ export class PracticeMenuScene extends Phaser.Scene {
     _makeCheckBtn(x, y, label, selected, cb) {
         const btn = this.add.text(x, y, label, {
             font: '11px monospace',
-            fill: selected ? '#ffcc00' : '#888888',
-            backgroundColor: selected ? '#333311' : '#222222',
+            fill: selected ? '#e8d098' : '#687880',
+            backgroundColor: selected ? '#243848' : '#142030',
             padding: { x: 6, y: 3 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerdown', cb);
@@ -416,7 +416,7 @@ export class PracticeMenuScene extends Phaser.Scene {
     _makeBtn(x, y, label, bgColor, hoverColor, cb) {
         const btn = this.add.text(x, y, label, {
             font: 'bold 20px monospace',
-            fill: '#ffffff',
+            fill: '#e8f0f0',
             backgroundColor: bgColor,
             padding: { x: 20, y: 10 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });

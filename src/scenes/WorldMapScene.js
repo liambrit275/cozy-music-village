@@ -20,7 +20,7 @@ export class WorldMapScene extends Phaser.Scene {
         const { width, height } = this.cameras.main;
         this.wmProgress = WorldMapProgress.load();
 
-        this.cameras.main.setBackgroundColor('#1a150e');
+        this.cameras.main.setBackgroundColor('#142030');
         this._drawBackground(width, height);
         this._drawTitle(width);
         this._drawRegionCards(width, height);
@@ -30,19 +30,19 @@ export class WorldMapScene extends Phaser.Scene {
     _drawBackground(width, height) {
         const g = this.add.graphics();
         // Subtle grid
-        g.lineStyle(1, 0x1a2a3a, 0.15);
+        g.lineStyle(1, 0x243848, 0.15);
         for (let x = 0; x < width; x += 60) g.lineBetween(x, 56, x, height);
         for (let y = 56; y < height; y += 60) g.lineBetween(0, y, width, y);
         // Top bar
-        g.fillStyle(0x0a1020, 1);
+        g.fillStyle(0x0c1420, 1);
         g.fillRect(0, 0, width, 56);
-        g.lineStyle(1, 0x334466, 0.5);
+        g.lineStyle(1, 0x243848, 0.5);
         g.lineBetween(0, 56, width, 56);
     }
 
     _drawTitle(width) {
         this.add.text(width / 2, 28, '✦  RESCUE MAP  ✦', {
-            font: 'bold 22px monospace', fill: '#ffcc00',
+            font: 'bold 22px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5);
 
@@ -56,7 +56,7 @@ export class WorldMapScene extends Phaser.Scene {
 
         this.add.text(width / 2, 595, subMsg, {
             font: '12px monospace',
-            fill: remaining === 0 ? '#88ff88' : '#ff9966'
+            fill: remaining === 0 ? '#50d0b0' : '#e08868'
         }).setOrigin(0.5);
     }
 
@@ -98,7 +98,7 @@ export class WorldMapScene extends Phaser.Scene {
         // Saved golden glow border vs region color border
         const border = this.add.graphics().setDepth(2);
         if (saved) {
-            border.lineStyle(3, 0xffcc00, 1);
+            border.lineStyle(3, 0xe8d098, 1);
         } else {
             border.lineStyle(2, region.color, 0.8);
         }
@@ -112,7 +112,7 @@ export class WorldMapScene extends Phaser.Scene {
 
         if (saved) {
             // Golden glow behind rescued animal
-            const glow = this.add.circle(x, animalY, 40, 0xffcc00, 0.2).setDepth(2);
+            const glow = this.add.circle(x, animalY, 40, 0xe8d098, 0.2).setDepth(2);
             this.tweens.add({
                 targets: glow, alpha: { from: 0.15, to: 0.35 },
                 duration: 800, yoyo: true, repeat: -1
@@ -121,7 +121,7 @@ export class WorldMapScene extends Phaser.Scene {
             // Dim the animal + cage bars effect
             animal.setAlpha(0.5);
             const bars = this.add.graphics().setDepth(4);
-            bars.lineStyle(2, 0x666666, 0.6);
+            bars.lineStyle(2, 0x687880, 0.6);
             for (let bx = x - 20; bx <= x + 20; bx += 10) {
                 bars.lineBetween(bx, animalY - 28, bx, animalY + 28);
             }
@@ -132,14 +132,14 @@ export class WorldMapScene extends Phaser.Scene {
 
         // Region name
         this.add.text(x, y + 48, region.label, {
-            font: 'bold 13px monospace', fill: '#ffffff',
+            font: 'bold 13px monospace', fill: '#e8f0f0',
             stroke: '#000000', strokeThickness: 2,
             align: 'center', wordWrap: { width: w - 16 }
         }).setOrigin(0.5).setDepth(3);
 
         // Subtitle
         this.add.text(x, y + 68, region.subtitle, {
-            font: '10px monospace', fill: '#999999'
+            font: '10px monospace', fill: '#90c8c0'
         }).setOrigin(0.5).setDepth(3);
 
         // Status
@@ -147,7 +147,7 @@ export class WorldMapScene extends Phaser.Scene {
         const statusText = saved
             ? (isCurrentZone ? '✓ You are here' : '✓ Travel here')
             : `Rescue ${region.animalName}`;
-        const statusColor = saved ? '#88ff88' : region.textColor;
+        const statusColor = saved ? '#50d0b0' : region.textColor;
         this.add.text(x, y + 88, statusText, {
             font: 'bold 11px monospace', fill: statusColor
         }).setOrigin(0.5).setDepth(3);
@@ -155,7 +155,7 @@ export class WorldMapScene extends Phaser.Scene {
         // Current zone indicator
         if (isCurrentZone) {
             const marker = this.add.text(x, y - h / 2 - 10, '▼ HERE', {
-                font: 'bold 9px monospace', fill: '#88ff88',
+                font: 'bold 9px monospace', fill: '#50d0b0',
                 stroke: '#000000', strokeThickness: 2
             }).setOrigin(0.5).setDepth(4);
             this.tweens.add({
@@ -169,7 +169,7 @@ export class WorldMapScene extends Phaser.Scene {
         if (completionCount > 0) {
             const diffLabel = `Lv.${completionCount + 1}`;
             this.add.text(x + w / 2 - 10, y - h / 2 + 14, diffLabel, {
-                font: 'bold 10px monospace', fill: '#ffcc00',
+                font: 'bold 10px monospace', fill: '#e8d098',
                 stroke: '#000000', strokeThickness: 2
             }).setOrigin(1, 0).setDepth(4);
         }
@@ -178,7 +178,7 @@ export class WorldMapScene extends Phaser.Scene {
         const zone = this.add.zone(x, y, w, h).setInteractive({ useHandCursor: true }).setDepth(5);
         zone.on('pointerover', () => {
             border.clear();
-            border.lineStyle(3, saved ? 0xffee44 : 0xffffff, 1);
+            border.lineStyle(3, saved ? 0xe8d098 : 0xffffff, 1);
             border.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 14);
             overlay.clear();
             overlay.fillStyle(0x000000, 0.3);
@@ -186,7 +186,7 @@ export class WorldMapScene extends Phaser.Scene {
         });
         zone.on('pointerout', () => {
             border.clear();
-            border.lineStyle(saved ? 3 : 2, saved ? 0xffcc00 : region.color, saved ? 1 : 0.8);
+            border.lineStyle(saved ? 3 : 2, saved ? 0xe8d098 : region.color, saved ? 1 : 0.8);
             border.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 14);
             overlay.clear();
             overlay.fillStyle(0x000000, 0.45);
@@ -208,12 +208,12 @@ export class WorldMapScene extends Phaser.Scene {
     _drawBackBtn(width, height) {
         const label = this.returnScene ? '← BACK' : '← MENU';
         const btn = this.add.text(60, height - 28, label, {
-            font: 'bold 15px monospace', fill: '#bbaa88',
-            backgroundColor: '#2a2418', padding: { x: 12, y: 7 }
+            font: 'bold 15px monospace', fill: '#90c8c0',
+            backgroundColor: '#142030', padding: { x: 12, y: 7 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        btn.on('pointerover', () => btn.setStyle({ fill: '#ffcc00' }));
-        btn.on('pointerout',  () => btn.setStyle({ fill: '#bbaa88' }));
+        btn.on('pointerover', () => btn.setStyle({ fill: '#e8d098' }));
+        btn.on('pointerout',  () => btn.setStyle({ fill: '#90c8c0' }));
         btn.on('pointerdown', () => {
             if (this.returnScene) {
                 this.scene.stop('WorldMapScene');

@@ -1,18 +1,18 @@
 // Scale degree definitions and interval logic using movable Do solfege
 
 export const SCALE_DEGREES = {
-    '1':  { solfege: 'Do',  semitones: 0,  color: '#ee7755' },
-    'b2': { solfege: 'Ra',  semitones: 1,  color: '#884444' },
-    '2':  { solfege: 'Re',  semitones: 2,  color: '#ff8844' },
-    'b3': { solfege: 'Me',  semitones: 3,  color: '#886644' },
-    '3':  { solfege: 'Mi',  semitones: 4,  color: '#ffff44' },
-    '4':  { solfege: 'Fa',  semitones: 5,  color: '#44ff44' },
-    '#4': { solfege: 'Fi',  semitones: 6,  color: '#448844' },
-    '5':  { solfege: 'Sol', semitones: 7,  color: '#4444ff' },
-    'b6': { solfege: 'Le',  semitones: 8,  color: '#884488' },
-    '6':  { solfege: 'La',  semitones: 9,  color: '#8844ff' },
-    'b7': { solfege: 'Te',  semitones: 10, color: '#ff44ff' },
-    '7':  { solfege: 'Ti',  semitones: 11, color: '#ff88ff' }
+    '1':  { solfege: 'Do',  semitones: 0,  color: '#e8d098' },
+    'b2': { solfege: 'Ra',  semitones: 1,  color: '#8a7060' },
+    '2':  { solfege: 'Re',  semitones: 2,  color: '#e0a870' },
+    'b3': { solfege: 'Me',  semitones: 3,  color: '#7090a0' },
+    '3':  { solfege: 'Mi',  semitones: 4,  color: '#90c8c0' },
+    '4':  { solfege: 'Fa',  semitones: 5,  color: '#50d0b0' },
+    '#4': { solfege: 'Fi',  semitones: 6,  color: '#408880' },
+    '5':  { solfege: 'Sol', semitones: 7,  color: '#70b0e0' },
+    'b6': { solfege: 'Le',  semitones: 8,  color: '#8088a0' },
+    '6':  { solfege: 'La',  semitones: 9,  color: '#a0a0d0' },
+    'b7': { solfege: 'Te',  semitones: 10, color: '#c090b0' },
+    '7':  { solfege: 'Ti',  semitones: 11, color: '#e8c0d0' }
 };
 
 // Note names for display

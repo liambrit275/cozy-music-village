@@ -15,13 +15,13 @@ export class CharacterSelectScene extends Phaser.Scene {
 
     create() {
         const { width, height } = this.cameras.main;
-        this.cameras.main.setBackgroundColor('#1a150e');
+        this.cameras.main.setBackgroundColor('#0c1420');
 
         // Floating particles
         for (let i = 0; i < 40; i++) {
             const x = Math.random() * width;
             const y = Math.random() * height;
-            const colors = [0xffcc66, 0x88cc66, 0xffaa44, 0x66aa44];
+            const colors = [0xe8d098, 0x90c8c0, 0xe08868, 0x50d0b0];
             const color = colors[Math.floor(Math.random() * colors.length)];
             const leaf = this.add.circle(x, y, Math.random() * 2 + 1, color, Math.random() * 0.3 + 0.1);
             this.tweens.add({
@@ -33,8 +33,8 @@ export class CharacterSelectScene extends Phaser.Scene {
 
         // Title
         this.add.text(width / 2, 40, 'YOUR MUSICIAN', {
-            font: 'bold 32px monospace', fill: '#ffcc00',
-            stroke: '#2a1a00', strokeThickness: 5
+            font: 'bold 32px monospace', fill: '#e8d098',
+            stroke: '#0c1420', strokeThickness: 5
         }).setOrigin(0.5);
 
         // Avatar preview
@@ -58,21 +58,21 @@ export class CharacterSelectScene extends Phaser.Scene {
 
         // Ready message
         this.add.text(width / 2, previewY + 100, 'Your avatar is ready!', {
-            font: '18px monospace', fill: '#aabb88'
+            font: '18px monospace', fill: '#90c8c0'
         }).setOrigin(0.5);
 
         this.add.text(width / 2, previewY + 126, 'Customize in Settings > Edit Avatar', {
-            font: '11px monospace', fill: '#667755'
+            font: '11px monospace', fill: '#687880'
         }).setOrigin(0.5);
 
         // Start Adventure button
         const startBtn = this.add.text(width / 2, height - 44, 'START ADVENTURE  ▶', {
-            font: 'bold 20px monospace', fill: '#ffffff',
-            backgroundColor: '#2a4422', padding: { x: 28, y: 12 }
+            font: 'bold 20px monospace', fill: '#e8f0f0',
+            backgroundColor: '#142030', padding: { x: 28, y: 12 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        startBtn.on('pointerover',  () => startBtn.setStyle({ backgroundColor: '#3a6633' }));
-        startBtn.on('pointerout',   () => startBtn.setStyle({ backgroundColor: '#2a4422' }));
+        startBtn.on('pointerover',  () => startBtn.setStyle({ backgroundColor: '#243848' }));
+        startBtn.on('pointerout',   () => startBtn.setStyle({ backgroundColor: '#142030' }));
         startBtn.on('pointerdown',  () => this._startGame());
     }
 

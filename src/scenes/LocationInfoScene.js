@@ -73,7 +73,7 @@ export class LocationInfoScene extends Phaser.Scene {
 
         // Top-bar text
         this.add.text(cx, cy - PANEL_H / 2 + 24, `${this.region.label}  •  ${this.region.subtitle}`, {
-            font: '12px monospace', fill: '#ffffff',
+            font: '12px monospace', fill: '#e8f0f0',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(3);
     }
@@ -109,7 +109,7 @@ export class LocationInfoScene extends Phaser.Scene {
         this._objs.push(charName);
 
         const charTitle = this.add.text(CONTENT_X, TOP + 32, subtitleTxt, {
-            font: '11px monospace', fill: '#bbaa88'
+            font: '11px monospace', fill: '#687880'
         }).setDepth(4);
         this._objs.push(charTitle);
 
@@ -147,7 +147,7 @@ export class LocationInfoScene extends Phaser.Scene {
 
         if (!saved) {
             // Not yet rescued — show info only, must beat boss in side-scroller
-            const learnBtn = this._makeBtn(cx - 60, btnY, '📖 Tell me more', '#2a2418', '#3a3020', () => {
+            const learnBtn = this._makeBtn(cx - 60, btnY, '📖 Tell me more', '#142030', '#243848', () => {
                 this._showTutorial();
             });
             learnBtn.forEach(o => this._objs.push(o));
@@ -169,7 +169,7 @@ export class LocationInfoScene extends Phaser.Scene {
         }
 
         // Back
-        const backBtn = this._makeBtn(cx - PANEL_W / 2 + 50, btnY, '← Back', '#2a2418', '#3a3020', () => {
+        const backBtn = this._makeBtn(cx - PANEL_W / 2 + 50, btnY, '← Back', '#142030', '#243848', () => {
             this._goBack();
         });
         backBtn.forEach(o => this._objs.push(o));
@@ -189,7 +189,7 @@ export class LocationInfoScene extends Phaser.Scene {
 
         // Tutorial title
         const tTitle = this.add.text(cx, TOP, this.location.tutorialTitle, {
-            font: 'bold 17px monospace', fill: '#ffffff',
+            font: 'bold 17px monospace', fill: '#e8f0f0',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5, 0).setDepth(4);
         this._objs.push(tTitle);
@@ -232,7 +232,7 @@ export class LocationInfoScene extends Phaser.Scene {
         // Buttons
         const btnY = cy + PANEL_H / 2 - 36;
 
-        const backBtn = this._makeBtn(cx - 140, btnY, '← Back', '#2a2418', '#3a3020', () => {
+        const backBtn = this._makeBtn(cx - 140, btnY, '← Back', '#142030', '#243848', () => {
             this._showEncounter();
         });
         backBtn.forEach(o => this._objs.push(o));
@@ -252,7 +252,7 @@ export class LocationInfoScene extends Phaser.Scene {
 
     _drawAnimalPortrait(x, y, npc, saved) {
         // Glow ring
-        const ringColor = saved ? 0xffcc00 : this.region.color;
+        const ringColor = saved ? 0xe8d098 : this.region.color;
         const g = this.add.graphics().setDepth(3);
         g.lineStyle(3, ringColor, 0.8);
         g.strokeCircle(x, y - 20, 55);
@@ -262,7 +262,7 @@ export class LocationInfoScene extends Phaser.Scene {
         g.fillCircle(x, y - 20, 52);
 
         if (saved) {
-            g.fillStyle(0xffcc00, 0.15);
+            g.fillStyle(0xe8d098, 0.15);
             g.fillCircle(x, y - 20, 52);
         }
         this._objs.push(g);
@@ -383,7 +383,7 @@ export class LocationInfoScene extends Phaser.Scene {
 
     _makeBtn(x, y, label, bg, hover, cb) {
         const btn = this.add.text(x, y, label, {
-            font: 'bold 14px monospace', fill: '#ffffff',
+            font: 'bold 14px monospace', fill: '#e8f0f0',
             backgroundColor: bg, padding: { x: 18, y: 9 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(6);
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: hover }));

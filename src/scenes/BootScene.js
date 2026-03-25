@@ -1,9 +1,125 @@
 // BootScene: preload all game assets (cozy edition)
 
-export const AVATAR_DEFAULTS = { body: 1, top: 'basic', bottom: 'pants', hair: 'bob' };
-export const TOPS_OPTIONS    = ['basic','spaghetti','sporty','stripe','floral','sailor_bow','sailor','dress','overalls','suit','pants_suit','clown','pumpkin','skull','spooky','witch'];
-export const BOTTOMS_OPTIONS = ['pants','skirt'];
-export const HAIR_OPTIONS    = ['bob','ponytail','braids','curly','buzzcut','wavy','long_straight','extra_long','emo','midiwave','spacebuns','french_curl','gentleman'];
+// ── BODY OPTIONS (pre-colored skin tones: char1–char8) ────────────────────
+export const BODY_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8];
+
+// ── COLOR PALETTES (index maps to column in pre-colored sprite sheets) ────
+export const HAIR_COLORS = [
+    { name: 'Black',       hex: '#1a1a2e' },
+    { name: 'Blonde',      hex: '#e8c84a' },
+    { name: 'Brown',       hex: '#6b4226' },
+    { name: 'Brown Light', hex: '#a07040' },
+    { name: 'Copper',      hex: '#c87830' },
+    { name: 'Emerald',     hex: '#28a068' },
+    { name: 'Green',       hex: '#3a8830' },
+    { name: 'Grey',        hex: '#909090' },
+    { name: 'Lilac',       hex: '#b890d0' },
+    { name: 'Navy',        hex: '#2a3878' },
+    { name: 'Pink',        hex: '#e080a0' },
+    { name: 'Purple',      hex: '#7840a0' },
+    { name: 'Red',         hex: '#c83030' },
+    { name: 'Turquoise',   hex: '#30b0b0' },
+];
+
+export const CLOTHES_COLORS = [
+    { name: 'Black',       hex: '#2a2a3a' },
+    { name: 'Blue',        hex: '#3060b0' },
+    { name: 'Blue Light',  hex: '#68a0d0' },
+    { name: 'Brown',       hex: '#7a5030' },
+    { name: 'Green',       hex: '#308838' },
+    { name: 'Green Light', hex: '#68c060' },
+    { name: 'Pink',        hex: '#e080a0' },
+    { name: 'Purple',      hex: '#7040a0' },
+    { name: 'Red',         hex: '#c03030' },
+    { name: 'White',       hex: '#d8d8e0' },
+];
+
+export const EYE_COLORS = [
+    { name: 'Black',       hex: '#1a1a2e' },
+    { name: 'Blue',        hex: '#3868c0' },
+    { name: 'Blue Light',  hex: '#68a8e0' },
+    { name: 'Brown',       hex: '#7a5030' },
+    { name: 'Brown Dark',  hex: '#4a3020' },
+    { name: 'Brown Light', hex: '#a88050' },
+    { name: 'Green',       hex: '#388838' },
+    { name: 'Green Dark',  hex: '#286028' },
+    { name: 'Green Light', hex: '#68c068' },
+    { name: 'Grey',        hex: '#707080' },
+    { name: 'Grey Light',  hex: '#a0a0b0' },
+    { name: 'Pink',        hex: '#d868a0' },
+    { name: 'Pink Light',  hex: '#f0a0c0' },
+    { name: 'Red',         hex: '#c03030' },
+];
+
+// Blush: 5 columns in blush_all.png (index-based selection)
+export const BLUSH_OPTIONS = ['Rose', 'Peach', 'Pink', 'Coral', 'Berry'];
+
+// Lipstick: 5 columns in lipstick.png (index-based selection)
+export const LIPSTICK_OPTIONS = ['Natural', 'Rose', 'Red', 'Berry', 'Dark'];
+
+// ── OPTION ARRAYS ───────────────────────────────────────────────────────────
+export const HAIR_OPTIONS = [
+    'bob','braids','buzzcut','curly','emo','extra_long',
+    'extra_long_skirt','french_curl','gentleman','long_straight',
+    'long_straight_skirt','midiwave','ponytail','spacebuns','wavy'
+];
+
+export const OUTFIT_OPTIONS = [
+    'basic','spaghetti','sporty','stripe','floral','sailor','sailor_bow',
+    'dress','overalls','suit','skull',
+    'clown_blue','clown_red','pumpkin','spooky','witch'
+];
+
+export const BOTTOM_OPTIONS = ['pants','skirt'];
+
+export const ACCESSORY_OPTIONS = [
+    'none','beard','glasses','glasses_sun',
+    'earring_emerald','earring_emerald_silver','earring_red','earring_red_silver',
+    'hat_cowboy','hat_lucky','hat_pumpkin','hat_pumpkin_purple','hat_witch'
+];
+
+// ── AVATAR DEFAULTS ─────────────────────────────────────────────────────────
+export const AVATAR_DEFAULTS = {
+    body:        1,          // 1-8 → char1.png–char8.png
+    eyeColor:    '#7a5030',  // hex → index in EYE_COLORS → column
+    hairStyle:   'bob',
+    hairColor:   '#6b4226',  // hex → index in HAIR_COLORS → column
+    outfit:      'basic',
+    outfitColor: '#3060b0',  // hex → index in CLOTHES_COLORS → column
+    bottom:      'pants',
+    bottomColor: '#2a2a3a',  // hex → index in CLOTHES_COLORS → column
+    shoesColor:  '#2a2a3a',  // hex → index in CLOTHES_COLORS → column
+    blush:       false,
+    blushIdx:    0,          // 0-4 → column in blush_all.png
+    lipstick:    false,
+    lipstickIdx: 0,          // 0-4 → column in lipstick.png
+    accessory:   'none',
+};
+
+// Legacy exports for backward compat
+export const TOPS_OPTIONS    = OUTFIT_OPTIONS;
+export const BOTTOMS_OPTIONS = BOTTOM_OPTIONS;
+
+// ── File-name mappings (handle trailing spaces in asset filenames) ─────────
+const HAIR_FILE_MAP = {
+    'bob': 'bob ',
+    'long_straight': 'long_straight ',
+    'ponytail': 'ponytail ',
+};
+
+const CLOTHES_FILE_MAP = {
+    'dress': 'dress ',
+    'spooky': 'spooky ',
+};
+
+// Themed outfits: fixed column, not affected by color selection
+const THEMED_OUTFITS = {
+    'clown_blue': { file: 'clown', col: 0 },
+    'clown_red':  { file: 'clown', col: 1 },
+    'pumpkin':    { file: 'pumpkin', col: 0 },
+    'spooky':     { file: 'spooky', col: 0 },
+    'witch':      { file: 'witch', col: 0 },
+};
 
 export class BootScene extends Phaser.Scene {
     constructor() {
@@ -17,15 +133,15 @@ export class BootScene extends Phaser.Scene {
         // Loading bar
         const progressBar = this.add.graphics();
         const progressBox = this.add.graphics();
-        progressBox.fillStyle(0x222222, 0.8);
+        progressBox.fillStyle(0x243848, 0.8);
         progressBox.fillRect(width / 2 - 160, height / 2 - 25, 320, 50);
         const loadingText = this.add.text(width / 2, height / 2 - 50, 'Loading...', {
-            font: '20px monospace', fill: '#ffffff'
+            font: '20px monospace', fill: '#e8f0f0'
         }).setOrigin(0.5);
 
         this.load.on('progress', (value) => {
             progressBar.clear();
-            progressBar.fillStyle(0x44ff44, 1);
+            progressBar.fillStyle(0x50d0b0, 1);
             progressBar.fillRect(width / 2 - 150, height / 2 - 15, 300 * value, 30);
         });
         this.load.on('complete', () => {
@@ -34,27 +150,41 @@ export class BootScene extends Phaser.Scene {
             loadingText.destroy();
         });
 
-        // ── PLAYER CHARACTER BODY LAYERS (images, not spritesheets) ──────────
+        // ── PRE-COLORED CHARACTER BODIES (char1–char8) ─────────────────────
         for (let i = 1; i <= 8; i++) {
-            this.load.image(`char-body-${i}`,
-                `assets/cozy/characters/char${i}-walk.png`
-            );
+            this.load.image(`body-${i}`, `Character v.2/characters/char${i}.png`);
         }
 
-        // ── CLOTHES LAYERS ────────────────────────────────────────────────────
-        const clothesFiles = ['basic','clown','dress','floral','overalls','pants_suit','pants','pumpkin','sailor_bow','sailor','shoes','skirt','skull','spaghetti','spooky','sporty','stripe','suit','witch'];
+        // ── PRE-COLORED EYES / FACE ────────────────────────────────────────
+        this.load.image('eyes',     'Character v.2/eyes/eyes.png');
+        this.load.image('blush',    'Character v.2/eyes/blush_all.png');
+        this.load.image('lipstick', 'Character v.2/eyes/lipstick .png');
+
+        // ── PRE-COLORED CLOTHES ────────────────────────────────────────────
+        const clothesFiles = [
+            'basic','clown','dress','floral','overalls','pants','pants_suit',
+            'pumpkin','sailor','sailor_bow','shoes','skirt','skull',
+            'spaghetti','spooky','sporty','stripe','suit','witch'
+        ];
         clothesFiles.forEach(name => {
-            this.load.image(`clothes-${name}`,
-                `assets/cozy/clothes/${name}_walk.png`
-            );
+            const file = CLOTHES_FILE_MAP[name] || name;
+            this.load.image(`clothes-${name}`, `Character v.2/clothes/${file}.png`);
         });
 
-        // ── HAIR LAYERS ───────────────────────────────────────────────────────
-        const hairFiles = ['bob','braids','buzzcut','curly','emo','extra_long','french_curl','gentleman','long_straight','midiwave','ponytail','spacebuns','wavy'];
-        hairFiles.forEach(name => {
-            this.load.image(`hair-${name}`,
-                `assets/cozy/hair/${name}_walk.png`
-            );
+        // ── PRE-COLORED HAIR ───────────────────────────────────────────────
+        HAIR_OPTIONS.forEach(name => {
+            const file = HAIR_FILE_MAP[name] || name;
+            this.load.image(`hair-${name}`, `Character v.2/hair/${file}.png`);
+        });
+
+        // ── ACCESSORIES (pre-colored, multi-column for beard/glasses) ──────
+        const accFiles = [
+            'beard','glasses','glasses_sun',
+            'earring_emerald','earring_emerald_silver','earring_red','earring_red_silver',
+            'hat_cowboy','hat_lucky','hat_pumpkin','hat_pumpkin_purple','hat_witch'
+        ];
+        accFiles.forEach(name => {
+            this.load.image(`acc-${name}`, `Character v.2/acc/${name}.png`);
         });
 
         // ── FARM ANIMALS (villagers) — 4 cols × 5 rows ─────────────────────
@@ -98,7 +228,12 @@ export class BootScene extends Phaser.Scene {
         // ── EFFECTS ─────────────────────────────────────────────────────────
         this.load.image('heart', 'assets/cozy/effects/heart.png');
 
-        // ── ENVIRONMENT / TOP-DOWN WORLD ───────────────────────────────────
+        // ── INTERIOR PROPS ──────────────────────────────────────────────────
+        this.load.image('bed', 'assets/cozy/effects/bed.png');
+        this.load.image('bed-base', 'assets/cozy/effects/bed-base.png');
+        this.load.image('bed-blanket', 'assets/cozy/effects/bed-blanket.png');
+
+        // ── ENVIRONMENT / TOP-DOWN WORLD ─────────────────────────────────────
         this.load.image('nature-global',  'assets/cozy/environment/nature-global.png');
         this.load.image('outdoor-tiles',  'assets/cozy/environment/outdoor-tiles.png');
 
@@ -153,13 +288,20 @@ export class BootScene extends Phaser.Scene {
         try {
             const saved = JSON.parse(localStorage.getItem('avatar-settings'));
             if (saved && saved.body) {
-                // Migrate old single-clothes format to top/bottom split
-                avatarSettings = {
-                    body:   saved.body,
-                    top:    saved.top    || saved.clothes || AVATAR_DEFAULTS.top,
-                    bottom: saved.bottom || AVATAR_DEFAULTS.bottom,
-                    hair:   saved.hair   || AVATAR_DEFAULTS.hair,
-                };
+                // New pre-colored format
+                avatarSettings = { ...AVATAR_DEFAULTS, ...saved };
+            } else if (saved && saved.skinColor) {
+                // Migrate from old greyscale format — keep compatible fields
+                avatarSettings = { ...AVATAR_DEFAULTS };
+                if (saved.hairStyle && HAIR_OPTIONS.includes(saved.hairStyle)) avatarSettings.hairStyle = saved.hairStyle;
+                if (saved.hairColor) avatarSettings.hairColor = saved.hairColor;
+                if (saved.eyeColor) avatarSettings.eyeColor = saved.eyeColor;
+                if (saved.outfit && OUTFIT_OPTIONS.includes(saved.outfit)) avatarSettings.outfit = saved.outfit;
+                if (saved.outfitColor) avatarSettings.outfitColor = saved.outfitColor;
+                if (saved.bottom) avatarSettings.bottom = saved.bottom;
+                if (saved.bottomColor) avatarSettings.bottomColor = saved.bottomColor;
+                if (saved.shoesColor) avatarSettings.shoesColor = saved.shoesColor;
+                if (saved.accessory) avatarSettings.accessory = saved.accessory;
             } else {
                 avatarSettings = { ...AVATAR_DEFAULTS };
             }
@@ -241,45 +383,14 @@ export class BootScene extends Phaser.Scene {
 
     /**
      * Composite the avatar layers onto a canvas and register as 'player-avatar' texture.
+     * Uses pre-colored sprites with column selection.
      */
     _composeAvatar(settings) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 128;
-        const ctx = canvas.getContext('2d');
-
-        const bodyIdx = (settings.body || 1) - 1; // 0-7
-        const colW = 256;
-
-        // 1. Body base
-        const bodyImg = this.textures.get(`char-body-${settings.body || 1}`).getSourceImage();
-        ctx.drawImage(bodyImg, 0, 0);
-
-        // 2. Bottom layer (pants / skirt) — always required
-        const bottomKey = `clothes-${settings.bottom || AVATAR_DEFAULTS.bottom}`;
-        if (this.textures.exists(bottomKey)) {
-            const img = this.textures.get(bottomKey).getSourceImage();
-            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
-        }
-
-        // 3. Top layer (shirt / full outfit) — always required
-        const topKey = `clothes-${settings.top || AVATAR_DEFAULTS.top}`;
-        if (this.textures.exists(topKey)) {
-            const img = this.textures.get(topKey).getSourceImage();
-            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
-        }
-
-        // 4. Hair
-        const hairKey = `hair-${settings.hair || AVATAR_DEFAULTS.hair}`;
-        if (this.textures.exists(hairKey)) {
-            const img = this.textures.get(hairKey).getSourceImage();
-            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
-        }
+        const canvas = BootScene._composeLayeredAvatar(this.textures, settings);
 
         // Register as Phaser texture (remove old if exists)
         if (this.textures.exists('player-avatar')) this.textures.remove('player-avatar');
         this.textures.addCanvas('player-avatar', canvas);
-        // Register 32 frames (8 cols × 4 rows of 32×32) so animations work correctly
         const tex = this.textures.get('player-avatar');
         for (let i = 0; i < 32; i++) {
             tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
@@ -290,38 +401,100 @@ export class BootScene extends Phaser.Scene {
      * Static helper: compose avatar canvas using game.textures (callable from any scene).
      */
     static composeAvatarCanvas(game, settings) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 256; canvas.height = 128;
-        const ctx = canvas.getContext('2d');
-        const bodyIdx = (settings.body || 1) - 1;
-        const colW = 256;
-        // 1. Body
-        const bodyImg = game.textures.get(`char-body-${settings.body || 1}`).getSourceImage();
-        ctx.drawImage(bodyImg, 0, 0);
-        // 2. Bottom
-        const bottomKey = `clothes-${settings.bottom || 'pants'}`;
-        if (game.textures.exists(bottomKey)) {
-            const img = game.textures.get(bottomKey).getSourceImage();
-            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
-        }
-        // 3. Top
-        const topKey = `clothes-${settings.top || settings.clothes || 'basic'}`;
-        if (game.textures.exists(topKey)) {
-            const img = game.textures.get(topKey).getSourceImage();
-            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
-        }
-        // 4. Hair
-        const hairKey = `hair-${settings.hair || 'bob'}`;
-        if (game.textures.exists(hairKey)) {
-            const img = game.textures.get(hairKey).getSourceImage();
-            ctx.drawImage(img, bodyIdx * colW, 0, colW, 128, 0, 0, colW, 128);
-        }
+        const canvas = BootScene._composeLayeredAvatar(game.textures, settings);
+
         if (game.textures.exists('player-avatar')) game.textures.remove('player-avatar');
         game.textures.addCanvas('player-avatar', canvas);
         const tex = game.textures.get('player-avatar');
         for (let i = 0; i < 32; i++) {
             tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
         }
+        return canvas;
+    }
+
+    /**
+     * Core compositing: layer pre-colored sprites → 256×128 walk canvas.
+     * Each multi-column sheet has color variants as columns (256px wide each).
+     * We select the correct column based on the chosen color index.
+     */
+    static _composeLayeredAvatar(textures, settings) {
+        const W = 256, H = 128;
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        // Draw one column (256×128 walk region) from a multi-column sprite sheet
+        const drawCol = (texKey, colIndex) => {
+            if (!textures.exists(texKey)) return;
+            const img = textures.get(texKey).getSourceImage();
+            // Clamp column index to available columns
+            const maxCols = Math.floor(img.width / W);
+            const col = Math.min(colIndex, maxCols - 1);
+            ctx.drawImage(img, col * W, 0, W, H, 0, 0, W, H);
+        };
+
+        // Layer order from info.txt:
+        // 1. Character body
+        const bodyIdx = settings.body || AVATAR_DEFAULTS.body;
+        drawCol(`body-${bodyIdx}`, 0);
+
+        // 2. Eyes → Blush → Lipstick
+        const eyeColIdx = Math.max(0, EYE_COLORS.findIndex(c => c.hex === settings.eyeColor));
+        drawCol('eyes', eyeColIdx);
+
+        if (settings.blush) {
+            const blushIdx = settings.blushIdx ?? AVATAR_DEFAULTS.blushIdx;
+            drawCol('blush', blushIdx);
+        }
+        if (settings.lipstick) {
+            const lipIdx = settings.lipstickIdx ?? AVATAR_DEFAULTS.lipstickIdx;
+            drawCol('lipstick', lipIdx);
+        }
+
+        // 3. Clothes: Outfit (shirt) → Bottom (pants/skirt) → Shoes
+        const outfit = settings.outfit || AVATAR_DEFAULTS.outfit;
+        const clothesColIdx = Math.max(0, CLOTHES_COLORS.findIndex(c => c.hex === settings.outfitColor));
+
+        if (THEMED_OUTFITS[outfit]) {
+            const { file, col } = THEMED_OUTFITS[outfit];
+            drawCol(`clothes-${file}`, col);
+        } else {
+            drawCol(`clothes-${outfit}`, clothesColIdx);
+        }
+
+        const bottom = settings.bottom || AVATAR_DEFAULTS.bottom;
+        const bottomColIdx = Math.max(0, CLOTHES_COLORS.findIndex(c => c.hex === settings.bottomColor));
+        drawCol(`clothes-${bottom}`, bottomColIdx);
+
+        const shoesColIdx = Math.max(0, CLOTHES_COLORS.findIndex(c => c.hex === settings.shoesColor));
+        drawCol('clothes-shoes', shoesColIdx);
+
+        // 4. Hair
+        const hair = settings.hairStyle || AVATAR_DEFAULTS.hairStyle;
+        const hairColIdx = Math.max(0, HAIR_COLORS.findIndex(c => c.hex === settings.hairColor));
+        drawCol(`hair-${hair}`, hairColIdx);
+
+        // 5. Accessories: Beard → Glasses → Hat/Earring/Mask
+        const acc = settings.accessory || 'none';
+        if (acc !== 'none') {
+            const accKey = `acc-${acc}`;
+            if (textures.exists(accKey)) {
+                if (acc === 'beard') {
+                    // Beard has 14 columns matching hair colors
+                    const colIdx = Math.max(0, HAIR_COLORS.findIndex(c => c.hex === settings.hairColor));
+                    drawCol(accKey, colIdx);
+                } else if (acc === 'glasses' || acc === 'glasses_sun') {
+                    // Glasses have 10 columns matching clothes colors
+                    const colIdx = Math.max(0, CLOTHES_COLORS.findIndex(c => c.hex === settings.outfitColor));
+                    drawCol(accKey, colIdx);
+                } else {
+                    // Single-variant accessories — column 0
+                    drawCol(accKey, 0);
+                }
+            }
+        }
+
         return canvas;
     }
 

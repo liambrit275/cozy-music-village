@@ -100,12 +100,13 @@ function mergeEvents(groupGrid, ticksPerCell) {
  * Get the maximum ticks a single note/rest can span from `pos`.
  *
  * Rules:
- *  1. Always split at the half-bar midpoint (tick 8 in 4/4, tick 6 in triplets).
- *  2. When splitAtBeats is true, also split at quarter-note beat boundaries,
- *     BUT only when the note starts in the LAST portion of the beat
- *     (strictly less than half a beat before the boundary).
- *     This lets 8th-note and quarter-note values cross beat lines naturally
- *     while still tying a 16th that lands on the last subdivision of a beat.
+ *  1. Always split at the half-bar midpoint (tick 8 in 4/4, tick 6 in 12/8).
+ *  2a. For compound meter (12/8 / triplet): ALWAYS split at beat boundaries
+ *      (every 3 eighth-note ticks). Compound beats are dotted-quarter groups
+ *      and notes must not cross them.
+ *  2b. For simple meter (sixteenth): split at beat boundaries only when the
+ *      note starts in the last portion of the beat (< half a beat before the
+ *      boundary). This lets 8th and quarter values cross beat lines naturally.
  */
 function maxDurationAt(pos, remaining, isTriplet, splitAtBeats) {
     let limit = remaining;
@@ -117,12 +118,16 @@ function maxDurationAt(pos, remaining, isTriplet, splitAtBeats) {
         limit = midpoint - pos;
     }
 
-    // Rule 2: beat boundaries — only for notes that start late in a beat
+    // Rule 2: beat boundaries
     if (splitAtBeats) {
         const nextBeat = (Math.floor(pos / beatSize) + 1) * beatSize;
         const portionBeforeBeat = nextBeat - pos;
-        if (pos + limit > nextBeat && portionBeforeBeat < beatSize / 2) {
-            limit = Math.min(limit, portionBeforeBeat);
+        if (pos + limit > nextBeat) {
+            // 12/8: always split at dotted-quarter beat boundaries
+            // Simple: only split when starting late in the beat
+            if (isTriplet || portionBeforeBeat < beatSize / 2) {
+                limit = Math.min(limit, portionBeforeBeat);
+            }
         }
     }
 
@@ -138,10 +143,16 @@ function splitEvent(event, isTriplet, splitAtBeats = false) {
     let pos = event.startTick;
     const isRest = event.type === 'rest';
 
-    while (remaining > 0) {
+    let safety = 0;
+    while (remaining > 0 && safety++ < 64) {
         const maxTicks = maxDurationAt(pos, remaining, isTriplet, splitAtBeats);
         const best = ticksToVexDuration(maxTicks, isTriplet, isRest);
         const useTicks = best.ticks;
+
+        if (useTicks <= 0) {
+            console.error(`splitEvent: useTicks=0 at pos=${pos}, remaining=${remaining}`);
+            break;
+        }
 
         const tieToNext = !isRest && (remaining - useTicks > 0);
 
@@ -214,18 +225,19 @@ export function splitRestsAtCursor(spelled, cursorTick, selectedTicks, subdivisi
         // Split this rest into selectedTicks-sized chunks
         let pos = note.startTick;
         const end = note.startTick + note.durationTicks;
-        while (pos < end) {
+        let safety = 0;
+        while (pos < end && safety++ < 64) {
             const remaining = end - pos;
             const chunkSize = Math.min(selectedTicks, remaining);
-            // Use splitEvent to properly handle beat-boundary splits
             const subNotes = splitEvent({
                 type: 'rest',
                 startTick: pos,
                 durationTicks: chunkSize,
             }, isTriplet, splitAtBeats);
+            if (subNotes.length === 0) break;
             result.push(...subNotes);
-            // Advance by actual ticks consumed (splitEvent may split further)
             const consumed = subNotes.reduce((sum, n) => sum + n.durationTicks, 0);
+            if (consumed <= 0) break;
             pos += consumed;
         }
     }

@@ -468,7 +468,7 @@ export class TopDownScene extends Phaser.Scene {
                 if (this._animalPreviewSlots && this._animalPreviewSlots[animalIdx]) {
                     const slot = this._animalPreviewSlots[animalIdx];
                     slot.rescued = true;
-                    slot.bg.setFillStyle(0x225522, 0.9);
+                    slot.bg.setFillStyle(0x243848, 0.9);
                     slot.icon.setAlpha(1).clearTint();
                     this.tweens.add({ targets: slot.icon, scaleX: slot.icon.scaleX * 1.4, scaleY: slot.icon.scaleY * 1.4, duration: 200, yoyo: true });
                 }
@@ -502,7 +502,7 @@ export class TopDownScene extends Phaser.Scene {
 
     _createHUD() {
         this._hudText = this.add.text(14, 14, '', {
-            font: 'bold 15px monospace', fill: '#ffffff',
+            font: 'bold 15px monospace', fill: '#e8f0f0',
             stroke: '#000000', strokeThickness: 3,
             backgroundColor: '#00000066', padding: { x: 8, y: 4 }
         }).setScrollFactor(0).setDepth(20);
@@ -549,7 +549,7 @@ export class TopDownScene extends Phaser.Scene {
             .setScrollFactor(0).setDepth(30);
 
         this.add.text(width / 2, height / 2 - 60, 'ALL ANIMALS RESCUED!', {
-            font: 'bold 28px monospace', fill: '#ffcc00',
+            font: 'bold 28px monospace', fill: '#e8d098',
             stroke: '#000', strokeThickness: 5
         }).setOrigin(0.5).setScrollFactor(0).setDepth(31);
 
@@ -559,7 +559,7 @@ export class TopDownScene extends Phaser.Scene {
         }).setOrigin(0.5).setScrollFactor(0).setDepth(31);
 
         const again = this.add.text(width / 2, height / 2 + 70, 'PLAY AGAIN', {
-            font: 'bold 22px monospace', fill: '#ffffff',
+            font: 'bold 22px monospace', fill: '#e8f0f0',
             backgroundColor: '#2a5522', padding: { x: 24, y: 12 }
         }).setOrigin(0.5).setScrollFactor(0).setDepth(31).setInteractive({ useHandCursor: true });
         again.on('pointerover', () => again.setStyle({ backgroundColor: '#3a7733' }));

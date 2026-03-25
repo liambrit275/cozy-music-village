@@ -3,7 +3,7 @@
 // Supports tones, note reading, rhythm, and rhythm reading modes.
 
 import { MusicTheory, SCALE_DEGREES } from '../systems/MusicTheory.js';
-import { AudioEngine, DRONE_PRESETS, INTERVAL_PRESETS } from '../systems/AudioEngine.js';
+import { AudioEngine } from '../systems/AudioEngine.js';
 import { NoteReadingEngine } from '../systems/NoteReadingEngine.js';
 import { VexFlowStaffRenderer } from '../systems/VexFlowStaffRenderer.js';
 import { ProgressionManager } from '../systems/ProgressionManager.js';
@@ -15,7 +15,7 @@ import { RhythmKeyboardInput } from '../systems/RhythmKeyboardInput.js';
 import { VILLAGERS } from '../data/villagers.js';
 
 // Difficulty tiers for tone challenges
-export const TONES_TIERS = [
+const TONES_TIERS = [
     { minRound: 1,  degrees: ['1', '3', '5'] },
     { minRound: 6,  degrees: ['1', '2', '3', '4', '5'] },
     { minRound: 11, degrees: ['1', '2', 'b3', '3', '4', '5', 'b7'] },
@@ -25,21 +25,26 @@ export const TONES_TIERS = [
 ];
 
 // Challenge types for 'all' mode
-export const ALL_CHALLENGE_TYPES = ['tone', 'noteReading', 'rhythm', 'rhythmReading'];
+const ALL_CHALLENGE_TYPES = ['tone', 'noteReading', 'rhythm', 'rhythmReading'];
 
 // Rhythm constants
-export const RHYTHM_BPM = 100;
-export const RHYTHM_SUBDIVISIONS = {
+const RHYTHM_BPM = 100;
+const RHYTHM_SUBDIVISIONS = {
     quarter:   { cells: ['1', '2', '3', '4'], downbeats: [0, 1, 2, 3], cellFraction: 1 },
     eighth:    { cells: ['1', '+', '2', '+', '3', '+', '4', '+'], downbeats: [0, 2, 4, 6], cellFraction: 0.5 },
     sixteenth: { cells: ['1','e','+','a','2','e','+','a','3','e','+','a','4','e','+','a'], downbeats: [0, 4, 8, 12], cellFraction: 0.25 },
     triplet:   { cells: ['1','p','l','2','p','l','3','p','l','4','p','l'], downbeats: [0, 3, 6, 9], cellFraction: 1/3 },
 };
 
-export const GROUND_Y = 480;
-export const PLAYER_X = 120;
+const GROUND_Y = 480;
+const PLAYER_X = 120;
 
-export const PRACTICE_TIPS = {
+// ── Keyboard note mapping ──────────────────────────────────────────────────
+const _SEMI_TO_NOTE = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+const _NOTE_TO_SEMI = { C:0, Db:1, D:2, Eb:3, E:4, F:5, 'F#':6, G:7, Ab:8, A:9, Bb:10, B:11 };
+const _WHITE_NOTES = new Set(['C', 'D', 'E', 'F', 'G', 'A', 'B']);
+
+const PRACTICE_TIPS = {
     tone: [
         'Listen to the drone — that\'s Do (1).',
         'Sing the note in your head before clicking!',
@@ -116,8 +121,7 @@ export class ChallengeScene extends Phaser.Scene {
         this.progression = data.progression || null;
         this.encounterIndex = data.encounterIndex;
         this.playerPos = data.playerPos;
-        this.isSidescrollMode = data.isSidescrollMode || data.isOverworldMode || false;
-        this.isOverworldMode = data.isOverworldMode || false;
+        this.isSidescrollMode = data.isSidescrollMode || false;
         this.playerStats = { ...this.playerData };
 
         const s = data.settings || {};
@@ -149,10 +153,6 @@ export class ChallengeScene extends Phaser.Scene {
         this._gameOverFlag = false;
         this._entityApproaching = false;
 
-        // 'all' mode tracking
-        this._allModeType = null;
-        this._allModeQuestionsLeft = 0;
-
         // Tones drone tracking
         this._droneActive = false;
         this._droneQuestionsLeft = 0;
@@ -173,43 +173,43 @@ export class ChallengeScene extends Phaser.Scene {
 
         // --- HUD ---
         this.scoreText = this.add.text(20, 8, 'Score: 0', {
-            font: 'bold 16px monospace', fill: '#ffcc00',
+            font: 'bold 16px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 3
         }).setDepth(10);
         this.roundText = this.add.text(width - 20, 8, 'Round 1', {
-            font: '14px monospace', fill: '#eedd88',
+            font: '14px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(1, 0).setDepth(10);
         this.entityCountText = this.add.text(width / 2, 8, '', {
-            font: '14px monospace', fill: '#88ff88',
+            font: '14px monospace', fill: '#50d0b0',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5, 0).setDepth(10);
         this.streakText = this.add.text(20, 60, '', {
-            font: '13px monospace', fill: '#ffaaaa',
+            font: '13px monospace', fill: '#e08868',
             stroke: '#000000', strokeThickness: 2
         }).setDepth(10);
 
         // Mode label
         const modeLabels = { tones: 'TONES', noteReading: 'NOTE READING', rhythm: 'RHYTHM EAR TRAINING', rhythmReading: 'RHYTHM READING', all: 'ALL' };
         this.add.text(width / 2, height - 12, modeLabels[this.mode] || 'CHALLENGE', {
-            font: '11px monospace', fill: '#556677',
+            font: '11px monospace', fill: '#687880',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5, 1).setDepth(10);
 
         // Message area
         this.messageText = this.add.text(width / 2, GROUND_Y - 30, '', {
-            font: 'bold 16px monospace', fill: '#ffffff',
+            font: 'bold 16px monospace', fill: '#e8f0f0',
             stroke: '#000000', strokeThickness: 3, align: 'center'
         }).setOrigin(0.5, 1).setDepth(10);
 
         // Drone text
         this.droneText = this.add.text(width / 2, 60, '', {
-            font: 'bold 38px monospace', fill: '#aaccff',
+            font: 'bold 38px monospace', fill: '#90c8c0',
             stroke: '#000000', strokeThickness: 5
         }).setOrigin(0.5).setVisible(false).setDepth(4);
 
         // Danger/sadness overlay
-        this.dangerOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x4488cc, 0)
+        this.dangerOverlay = this.add.rectangle(width / 2, height / 2, width, height, 0x90c8c0, 0)
             .setDepth(50);
 
         // UI containers
@@ -226,13 +226,13 @@ export class ChallengeScene extends Phaser.Scene {
         this.input.on('pointerup', () => this._onRhythmDragEnd());
 
         // Quit button
-        this._makeBtn(50, height - 24, 'QUIT', '#221111', '#443333', () => {
+        this._makeBtn(50, height - 24, 'QUIT', '#142030', '#243848', () => {
             this.audioEngine.dispose();
             this._returnToSource();
         }).setDepth(10);
 
         // Settings gear button
-        this._makeBtn(width - 50, height - 24, '⚙', '#112233', '#223344', () => {
+        this._makeBtn(width - 50, height - 24, '⚙', '#142030', '#243848', () => {
             this._openSettings();
         }).setDepth(10);
 
@@ -241,6 +241,8 @@ export class ChallengeScene extends Phaser.Scene {
             this.audioEngine.dispose();
             this.staffRenderer.clear();
             this.rhythmNotationRenderer.clear();
+            this._clearCompareUI();
+            this._cancelEncounterTimer();
             if (this.midiInput) this.midiInput.dispose();
             this._clearNpc();
         });
@@ -308,16 +310,17 @@ export class ChallengeScene extends Phaser.Scene {
 
     _defeatConfig() {
         return {
-            title: 'OUT OF ENERGY!', titleColor: '#4488cc',
-            message: 'Energy restored to 50%', messageColor: '#aaccdd',
-            bg: 0x001122, stroke: 0x4488cc,
-            btnBg: '#112233', btnHover: '#223344',
+            title: 'You ran out of energy!', titleColor: '#e8d098',
+            message: 'Have a good night\'s sleep and return\nto help the animals tomorrow.', messageColor: '#90c8c0',
+            bg: 0x142030, stroke: 0x90c8c0,
+            btnBg: '#142030', btnHover: '#243848',
         };
     }
 
     _gameOverConfig() {
         return {
-            title: 'OUT OF ENERGY!', titleColor: '#4488cc',
+            title: 'You ran out of energy!', titleColor: '#e8d098',
+            message: 'Have a good night\'s sleep and return\nto help the animals tomorrow.', messageColor: '#90c8c0',
             entityLabel: 'Villagers Helped',
         };
     }
@@ -402,10 +405,12 @@ export class ChallengeScene extends Phaser.Scene {
 
     // ===================== PLAYER SPRITE =====================
 
-    _createPlayerSprite(charKey, width, height) {
+    _createPlayerSprite(charKey) {
         this.playerSprite = this.add.sprite(PLAYER_X, GROUND_Y, `player-${charKey}`, 0);
         this.playerSprite.setOrigin(0.5, 1);
-        this.playerSprite.setScale(2.5 * (this.playerData.characterScale || 1.0));
+        // Match entity scale: entities target 80px from ~17px frames (≈4.7x).
+        // Player is 32px, so 4.0x ≈ 128px — similar visual presence.
+        this.playerSprite.setScale(4.0);
         this.playerSprite.setFlipX(this.playerData.characterFlip || false);
         if (this.anims.exists(`${charKey}-idle`)) this.playerSprite.play(`${charKey}-idle`);
         this.playerSprite.setDepth(2);
@@ -417,6 +422,7 @@ export class ChallengeScene extends Phaser.Scene {
         if (this._gameOverFlag) return;
 
         if (this._entitySprite) { this._entitySprite.destroy(); this._entitySprite = null; }
+        this._cancelEncounterTimer();
 
         if (this.storyBattle && this.session.round > 0 && this._storyEntityDone) return;
 
@@ -470,9 +476,11 @@ export class ChallengeScene extends Phaser.Scene {
         this._entityAttack = data.patience || data.attack || 8;
         this._entityDefense = data.shyness || data.defense || 2;
         this._storyEntityDone = false;
+        this._encounterQuestionsAnswered = 0;
         this._buildHpBars();
 
         this._challengeType = this._pickChallengeType();
+        this._isRhythmEncounter = this._challengeType === 'rhythm' || this._challengeType === 'rhythmReading';
         this.messageText.setText(`${data.name} needs your help!`);
 
         this._cancelEscapeTimer();
@@ -486,8 +494,66 @@ export class ChallengeScene extends Phaser.Scene {
         const startDelay = this.practiceMode ? 400 : 800;
         this.time.delayedCall(startDelay, () => {
             if (this._gameOverFlag) return;
+
+            // Tone/NoteReading: start encounter timer (animal leaves when time expires)
+            if (!this._isRhythmEncounter && !this.practiceMode) {
+                const timerSec = isSpecial ? 30 : 20;
+                this._startEncounterTimer(timerSec);
+            }
+
             this._askQuestion();
         });
+    }
+
+    // ── Encounter timer (for tone/noteReading) ──────────────────────────────
+
+    _startEncounterTimer(seconds) {
+        this._cancelEncounterTimer();
+        this._encounterTimerTotal = seconds;
+        this._encounterTimerStart = this.time.now;
+
+        // Visual countdown text
+        if (!this._encounterTimerText) {
+            this._encounterTimerText = this.add.text(this.cameras.main.width / 2, GROUND_Y + 16, '', {
+                font: 'bold 14px monospace', fill: '#e8d098',
+                stroke: '#000000', strokeThickness: 2
+            }).setOrigin(0.5).setDepth(10);
+        }
+        this._encounterTimerText.setVisible(true);
+
+        // Update every 250ms
+        this._encounterTimerLoop = this.time.addEvent({
+            delay: 250, loop: true,
+            callback: () => {
+                const elapsed = (this.time.now - this._encounterTimerStart) / 1000;
+                const remaining = Math.max(0, this._encounterTimerTotal - elapsed);
+                this._encounterTimerText.setText(`⏱ ${Math.ceil(remaining)}s`);
+                if (remaining <= 5) this._encounterTimerText.setStyle({ fill: '#e08868' });
+                if (remaining <= 0) this._encounterTimerExpired();
+            }
+        });
+    }
+
+    _encounterTimerExpired() {
+        this._cancelEncounterTimer();
+        // Mark entity done — happiness determines outcome
+        this._entityMeter = 100; // Auto-complete when timer runs out
+        this._storyEntityDone = true;
+        this._questionActive = false;
+
+        const vData = this._entityData;
+        this._addToRescuedPreview(vData?.spriteKey || `villager-${this._entityKey}`, vData?.name || 'Friend');
+        this.time.delayedCall(300, () => this._animalFlyOff('happy'));
+    }
+
+    _cancelEncounterTimer() {
+        if (this._encounterTimerLoop) {
+            this._encounterTimerLoop.remove(false);
+            this._encounterTimerLoop = null;
+        }
+        if (this._encounterTimerText) {
+            this._encounterTimerText.setVisible(false);
+        }
     }
 
     _cancelEscapeTimer() {
@@ -509,6 +575,7 @@ export class ChallengeScene extends Phaser.Scene {
 
     _triggerEscape() {
         this._cancelEscapeTimer();
+        this._cancelEncounterTimer();
         this._questionActive = false;
         const { width } = this.cameras.main;
         if (this._entitySprite && this._entitySprite.active) {
@@ -533,14 +600,14 @@ export class ChallengeScene extends Phaser.Scene {
 
         const { width } = this.cameras.main;
         const txt = this.add.text(width / 2, GROUND_Y - 60, 'Got away!', {
-            font: 'bold 24px monospace', fill: '#ffaa44',
+            font: 'bold 24px monospace', fill: '#e08868',
             stroke: '#000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(12);
         this.tweens.add({ targets: txt, y: txt.y - 50, alpha: 0, duration: 1200, onComplete: () => txt.destroy() });
 
         const dmg = Math.max(2, Math.floor(this._entityAttack * 0.5));
         this.playerStats.hp = Math.max(0, this.playerStats.hp - dmg);
-        this._showDamageNumber(width / 2, GROUND_Y - 100, 0, '#ff8844', `-${dmg} energy`);
+        this._showDamageNumber(width / 2, GROUND_Y - 100, 0, '#e08868', `-${dmg} energy`);
         this._updateHpBars();
 
         if (this._entitySprite) { this._entitySprite.destroy(); this._entitySprite = null; }
@@ -555,7 +622,7 @@ export class ChallengeScene extends Phaser.Scene {
         this.time.delayedCall(800, () => this._spawnNextEntity());
     }
 
-    update(time, delta) {
+    update() {
         // Escape is timer-based, no continuous movement
     }
 
@@ -566,22 +633,26 @@ export class ChallengeScene extends Phaser.Scene {
     }
 
     _helpVillager() {
-        const isRhythm = this._challengeType === 'rhythm' || this._challengeType === 'rhythmReading';
-        const happinessGain = isRhythm ? (100 - (this._entityMeter || 0)) : (25 + Math.floor(Math.random() * 20));
+        this._encounterQuestionsAnswered = (this._encounterQuestionsAnswered || 0) + 1;
+
+        // Rhythm encounters: 1 question per animal — auto-complete on answer
+        const autoComplete = this._isRhythmEncounter;
+        const happinessGain = autoComplete ? 100 : (25 + Math.floor(Math.random() * 20));
         this._entityMeter = Math.min(100, (this._entityMeter || 0) + happinessGain);
         this._updateHpBars();
+        this._spawnFloatingHeart();
 
         if (this.isSidescrollMode) {
             const ax = this._entitySprite?.x || (this.cameras.main.width - 150);
-            this._showDamageNumber(ax, GROUND_Y - 80, 0, '#ffcc44', `+${happinessGain}% ♥`);
+            this._showDamageNumber(ax, GROUND_Y - 80, 0, '#e8d098', `+${happinessGain}% ♥`);
             if (this._entityMeter >= 100) {
+                this._cancelEncounterTimer();
                 this._storyEntityDone = true;
-                this._showDamageNumber(ax, GROUND_Y - 120, 0, '#ffdd44', '\u2728 HAPPY!');
+                this._showDamageNumber(ax, GROUND_Y - 120, 0, '#e8d098', '\u2728 HAPPY!');
                 this._addToRescuedPreview(this._entityData?.spriteKey || `villager-${this._entityKey}`, this._entityData?.name || 'Friend');
                 this.time.delayedCall(600, () => this._returnPlayerThenVictory());
             } else {
                 this.time.delayedCall(400, () => {
-                    this._challengeType = this._pickChallengeType();
                     this._askQuestion();
                 });
             }
@@ -592,27 +663,29 @@ export class ChallengeScene extends Phaser.Scene {
         if (sp) {
             const animalX = sp.x;
             this._showHitEffect(animalX, GROUND_Y - 40);
-            this._showDamageNumber(animalX, GROUND_Y - 80, 0, '#ffcc44', `+${happinessGain}% ♥`);
+            this._showDamageNumber(animalX, GROUND_Y - 80, 0, '#e8d098', `+${happinessGain}% ♥`);
 
             this.tweens.add({
                 targets: sp,
                 y: sp.y - 18,
                 duration: 150, yoyo: true, ease: 'Power2',
                 onComplete: () => {
-                    if (sp.active) sp.setTint(0xffdd44);
+                    if (sp.active) sp.setTint(0xe8d098);
                     this.time.delayedCall(200, () => { if (sp.active) sp.clearTint(); });
                 }
             });
 
             if (this._entityMeter >= 100) {
+                this._cancelEncounterTimer();
                 this._storyEntityDone = true;
-                this._showDamageNumber(animalX, GROUND_Y - 110, 0, '#ffdd44', '\u2728 HAPPY!');
+                this._showDamageNumber(animalX, GROUND_Y - 110, 0, '#e8d098', '\u2728 HAPPY!');
                 const vData = this._entityData;
                 this._addToRescuedPreview(vData.spriteKey || `villager-${this._entityKey}`, vData.name);
                 this.time.delayedCall(500, () => this._animalFlyOff('happy'));
                 return;
             }
         } else if (this._entityMeter >= 100) {
+            this._cancelEncounterTimer();
             this._storyEntityDone = true;
             const vData = this._entityData;
             if (vData) this._addToRescuedPreview(vData.spriteKey || `villager-${this._entityKey}`, vData.name);
@@ -623,15 +696,31 @@ export class ChallengeScene extends Phaser.Scene {
         this.time.delayedCall(500, () => {
             if (!this._gameOverFlag) {
                 this._entityApproaching = true;
-                this._challengeType = this._pickChallengeType();
                 this.time.delayedCall(300, () => this._askQuestion());
             }
         });
     }
 
     _onWrongEffect() {
+        this._encounterQuestionsAnswered = (this._encounterQuestionsAnswered || 0) + 1;
+
+        // Rhythm encounters: 1 question per animal — move to next animal even on wrong
+        if (this._isRhythmEncounter && !this.practiceMode) {
+            this._cancelEncounterTimer();
+            this.time.delayedCall(800, () => {
+                if (this._gameOverFlag) return;
+                if (this.storyBattle) {
+                    this._animalFlyOff('sad');
+                } else {
+                    // Non-story: just spawn next animal (no defeat screen)
+                    if (this._entitySprite) { this._entitySprite.destroy(); this._entitySprite = null; }
+                    this._spawnNextEntity();
+                }
+            });
+            return;
+        }
+
         if (this.isSidescrollMode || this.practiceMode) {
-            this._challengeType = this._pickChallengeType();
             this.time.delayedCall(500, () => this._askQuestion());
             return;
         }
@@ -643,7 +732,6 @@ export class ChallengeScene extends Phaser.Scene {
             x: Math.min(this._entitySprite.x + 40, this.cameras.main.width - 40),
             duration: 200, ease: 'Power2',
             onComplete: () => {
-                this._challengeType = this._pickChallengeType();
                 this.time.delayedCall(500, () => this._askQuestion());
             }
         });
@@ -652,7 +740,7 @@ export class ChallengeScene extends Phaser.Scene {
     _showWrongDamage(dmg) {
         const dmgX = this.isSidescrollMode ? 120 : (this.playerSprite?.x || 120);
         const dmgY = this.isSidescrollMode ? 70  : ((this.playerSprite?.y || 80) - 80);
-        this._showDamageNumber(dmgX, dmgY, 0, '#ff5544', `-${dmg} energy`);
+        this._showDamageNumber(dmgX, dmgY, 0, '#e08868', `-${dmg} energy`);
     }
 
     _onStoryPlayerDefeated() {
@@ -663,7 +751,8 @@ export class ChallengeScene extends Phaser.Scene {
 
     _animalFlyOff(reason) {
         this._cancelEscapeTimer();
-        if (!this._entitySprite) {
+        if (!this._entitySprite || !this._entitySprite.active) {
+            this._entitySprite = null;
             this._onAnimalFlyOffComplete(reason);
             return;
         }
@@ -679,7 +768,7 @@ export class ChallengeScene extends Phaser.Scene {
                 onComplete: () => {
                     sp.destroy();
                     this._entitySprite = null;
-                    this._showDamageNumber(PLAYER_X, GROUND_Y - 120, 0, '#ff88cc', '♥');
+                    this._showDamageNumber(PLAYER_X, GROUND_Y - 120, 0, '#90c8c0', '♥');
                     this._onAnimalFlyOffComplete(reason);
                 }
             });
@@ -733,7 +822,7 @@ export class ChallengeScene extends Phaser.Scene {
                 heart = this.add.image(hx, hy, 'heart').setScale(0.5).setDepth(10);
             } else {
                 heart = this.add.text(hx, hy, '\u2764', {
-                    font: 'bold 20px sans-serif', fill: '#ff6688'
+                    font: 'bold 20px sans-serif', fill: '#e08868'
                 }).setOrigin(0.5).setDepth(10);
             }
 
@@ -754,40 +843,40 @@ export class ChallengeScene extends Phaser.Scene {
     // ===================== RESCUED PREVIEW =====================
 
     _addToRescuedPreview(spriteKey, name) {
-        const { width, height } = this.cameras.main;
         this._rescuedList.push({ spriteKey, name });
 
         this._rescuedIcons.forEach(o => o.destroy());
         this._rescuedIcons = [];
 
-        const show = this._rescuedList.slice(-5);
-        const slotW = 38;
-        const baseX = width - 12;
-        const baseY = height - 38;
+        const show = this._rescuedList.slice(-10);
+        const slotH = 30;
+        const boxX = 10;
+        const boxW = 44;
+        const boxTop = GROUND_Y - 14 - show.length * slotH - 20;
+        const boxH = show.length * slotH + 24;
 
-        const panelW = show.length * slotW + 10;
-        const panelBg = this.add.rectangle(baseX - panelW / 2, baseY, panelW, 36, 0x000000, 0.45)
-            .setOrigin(0.5).setDepth(9);
-        this._rescuedIcons.push(panelBg);
+        const bg = this.add.rectangle(boxX + boxW / 2, boxTop + boxH / 2, boxW, boxH, 0x000000, 0.5)
+            .setStrokeStyle(1, 0x446644).setDepth(9);
+        this._rescuedIcons.push(bg);
+
+        const lbl = this.add.text(boxX + boxW / 2, boxTop + 8, `${this._rescuedList.length}`, {
+            font: 'bold 10px monospace', fill: '#90c8c0', stroke: '#000', strokeThickness: 2
+        }).setOrigin(0.5, 0).setDepth(10);
+        this._rescuedIcons.push(lbl);
 
         show.forEach((entry, i) => {
-            const sx = baseX - (show.length - 1 - i) * slotW - slotW / 2;
+            const sy = boxTop + 22 + i * slotH + slotH / 2;
             if (this.textures.exists(entry.spriteKey)) {
-                const icon = this.add.sprite(sx, baseY, entry.spriteKey, 0)
-                    .setScale(1.8).setDepth(10);
+                const icon = this.add.sprite(boxX + boxW / 2, sy, entry.spriteKey, 0)
+                    .setScale(1.6).setDepth(10);
                 this._rescuedIcons.push(icon);
 
                 if (i === show.length - 1) {
                     icon.setScale(0);
-                    this.tweens.add({ targets: icon, scaleX: 1.8, scaleY: 1.8, duration: 300, ease: 'Back.easeOut' });
+                    this.tweens.add({ targets: icon, scaleX: 1.6, scaleY: 1.6, duration: 300, ease: 'Back.easeOut' });
                 }
             }
         });
-
-        const lbl = this.add.text(baseX - panelW + 4, baseY - 18, `Rescued: ${this._rescuedList.length}`, {
-            font: '10px monospace', fill: '#aaffaa', stroke: '#000', strokeThickness: 2
-        }).setDepth(10);
-        this._rescuedIcons.push(lbl);
     }
 
     // ===================== HP BARS =====================
@@ -797,33 +886,54 @@ export class ChallengeScene extends Phaser.Scene {
         this._hpBarObjs = [];
         const { width } = this.cameras.main;
 
-        const pBg = this.add.rectangle(110, 34, 160, 14, 0x1a2a1a).setStrokeStyle(1, 0x336633).setDepth(10);
-        this._playerHpBar = this.add.rectangle(110, 34, 160, 14, 0x44ee66).setDepth(10);
-        const pLabel = this.add.text(16, 27, '⚡', { font: '13px monospace', fill: '#88ffaa' }).setDepth(10);
+        const pBg = this.add.rectangle(110, 34, 160, 14, 0x1a2838).setStrokeStyle(1, 0x336633).setDepth(10);
+        this._playerHpBar = this.add.rectangle(110, 34, 160, 14, 0x50d0b0).setDepth(10);
+        const pLabel = this.add.text(16, 27, '⚡', { font: '13px monospace', fill: '#90c8c0' }).setDepth(10);
         this._playerHpText = this.add.text(110, 34, `${this.playerStats.hp}/${this.playerStats.maxHp}`, {
-            font: '10px monospace', fill: '#ffffff', stroke: '#000', strokeThickness: 2
+            font: '10px monospace', fill: '#e8f0f0', stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(11);
+        // Scale to actual HP immediately
+        const initRatio = Math.max(0, this.playerStats.hp / this.playerStats.maxHp);
+        this._playerHpBar.setScale(initRatio, 1);
+        const initCol = initRatio > 0.5 ? 0x50d0b0 : initRatio > 0.25 ? 0xe8d098 : 0xe08868;
+        this._playerHpBar.setFillStyle(initCol);
+
         this._hpBarObjs.push(pBg, this._playerHpBar, pLabel, this._playerHpText);
 
         if (this.practiceMode) {
             const badge = this.add.text(width - 20, 38, 'PRACTICE', {
-                font: 'bold 13px monospace', fill: '#eedd88',
-                backgroundColor: '#2a2418', padding: { x: 8, y: 4 },
+                font: 'bold 13px monospace', fill: '#e8d098',
+                backgroundColor: '#1a2838', padding: { x: 8, y: 4 },
                 stroke: '#000', strokeThickness: 2
             }).setOrigin(1, 0.5).setDepth(10);
             this._hpBarObjs.push(badge);
         } else {
-            const mBg = this.add.rectangle(width - 110, 34, 160, 14, 0x221a00).setStrokeStyle(1, 0x886622).setDepth(10);
-            this._entityHelpBar = this.add.rectangle(width - 110, 34, 160, 14, 0xffcc44).setDepth(10);
-            this._entityHelpBar.setScale(0, 1);
-            const mLabel = this.add.text(width - 190, 27, this._entityData.name, {
-                font: '10px monospace', fill: '#ffaa88'
-            }).setDepth(10);
-            const heartLabel = this.add.text(width - 24, 27, '♥', { font: '11px monospace', fill: '#ffcc44' }).setDepth(10);
-            this._entityHelpText = this.add.text(width - 110, 34, '0%', {
-                font: '10px monospace', fill: '#ffffff', stroke: '#000', strokeThickness: 2
-            }).setOrigin(0.5).setDepth(11);
-            this._hpBarObjs.push(mBg, this._entityHelpBar, mLabel, heartLabel, this._entityHelpText);
+            // Vertical heart meter beside the animal
+            const HEART_COUNT = 5;
+            const heartSize = 18;
+            const heartGap = 4;
+            const meterX = width - 40;
+            const meterBottom = GROUND_Y - 20;
+
+            this._heartIcons = [];
+            for (let i = 0; i < HEART_COUNT; i++) {
+                const hy = meterBottom - i * (heartSize + heartGap);
+                const heart = this.add.text(meterX, hy, '♥', {
+                    font: `${heartSize}px monospace`, fill: '#2a3848',
+                    stroke: '#1a2838', strokeThickness: 2
+                }).setOrigin(0.5).setDepth(10);
+                this._heartIcons.push(heart);
+                this._hpBarObjs.push(heart);
+            }
+
+            const mLabel = this.add.text(meterX, meterBottom + 18, this._entityData.name, {
+                font: '9px monospace', fill: '#90c8c0',
+                stroke: '#000', strokeThickness: 2
+            }).setOrigin(0.5).setDepth(10);
+            this._hpBarObjs.push(mLabel);
+
+            // Update hearts to match initial meter (should be 0)
+            this._updateHeartMeter();
         }
     }
 
@@ -831,15 +941,56 @@ export class ChallengeScene extends Phaser.Scene {
         if (this._playerHpBar) {
             const pRatio = Math.max(0, this.playerStats.hp / this.playerStats.maxHp);
             this._playerHpBar.setScale(pRatio, 1);
-            const col = pRatio > 0.5 ? 0x44ee66 : pRatio > 0.25 ? 0xffcc44 : 0xff5544;
+            const col = pRatio > 0.5 ? 0x50d0b0 : pRatio > 0.25 ? 0xe8d098 : 0xe08868;
             this._playerHpBar.setFillStyle(col);
             this._playerHpText.setText(`${this.playerStats.hp}/${this.playerStats.maxHp}`);
         }
-        if (this._entityHelpBar) {
-            const mRatio = Math.min(1, Math.max(0, (this._entityMeter || 0) / 100));
-            this._entityHelpBar.setScale(mRatio, 1);
-            this._entityHelpText.setText(`${Math.round(this._entityMeter || 0)}%`);
+        this._updateHeartMeter();
+    }
+
+    _updateHeartMeter() {
+        if (!this._heartIcons || this._heartIcons.length === 0) return;
+        const count = this._heartIcons.length;
+        const meter = this._entityMeter || 0;
+        const filledHearts = (meter / 100) * count;
+
+        for (let i = 0; i < count; i++) {
+            const heart = this._heartIcons[i];
+            if (!heart || !heart.active) continue;
+            if (i < Math.floor(filledHearts)) {
+                // Fully filled
+                heart.setStyle({ fill: '#ff6688', stroke: '#cc2244', strokeThickness: 2 });
+            } else if (i < filledHearts) {
+                // Partially filled — show as lighter
+                heart.setStyle({ fill: '#cc8899', stroke: '#884466', strokeThickness: 2 });
+            } else {
+                // Empty
+                heart.setStyle({ fill: '#2a3848', stroke: '#1a2838', strokeThickness: 2 });
+            }
         }
+    }
+
+    /**
+     * Spawn a floating heart that rises from the animal when happiness increases.
+     */
+    _spawnFloatingHeart() {
+        const sp = this._entitySprite;
+        if (!sp) return;
+        const hx = sp.x + (Math.random() - 0.5) * 30;
+        const hy = (sp.y || GROUND_Y) - 60;
+        const heart = this.add.text(hx, hy, '♥', {
+            font: 'bold 22px monospace', fill: '#ff6688',
+            stroke: '#cc2244', strokeThickness: 2
+        }).setOrigin(0.5).setDepth(15).setAlpha(1);
+        this.tweens.add({
+            targets: heart,
+            y: hy - 60,
+            alpha: 0,
+            scale: 1.5,
+            duration: 1200,
+            ease: 'Power2',
+            onComplete: () => heart.destroy()
+        });
     }
 
     _updateHud() {
@@ -855,7 +1006,10 @@ export class ChallengeScene extends Phaser.Scene {
         this._clearSolfegeButtons();
         this._clearPianoKeys();
         this._clearRhythmUI();
+        this._clearRhythmReadingUI();
+        this._clearCompareUI();
         this._clearNpc();
+        this._cancelEncounterTimer();
         if (this._rescuedIcons) {
             this._rescuedIcons.forEach(o => o.destroy());
             this._rescuedIcons = [];
@@ -865,29 +1019,25 @@ export class ChallengeScene extends Phaser.Scene {
     // ===================== CHALLENGE TYPE SELECTION =====================
 
     _pickChallengeType() {
-        if (this.storyBattle && this._entityData) {
-            const et = this._getEntityChallengeType();
-            if (et === 'tone') return 'tone';
-            if (et === 'noteReading') return 'noteReading';
-            if (et === 'rhythm') return 'rhythm';
-            const choices = ALL_CHALLENGE_TYPES.filter(t => t !== this._allModeType);
-            this._allModeType = choices[Math.floor(Math.random() * choices.length)];
-            return this._allModeType;
-        }
-
+        // Single-mode selections
         if (this.mode === 'tones') return 'tone';
         if (this.mode === 'noteReading') return 'noteReading';
         if (this.mode === 'rhythm') return 'rhythm';
         if (this.mode === 'rhythmReading') return 'rhythmReading';
 
-        if (this._allModeQuestionsLeft <= 0) {
-            const choices = ALL_CHALLENGE_TYPES.filter(t => t !== this._allModeType);
-            this._allModeType = choices[Math.floor(Math.random() * choices.length)];
-            const isRhythmType = this._allModeType === 'rhythm' || this._allModeType === 'rhythmReading';
-            this._allModeQuestionsLeft = isRhythmType ? 1 : 5 + Math.floor(Math.random() * 6);
+        // Story mode — use the entity's specific type; mixed → pick one random type
+        if (this.storyBattle && this._entityData) {
+            const et = this._getEntityChallengeType();
+            if (et === 'tone') return 'tone';
+            if (et === 'noteReading') return 'noteReading';
+            if (et === 'rhythm') return 'rhythm';
+            if (et === 'rhythmReading') return 'rhythmReading';
+            // 'mixed' — pick one type for this entire encounter
+            return ALL_CHALLENGE_TYPES[Math.floor(Math.random() * ALL_CHALLENGE_TYPES.length)];
         }
-        this._allModeQuestionsLeft--;
-        return this._allModeType;
+
+        // 'all' mode — one type per entity (picked fresh each spawn)
+        return ALL_CHALLENGE_TYPES[Math.floor(Math.random() * ALL_CHALLENGE_TYPES.length)];
     }
 
     // ===================== QUESTION DISPATCH =====================
@@ -895,7 +1045,7 @@ export class ChallengeScene extends Phaser.Scene {
     _askQuestion() {
         if (this._gameOverFlag) return;
         this._resetEscapeTimer();
-        this._questionActive = true;
+        this._questionActive = false;  // Disable input during transition
         this._questionStartTime = performance.now();
 
         if (this._activeUIType && this._activeUIType !== this._challengeType) {
@@ -915,7 +1065,11 @@ export class ChallengeScene extends Phaser.Scene {
 
     _clearChallengeUI(type) {
         switch (type) {
-            case 'tone':          this._clearSolfegeButtons(); break;
+            case 'tone':
+                this._clearSolfegeButtons();
+                // Reset so tones get a fresh root when they return
+                this._droneQuestionsLeft = 0;
+                break;
             case 'noteReading':   this._clearPianoKeys(); break;
             case 'rhythm':        this._clearRhythmUI(); break;
             case 'rhythmReading': this._clearRhythmReadingUI(); break;
@@ -941,7 +1095,6 @@ export class ChallengeScene extends Phaser.Scene {
 
             this.audioEngine.startDrone(this.musicTheory.getDroneFreq());
             this._droneActive = true;
-            this.droneText.setText(this.musicTheory.rootNote).setVisible(true);
             this.messageText.setText(`Key: ${this.musicTheory.rootNote} — listen: 1 · 5 · 1`);
 
             const freq1 = this.musicTheory.getIntervalFreq('1');
@@ -959,78 +1112,59 @@ export class ChallengeScene extends Phaser.Scene {
                 this.audioEngine.startDrone(this.musicTheory.getDroneFreq());
                 this._droneActive = true;
             }
-            this.droneText.setText(this.musicTheory.rootNote).setVisible(true);
             this._droneQuestionsLeft--;
             this._fireTonesQuestion(degrees, width, height);
         }
     }
 
     _fireTonesQuestion(degrees, width, height) {
-        this._currentDegree = degrees[Math.floor(Math.random() * degrees.length)];
+        // Avoid repeating the same degree consecutively
+        let pick = degrees[Math.floor(Math.random() * degrees.length)];
+        if (degrees.length > 1) {
+            while (pick === this._lastToneDegree) {
+                pick = degrees[Math.floor(Math.random() * degrees.length)];
+            }
+        }
+        this._lastToneDegree = pick;
+        this._currentDegree = pick;
         const freq = this.musicTheory.getIntervalFreq(this._currentDegree);
+
+        this._cancelToneReplay();
 
         this.time.delayedCall(300, () => {
             if (this._gameOverFlag) return;
             this.audioEngine.playInterval(freq, '2n');
             this._buildSolfegeButtons(degrees, width, height);
+            this._questionActive = true;
+
+            // Auto-replay tone every 3 seconds until answered
+            this._toneReplayTimer = this.time.addEvent({
+                delay: 3000,
+                callback: () => {
+                    if (this._questionActive && this._challengeType === 'tone' && this._currentDegree) {
+                        this.audioEngine.playInterval(
+                            this.musicTheory.getIntervalFreq(this._currentDegree), '2n'
+                        );
+                    }
+                },
+                loop: true
+            });
         });
     }
 
+    _cancelToneReplay() {
+        if (this._toneReplayTimer) {
+            this._toneReplayTimer.remove(false);
+            this._toneReplayTimer = null;
+        }
+    }
+
     _buildSolfegeButtons(degrees, width, height) {
-        const degreesKey = degrees.slice().sort().join(',');
-        if (this.solfegeButtons.length > 0 && this._lastDegreesKey === degreesKey) return;
-        this._clearSolfegeButtons();
-        this._lastDegreesKey = degreesKey;
-
-        const CIRCLE_OF_FIFTHS = ['1', '5', '2', '6', '3', '7', '#4', 'b2', 'b6', 'b3', 'b7', '4'];
-        const allTwelve = degrees.length === 12 && CIRCLE_OF_FIFTHS.every(d => degrees.includes(d));
-
-        let orderedDegrees = degrees;
-        let centerX = width / 2, centerY, useFullCircle;
-
-        if (allTwelve) {
-            orderedDegrees = CIRCLE_OF_FIFTHS;
-            centerY = height * 0.38;
-            useFullCircle = true;
-        } else {
-            centerY = height * 0.42;
-            useFullCircle = false;
+        // Build the keyboard shell once; afterwards just update labels/highlights
+        if (this.solfegeButtons.length === 0) {
+            this._buildSolfegeKeyboardShell(width, height);
         }
-
-        const radius = allTwelve ? Math.min(145, width * 0.34) : Math.min(155, width * 0.38);
-
-        this.droneText.setPosition(centerX, centerY).setOrigin(0.5);
-        if (this.musicTheory.rootNote) {
-            this.droneText.setText(this.musicTheory.rootNote).setVisible(true);
-        }
-
-        orderedDegrees.forEach((degree, i) => {
-            let x, y;
-            if (useFullCircle) {
-                const angle = -Math.PI / 2 + (2 * Math.PI * i) / orderedDegrees.length;
-                x = centerX + Math.cos(angle) * radius;
-                y = centerY + Math.sin(angle) * radius;
-            } else if (degrees.length === 1) {
-                x = centerX; y = centerY;
-            } else {
-                const angle = Math.PI + (Math.PI * i) / Math.max(degrees.length - 1, 1);
-                x = centerX + Math.cos(angle) * radius;
-                y = centerY + Math.sin(angle) * (radius * 0.45);
-            }
-
-            const info = SCALE_DEGREES[degree];
-            if (!info) return;
-            const btn = this.add.text(x, y, `${info.solfege}\n${degree}`, {
-                font: 'bold 15px monospace', fill: info.color,
-                backgroundColor: '#2a2418', padding: { x: 9, y: 5 },
-                stroke: '#000000', strokeThickness: 2, align: 'center'
-            }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(5);
-
-            btn.on('pointerover', () => btn.setStyle({ backgroundColor: '#3a3020' }));
-            btn.on('pointerout',  () => btn.setStyle({ backgroundColor: '#2a2418' }));
-            btn.on('pointerdown', () => this._submitTone(degree));
-            this.solfegeButtons.push(btn);
-        });
+        this._updateSolfegeKeyboard(degrees);
 
         this.input.keyboard.once('keydown-SPACE', () => {
             if (this._questionActive && this._challengeType === 'tone') {
@@ -1040,9 +1174,266 @@ export class ChallengeScene extends Phaser.Scene {
         });
     }
 
+    /**
+     * Build the persistent 2-octave wood keyboard starting from C.
+     * Keys are stored in this._solfegeKeyData[] for later updates.
+     */
+    _buildSolfegeKeyboardShell(width, height) {
+        this._clearSolfegeButtons();
+
+        const NUM_WHITE = 14;
+        const KEY_W = Math.min(34, (width - 60) / NUM_WHITE);
+        const KEY_H = 74;
+        const BKEY_W = Math.floor(KEY_W * 0.62);
+        const BKEY_H = Math.floor(KEY_H * 0.58);
+        const TOTAL_W = NUM_WHITE * KEY_W;
+        const kbLeft = width / 2 - TOTAL_W / 2;
+        const centerY = height * 0.55;
+        const keyTop = centerY - KEY_H / 2;
+
+        const IVORY      = 0xffffff;
+        const IVORY_DIM  = 0xcccccc;
+        const EBONY      = 0x1a1a1a;
+        const EBONY_DIM  = 0x444444;
+        const FRAME      = 0x2a2a2a;
+        const FRAME_EDGE = 0x111111;
+
+        // Frame
+        const frameCX = width / 2;
+        const frameCY = keyTop + KEY_H / 2;
+        this.solfegeButtons.push(
+            this.add.rectangle(frameCX, frameCY, TOTAL_W + 14, KEY_H + 14, FRAME)
+                .setStrokeStyle(2, FRAME_EDGE).setDepth(4),
+            this.add.rectangle(frameCX, keyTop - 4, TOTAL_W + 10, 3, 0x444444).setDepth(4)
+        );
+
+        // Enumerate chromatic keys (always C-based, 2 octaves)
+        const startSemi = _NOTE_TO_SEMI['C'];
+        this._solfegeKeyData = [];
+        let wIdx = 0;
+
+        for (let s = 0; s < 24; s++) {
+            const noteName = _SEMI_TO_NOTE[(startSemi + s) % 12];
+            const isWhite = _WHITE_NOTES.has(noteName);
+            if (isWhite) {
+                const cx = kbLeft + wIdx * KEY_W + KEY_W / 2;
+                const cy = keyTop + KEY_H / 2;
+                const keyRect = this.add.rectangle(cx, cy, KEY_W - 2, KEY_H, IVORY_DIM)
+                    .setStrokeStyle(1, 0x888888).setDepth(5);
+                const lbl = this.add.text(cx, keyTop + KEY_H - 10, '', {
+                    font: 'bold 9px monospace', fill: '#222222', align: 'center'
+                }).setOrigin(0.5).setDepth(6);
+
+                this.solfegeButtons.push(keyRect, lbl);
+                this._solfegeKeyData.push({
+                    noteName, isWhite: true, keyRect, lbl, cx, cy,
+                    baseIvory: IVORY, baseDim: IVORY_DIM,
+                    hoverColor: 0xe8e8f0,
+                });
+                wIdx++;
+            } else {
+                const cx = kbLeft + (wIdx - 0.5) * KEY_W + KEY_W / 2;
+                const cy = keyTop + BKEY_H / 2;
+                const keyRect = this.add.rectangle(cx, cy, BKEY_W, BKEY_H, EBONY_DIM)
+                    .setStrokeStyle(1, 0x000000).setDepth(7);
+                const lbl = this.add.text(cx, keyTop + BKEY_H - 8, '', {
+                    font: 'bold 8px monospace', fill: '#dddddd', align: 'center'
+                }).setOrigin(0.5).setDepth(8);
+
+                this.solfegeButtons.push(keyRect, lbl);
+                this._solfegeKeyData.push({
+                    noteName, isWhite: false, keyRect, lbl, cx, cy,
+                    baseEbony: EBONY, baseDim: EBONY_DIM,
+                    hoverColor: 0x3a3a44,
+                });
+            }
+        }
+
+        // Position drone text big and clear above the keyboard
+        const kbTopEdge = centerY - KEY_H / 2 - 7;
+        this.droneText.setPosition(width / 2, kbTopEdge - 30).setOrigin(0.5, 1)
+            .setFontSize(44).setVisible(true);
+    }
+
+    /**
+     * Update labels, colors, and interactivity on the persistent solfege keyboard.
+     * Called each time degrees or root changes.
+     */
+    _updateSolfegeKeyboard(degrees) {
+        if (!this._solfegeKeyData) return;
+
+        const rootNote = this.musicTheory.rootNote;
+        const rootSemi = _NOTE_TO_SEMI[rootNote];
+
+        // Update drone text above keyboard
+        this.droneText.setText(rootNote).setVisible(true);
+        const SEMI_TO_DEG = ['1','b2','2','b3','3','4','#4','5','b6','6','b7','7'];
+        const degreeSet = new Set(degrees);
+        const ROOT_TINT_WHITE = 0xc0d8f0;   // light blue tint for root white key
+        const ROOT_TINT_BLACK = 0x2244aa;    // blue tint for root black key
+
+        this._solfegeKeyData.forEach(kd => {
+            const keySemi = _NOTE_TO_SEMI[kd.noteName];
+            const offset = (keySemi - rootSemi + 12) % 12;
+            const degree = SEMI_TO_DEG[offset];
+            const active = degreeSet.has(degree);
+            const isRoot = degree === '1';
+
+            // Remove old listeners
+            kd.keyRect.removeAllListeners();
+
+            if (kd.isWhite) {
+                const baseColor = isRoot ? ROOT_TINT_WHITE : (active ? kd.baseIvory : kd.baseDim);
+                kd.keyRect.setFillStyle(baseColor);
+
+                if (active) {
+                    kd.keyRect.setInteractive({ useHandCursor: true });
+                    kd.keyRect.on('pointerover', () => kd.keyRect.setFillStyle(kd.hoverColor));
+                    kd.keyRect.on('pointerout',  () => kd.keyRect.setFillStyle(baseColor));
+                    kd.keyRect.on('pointerdown', () => this._submitTone(degree));
+                } else {
+                    kd.keyRect.disableInteractive();
+                }
+
+                const solfege = active ? (SCALE_DEGREES[degree]?.solfege || '') : '';
+                const labelText = isRoot ? `${solfege}\n${rootNote}` : solfege;
+                kd.lbl.setText(labelText);
+            } else {
+                const baseColor = isRoot ? ROOT_TINT_BLACK : (active ? kd.baseEbony : kd.baseDim);
+                kd.keyRect.setFillStyle(baseColor);
+
+                if (active) {
+                    kd.keyRect.setInteractive({ useHandCursor: true });
+                    kd.keyRect.on('pointerover', () => kd.keyRect.setFillStyle(kd.hoverColor));
+                    kd.keyRect.on('pointerout',  () => kd.keyRect.setFillStyle(baseColor));
+                    kd.keyRect.on('pointerdown', () => this._submitTone(degree));
+                } else {
+                    kd.keyRect.disableInteractive();
+                }
+
+                const solfege = active ? (SCALE_DEGREES[degree]?.solfege || '') : '';
+                const labelText = isRoot ? `${solfege}\n${rootNote}` : solfege;
+                kd.lbl.setText(labelText);
+            }
+        });
+    }
+
+    // ── Wood keyboard helpers ────────────────────────────────────────────────
+
+    /**
+     * Build a 2-octave wood-styled keyboard.
+     * @param {string}   startNote   White note to start on (e.g. 'C', 'A')
+     * @param {number}   width       Scene width
+     * @param {number}   height      Scene height
+     * @param {Array}    targetArray Array to push game objects into for cleanup
+     * @param {Function} onKeyPress  Called with keyData when a key is clicked
+     * @param {Function} labelFn     Returns label string or null for a key
+     * @param {Function} isActiveFn  Returns true if the key should be interactive
+     * @param {object}   [opts]      Optional: { centerY } to vertically center the keyboard
+     */
+    _buildWoodKeyboard(startNote, width, height, targetArray, onKeyPress, labelFn, isActiveFn, opts) {
+        const NUM_WHITE = 14;
+        const KEY_W = Math.min(34, (width - 60) / NUM_WHITE);
+        const KEY_H = 74;
+        const BKEY_W = Math.floor(KEY_W * 0.62);
+        const BKEY_H = Math.floor(KEY_H * 0.58);
+        const TOTAL_W = NUM_WHITE * KEY_W;
+        const kbLeft = width / 2 - TOTAL_W / 2;
+        const keyTop = opts?.centerY ? opts.centerY - KEY_H / 2 : height - KEY_H - 8;
+
+        // Classic piano colors
+        const IVORY       = 0xffffff;
+        const IVORY_HOVER = 0xe8e8f0;
+        const IVORY_DIM   = 0xcccccc;
+        const EBONY       = 0x1a1a1a;
+        const EBONY_HOVER = 0x3a3a44;
+        const EBONY_DIM   = 0x444444;
+        const FRAME       = 0x2a2a2a;
+        const FRAME_EDGE  = 0x111111;
+
+        // Frame behind the keys
+        const frameCX = width / 2;
+        const frameCY = keyTop + KEY_H / 2;
+        const frameBg = this.add.rectangle(frameCX, frameCY, TOTAL_W + 14, KEY_H + 14, FRAME)
+            .setStrokeStyle(2, FRAME_EDGE).setDepth(4);
+        const frameHL = this.add.rectangle(frameCX, keyTop - 4, TOTAL_W + 10, 3, 0x444444)
+            .setDepth(4);
+        targetArray.push(frameBg, frameHL);
+
+        // Enumerate chromatic keys for 2 octaves (24 semitones)
+        const startSemi = _NOTE_TO_SEMI[startNote];
+        const whiteKeys = [];
+        const blackKeys = [];
+        let wIdx = 0;
+
+        for (let s = 0; s < 24; s++) {
+            const noteName = _SEMI_TO_NOTE[(startSemi + s) % 12];
+            if (_WHITE_NOTES.has(noteName)) {
+                whiteKeys.push({ noteName, semiFromStart: s, whiteIdx: wIdx++ });
+            } else {
+                blackKeys.push({ noteName, semiFromStart: s, afterWhiteIdx: wIdx - 1 });
+            }
+        }
+
+        // Draw white keys
+        whiteKeys.forEach(kd => {
+            const cx = kbLeft + kd.whiteIdx * KEY_W + KEY_W / 2;
+            const cy = keyTop + KEY_H / 2;
+            const active = isActiveFn(kd);
+            const baseColor = active ? IVORY : IVORY_DIM;
+
+            const key = this.add.rectangle(cx, cy, KEY_W - 2, KEY_H, baseColor)
+                .setStrokeStyle(1, 0x888888).setDepth(5);
+            targetArray.push(key);
+
+            const label = labelFn(kd);
+            if (label) {
+                const lbl = this.add.text(cx, keyTop + KEY_H - 10, label, {
+                    font: 'bold 9px monospace', fill: '#222222', align: 'center'
+                }).setOrigin(0.5).setDepth(6);
+                targetArray.push(lbl);
+            }
+
+            if (active) {
+                key.setInteractive({ useHandCursor: true });
+                key.on('pointerover', () => key.setFillStyle(IVORY_HOVER));
+                key.on('pointerout',  () => key.setFillStyle(baseColor));
+                key.on('pointerdown', () => onKeyPress(kd));
+            }
+        });
+
+        // Draw black keys (on top)
+        blackKeys.forEach(kd => {
+            const cx = kbLeft + (kd.afterWhiteIdx + 0.5) * KEY_W + KEY_W / 2;
+            const cy = keyTop + BKEY_H / 2;
+            const active = isActiveFn(kd);
+            const baseColor = active ? EBONY : EBONY_DIM;
+
+            const key = this.add.rectangle(cx, cy, BKEY_W, BKEY_H, baseColor)
+                .setStrokeStyle(1, 0x000000).setDepth(7);
+            targetArray.push(key);
+
+            const label = labelFn(kd);
+            if (label) {
+                const lbl = this.add.text(cx, keyTop + BKEY_H - 8, label, {
+                    font: 'bold 8px monospace', fill: '#dddddd', align: 'center'
+                }).setOrigin(0.5).setDepth(8);
+                targetArray.push(lbl);
+            }
+
+            if (active) {
+                key.setInteractive({ useHandCursor: true });
+                key.on('pointerover', () => key.setFillStyle(EBONY_HOVER));
+                key.on('pointerout',  () => key.setFillStyle(baseColor));
+                key.on('pointerdown', () => onKeyPress(kd));
+            }
+        });
+    }
+
     _submitTone(selected) {
         if (!this._questionActive) return;
         this._questionActive = false;
+        this._cancelToneReplay();
 
         const correct = selected === this._currentDegree;
         const info = SCALE_DEGREES[this._currentDegree];
@@ -1105,55 +1496,28 @@ export class ChallengeScene extends Phaser.Scene {
         }
 
         const staffCX = width / 2;
-        const staffCY = height * 0.30;
+        const staffCY = height * 0.18;
         this.staffRenderer.draw(staffCX, staffCY, 340, this._currentNoteQuestion);
 
-        this.messageText.setY(height - 90 - 24);
+        this.messageText.setY(height - 100);
 
         if (this.pianoKeys.length === 0) {
             this._buildPianoKeys(width, height);
         }
         this._staffVisible = true;
+        this._questionActive = true;
     }
 
     _buildPianoKeys(width, height) {
         this._clearPianoKeys();
-        const WHITE_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
-        const BLACK_KEYS = [
-            { afterIdx: 0, note: 'C#' }, { afterIdx: 1, note: 'D#' },
-            { afterIdx: 3, note: 'F#' }, { afterIdx: 4, note: 'G#' }, { afterIdx: 5, note: 'A#' },
-        ];
-        const keyW = 52, keyH = 90, bkeyW = 30, bkeyH = 56;
-        const totalW = WHITE_NOTES.length * keyW;
-        const startX = width / 2 - totalW / 2;
-        const keyTop = height - keyH - 14;
 
-        WHITE_NOTES.forEach((note, i) => {
-            const cx = startX + i * keyW + keyW / 2;
-            const cy = keyTop + keyH / 2;
-            const key = this.add.rectangle(cx, cy, keyW - 2, keyH, 0xeeeeee)
-                .setStrokeStyle(1, 0x555555).setDepth(5);
-            const lbl = this.add.text(cx, keyTop + keyH - 12, note, {
-                font: '11px monospace', fill: '#333333'
-            }).setOrigin(0.5).setDepth(6);
-            key.setInteractive({ useHandCursor: true });
-            key.on('pointerover', () => key.setFillStyle(0xbbddff));
-            key.on('pointerout',  () => key.setFillStyle(0xeeeeee));
-            key.on('pointerdown', () => this._submitNoteReading(note));
-            this.pianoKeys.push(key, lbl);
-        });
-
-        BLACK_KEYS.forEach(({ afterIdx, note }) => {
-            const cx = startX + (afterIdx + 1) * keyW;
-            const cy = keyTop + bkeyH / 2;
-            const key = this.add.rectangle(cx, cy, bkeyW, bkeyH, 0x222222)
-                .setStrokeStyle(1, 0x000000).setDepth(7);
-            key.setInteractive({ useHandCursor: true });
-            key.on('pointerover', () => key.setFillStyle(0x3355aa));
-            key.on('pointerout',  () => key.setFillStyle(0x222222));
-            key.on('pointerdown', () => this._submitNoteReading(note));
-            this.pianoKeys.push(key);
-        });
+        // Note reading keyboard: 2 octaves starting from C
+        // Only label white keys — user can infer sharps/flats
+        this._buildWoodKeyboard('C', width, height, this.pianoKeys, (kd) => {
+            this._submitNoteReading(kd.noteName);
+        }, (kd) => {
+            return _WHITE_NOTES.has(kd.noteName) ? kd.noteName : null;
+        }, () => true);
     }
 
     _submitNoteReading(answer) {
@@ -1222,8 +1586,10 @@ export class ChallengeScene extends Phaser.Scene {
     }
 
     _clearSolfegeButtons() {
+        this._cancelToneReplay();
         this.solfegeButtons.forEach(b => b.destroy());
         this.solfegeButtons = [];
+        this._solfegeKeyData = null;
         this._lastDegreesKey = null;
     }
 
@@ -1273,6 +1639,7 @@ export class ChallengeScene extends Phaser.Scene {
         this._rhythmPlayTimer = null;
 
         this._buildRhythmUI(width, height);
+        this._questionActive = true;
         this._rhythmStartTimer = this.time.delayedCall(400, () => this._startRhythmLoop());
     }
 
@@ -1338,14 +1705,14 @@ export class ChallengeScene extends Phaser.Scene {
         const gridVisible = this.showGrid;
 
         const title = this.add.text(width / 2, notationY - 70, 'LISTEN & MATCH THIS RHYTHM', {
-            font: 'bold 14px monospace', fill: '#ffaa00',
+            font: 'bold 14px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(5);
         this.rhythmUI.push(title);
 
         const g = this.add.graphics().setDepth(4);
         if (gridVisible) {
-            g.lineStyle(1, 0x7799bb, 0.6);
+            g.lineStyle(1, 0x999999, 0.6);
             sub.downbeats.forEach(di => {
                 if (di === 0) return;
                 const lx = gridX + di * (cellW + GAP) - GAP / 2;
@@ -1368,20 +1735,20 @@ export class ChallengeScene extends Phaser.Scene {
             const cy = gridY + cellH / 2;
             const isDB = sub.downbeats.includes(i);
 
-            const bg = this.add.rectangle(cx, cy, cellW, cellH, 0xf0f8ff)
-                .setStrokeStyle(1, 0x99bbdd).setDepth(5);
+            const bg = this.add.rectangle(cx, cy, cellW, cellH, 0xffffff)
+                .setStrokeStyle(1, 0xbbbbbb).setDepth(5);
             if (gridVisible) {
                 bg.setInteractive({ useHandCursor: true });
                 bg.on('pointerdown', () => this._onRhythmCellDown(i));
                 bg.on('pointerover', () => { if (this._questionActive) bg.setStrokeStyle(2, 0x4488cc); });
-                bg.on('pointerout',  () => bg.setStrokeStyle(1, 0x99bbdd));
+                bg.on('pointerout',  () => bg.setStrokeStyle(1, 0xbbbbbb));
             } else {
                 bg.setVisible(false);
             }
 
             const lbl = this.add.text(cx, cy, sub.cells[i], {
                 font: isDB ? 'bold 16px monospace' : '13px monospace',
-                fill: isDB ? '#334466' : '#556688'
+                fill: isDB ? '#222222' : '#888888'
             }).setOrigin(0.5).setDepth(6);
             if (!gridVisible) lbl.setVisible(false);
 
@@ -1394,7 +1761,7 @@ export class ChallengeScene extends Phaser.Scene {
         this._setupRhythmKeyboard(n, gridX, gridY, cellW, cellH);
 
         const btnY = gridY + cellH + 70;
-        this._rhythmPlayBtn = this._makeBtn(width / 2 - 90, btnY, '▶ STOP', '#112233', '#224455',
+        this._rhythmPlayBtn = this._makeBtn(width / 2 - 90, btnY, '▶ STOP', '#142030', '#224455',
             () => this._toggleRhythmPlayback()).setDepth(5);
         const submitBtn = this._makeBtn(width / 2 + 90, btnY, 'SUBMIT', '#113322', '#225533',
             () => this._submitRhythm()).setDepth(5);
@@ -1412,7 +1779,7 @@ export class ChallengeScene extends Phaser.Scene {
             ticksPerCell,
             subdivision: this._rhythmSubKey,
             onSubmit: () => this._submitRhythm(),
-            onUpdate: (grid, cursorCell) => {
+            onUpdate: (grid) => {
                 if (!this._questionActive) return;
                 for (let i = 0; i < grid.length; i++) {
                     this._userRhythm[i] = grid[i];
@@ -1426,7 +1793,7 @@ export class ChallengeScene extends Phaser.Scene {
 
         const hints = this.add.text(width / 2, gridY + cellH + 14,
             '3-7: duration   A-G: note   0: rest   T: tie   .: dot   ←→: move   ⌫: undo   Enter: submit', {
-                font: '10px monospace', fill: '#556677'
+                font: '10px monospace', fill: '#687880'
             }).setOrigin(0.5).setDepth(5);
         this.rhythmUI.push(hints);
     }
@@ -1501,16 +1868,16 @@ export class ChallengeScene extends Phaser.Scene {
             const isNote = gid > 0;
             const isGroupStart = isNote && (i === 0 || this._userRhythm[i - 1] !== gid);
 
-            this._rhythmCellRects[i].setFillStyle(isNote ? 0xd4edda : 0xf0f8ff);
+            this._rhythmCellRects[i].setFillStyle(isNote ? 0xe0e0e0 : 0xffffff);
 
             const lbl = this._rhythmCellLabels[i];
             if (lbl) {
                 if (isNote && !isGroupStart) {
-                    lbl.setStyle({ fill: '#3a6a44' });
+                    lbl.setStyle({ fill: '#555555' });
                 } else if (isNote) {
-                    lbl.setStyle({ fill: '#226633' });
+                    lbl.setStyle({ fill: '#222222' });
                 } else {
-                    lbl.setStyle({ fill: '#556677' });
+                    lbl.setStyle({ fill: '#aaaaaa' });
                 }
             }
         }
@@ -1547,15 +1914,19 @@ export class ChallengeScene extends Phaser.Scene {
     }
 
     _renderRhythmNotation() {
-        const { width } = this.cameras.main;
-        let spelled = spellPattern(this._userRhythm, this._rhythmSubKey);
-        const cursorTick = this._rhythmKeyboard ? this._rhythmKeyboard._cursorTick : -1;
-        const selectedTicks = this._rhythmKeyboard ? this._rhythmKeyboard.effectiveTicks : -1;
-        if (cursorTick >= 0 && selectedTicks > 0) {
-            spelled = splitRestsAtCursor(spelled, cursorTick, selectedTicks, this._rhythmSubKey);
+        try {
+            const { width } = this.cameras.main;
+            let spelled = spellPattern(this._userRhythm, this._rhythmSubKey);
+            const cursorTick = this._rhythmKeyboard ? this._rhythmKeyboard._cursorTick : -1;
+            const selectedTicks = this._rhythmKeyboard ? this._rhythmKeyboard.effectiveTicks : -1;
+            if (cursorTick >= 0 && selectedTicks > 0) {
+                spelled = splitRestsAtCursor(spelled, cursorTick, selectedTicks, this._rhythmSubKey);
+            }
+            const notationY = this._rNotationY || (this._rGridY - 108);
+            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, width / 2, notationY, width - 100, cursorTick);
+        } catch (err) {
+            console.error('_renderRhythmNotation error:', err);
         }
-        const notationY = this._rNotationY || (this._rGridY - 108);
-        this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, width / 2, notationY, width - 100, cursorTick);
     }
 
     _toggleRhythmPlayback() {
@@ -1656,39 +2027,114 @@ export class ChallengeScene extends Phaser.Scene {
         this._stopRhythmPlayback();
 
         const { _rhythmPattern: pattern, _userRhythm: userGrid } = this;
-        const patternOnsets = pattern.map((v, i) =>
-            v && (i === 0 || !pattern[i - 1]));
-        const userOnsets = userGrid.map((v, i) =>
-            v > 0 && (i === 0 || userGrid[i - 1] === 0));
+        const n = pattern.length;
+        const noteCount = pattern.filter(Boolean).length;
 
-        const expectedCount = patternOnsets.filter(Boolean).length;
+        // Hits: user has ANY note (onset or sustained) where pattern has a note
         let hits = 0;
-        for (let i = 0; i < pattern.length; i++) {
-            if (patternOnsets[i] && userOnsets[i]) hits++;
+        for (let i = 0; i < n; i++) {
+            if (pattern[i] && userGrid[i] > 0) hits++;
         }
-        const extra = userOnsets.filter(Boolean).length - hits;
-        const score = Math.max(0, hits - extra);
-        const accuracy = score / Math.max(1, expectedCount);
-        const correct = accuracy >= 0.75;
+
+        // Extra onsets: user starts a NEW note group at a rest position
+        // (sustain through rests is forgiven, but new onsets at rests penalize)
+        let extraOnsets = 0;
+        for (let i = 0; i < n; i++) {
+            if (!pattern[i] && userGrid[i] > 0) {
+                const isOnset = (i === 0 || userGrid[i - 1] !== userGrid[i]);
+                if (isOnset) extraOnsets++;
+            }
+        }
+
+        const score = Math.max(0, hits - extraOnsets);
+        const accuracy = score / Math.max(1, noteCount);
+        const correct = accuracy >= 0.80;
         const pct = Math.round(accuracy * 100);
 
-        if (correct) {
-            this._clearRhythmUI();
-            this._handleAnswer(true, `${pct}% correct!`);
-        } else {
-            this.audioEngine.playWrong();
-            this.session.streak = 0;
-            this._showFlash('#dd8855');
+        const perfect = pct === 100;
 
-            if (!this.practiceMode) {
+        if (correct) {
+            this.audioEngine.playCorrect();
+            this.session.streak++;
+            if (this.storyBattle) {
+                this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
+                this.session.correctAnswers = (this.session.correctAnswers || 0) + 1;
+                this._entityMeter = 100;
+                this._updateHpBars();
+                this._spawnFloatingHeart();
+                this._showFlash('#50d0b0');
+                this._storyEntityDone = true;
+                this._addToRescuedPreview(
+                    this._entityData?.spriteKey || `villager-${this._entityKey}`,
+                    this._entityData?.name || 'Friend'
+                );
+            }
+        } else {
+            if (this.storyBattle) {
+                this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
+            }
+            if (!this.practiceMode && !this.storyBattle) {
                 if (this._applyWrongDamage()) {
                     this._clearRhythmUI();
                     return;
                 }
             }
-
-            this._showRhythmAnswer();
         }
+
+        // Correct: auto-advance after brief feedback
+        if (correct) {
+            this._clearRhythmUI();
+            this.messageText.setText(`${pct}% — ${perfect ? 'Perfect!' : 'Correct!'}`);
+            this._showFlash('#50d0b0');
+            if (this.storyBattle) {
+                this.time.delayedCall(500, () => this._animalFlyOff('happy'));
+            } else if (this.practiceMode) {
+                this.time.delayedCall(600, () => this._askQuestion());
+            } else {
+                this.time.delayedCall(600, () => this._handleAnswer(true, `${pct}% correct!`));
+            }
+            this._updateHud();
+            return;
+        }
+
+        // Wrong: show compare review with Play Mine / Play Answer / Next Question
+        const onContinue = () => {
+            this._clearRhythmUI();
+            if (this.storyBattle) {
+                this.time.delayedCall(300, () => this._animalFlyOff('sad'));
+            } else if (this.practiceMode) {
+                this.time.delayedCall(300, () => this._askQuestion());
+            } else {
+                this._handleAnswer(false, `${pct}%`);
+            }
+        };
+        this._showRhythmCompareUI(pct, {
+            correct: false,
+            onContinue,
+            userPattern: this._userRhythm.map(v => v > 0),
+            answerPattern: this._rhythmPattern,
+            sub: this._rhythmSub,
+            cellMs: this._rhythmCellMs,
+            onCleanup: () => this._stopRhythmPlayback(),
+            colorCells: () => {
+                if (!this.showGrid) return;
+                const pattern = this._rhythmPattern;
+                for (let i = 0; i < this._rhythmCells; i++) {
+                    if (!this._rhythmCellRects[i]) continue;
+                    const patNote = pattern[i];
+                    const userNote = this._userRhythm[i] > 0;
+                    let match;
+                    if (patNote) {
+                        match = userNote;
+                    } else {
+                        const isOnset = userNote && (i === 0 || this._userRhythm[i - 1] !== this._userRhythm[i]);
+                        match = !isOnset;
+                    }
+                    this._rhythmCellRects[i].setFillStyle(match ? 0xbbeecc : 0xffcccc);
+                }
+            },
+        });
+        this._updateHud();
     }
 
     /** Apply wrong-answer damage. Returns true if player died. */
@@ -1711,52 +2157,90 @@ export class ChallengeScene extends Phaser.Scene {
         return false;
     }
 
-    _showRhythmAnswer() {
-        const pattern = this._rhythmPattern;
-        const n = this._rhythmCells;
 
-        if (this.showGrid) {
-            const patternOnsets = pattern.map((v, i) =>
-                v && (i === 0 || !pattern[i - 1]));
-            const userOnsets = this._userRhythm.map((v, i) =>
-                v > 0 && (i === 0 || this._userRhythm[i - 1] === 0));
-            for (let i = 0; i < n; i++) {
-                if (patternOnsets[i] === userOnsets[i]) {
-                    this._rhythmCellRects[i].setFillStyle(0xbbeecc);
-                } else {
-                    this._rhythmCellRects[i].setFillStyle(0xffcccc);
-                }
-            }
+    /**
+     * Story mode: show compare UI after wrong rhythm transcription.
+     * Lets player hear their rhythm vs the answer before animal flees.
+     */
+    /**
+     * Unified compare UI for both rhythm transcription and rhythm reading.
+     * Shows Play Mine / Play Answer / Next Question buttons.
+     * @param {number} pct - accuracy percentage
+     * @param {object} opts
+     * @param {boolean} opts.correct - whether the answer was correct
+     * @param {function} opts.onContinue - called when user presses Next Question
+     * @param {boolean[]} opts.userPattern - user's rhythm as boolean array
+     * @param {boolean[]} opts.answerPattern - correct rhythm as boolean array
+     * @param {object} opts.sub - subdivision info (has .downbeats)
+     * @param {number} opts.cellMs - milliseconds per cell
+     * @param {function} [opts.colorCells] - optional callback to color grid cells
+     * @param {function} [opts.onCleanup] - extra cleanup on continue (e.g. stop playback)
+     */
+    _showRhythmCompareUI(pct, opts = {}) {
+        const { correct = false, onContinue, userPattern, answerPattern, sub, cellMs, colorCells, onCleanup } = opts;
+
+        if (!correct) {
+            this.audioEngine.playWrong();
+            this.session.streak = 0;
+            this._showFlash('#e08868');
         }
-        this._entityApproaching = false;
-        // Pause escape timer during wrong answer display
         if (this._escapeTimer) this._escapeTimer.paused = true;
-        this.messageText.setText('Wrong! Copy the correct rhythm and submit.');
 
-        this.time.delayedCall(1200, () => {
-            if (this._gameOverFlag) return;
+        if (colorCells) colorCells();
 
-            let gid = this._nextRhythmGroupId || 100;
-            for (let i = 0; i < n; i++) {
-                if (pattern[i]) {
-                    if (i === 0 || !pattern[i - 1]) {
-                        gid++;
-                    }
-                    this._userRhythm[i] = gid;
-                } else {
-                    this._userRhythm[i] = 0;
+        const label = correct ? `${pct}% — Correct! Review:` : `${pct}% — Compare and listen:`;
+        this.messageText.setText(label);
+
+        const { width, height } = this.cameras.main;
+        const btnY = height * 0.88;
+        const btnStyle = { fontSize: '20px', fill: '#ffffff', backgroundColor: '#335566',
+                           padding: { x: 16, y: 8 }, align: 'center' };
+
+        const playMineBtn = this.add.text(width * 0.25, btnY, 'Play Mine', btnStyle)
+            .setOrigin(0.5).setInteractive({ useHandCursor: true });
+        const playAnswerBtn = this.add.text(width * 0.5, btnY, 'Play Answer', btnStyle)
+            .setOrigin(0.5).setInteractive({ useHandCursor: true });
+        const continueBtn = this.add.text(width * 0.75, btnY, 'Next Question', btnStyle)
+            .setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        this._compareUI = [playMineBtn, playAnswerBtn, continueBtn];
+
+        const self = this;
+        const playPattern = (pat) => {
+            if (onCleanup) onCleanup();
+            if (self._comparePlayTimer) { self._comparePlayTimer.remove(false); self._comparePlayTimer = null; }
+            let i = 0;
+            const tick = () => {
+                if (sub?.downbeats?.includes(i)) self.audioEngine.playClick(i === 0);
+                if (pat[i]) self.audioEngine.playDrumNote();
+                i++;
+                if (i < pat.length) {
+                    self._comparePlayTimer = self.time.delayedCall(cellMs, tick);
                 }
-            }
-            this._nextRhythmGroupId = gid + 1;
-            this._refreshRhythmVisuals();
-            this._renderRhythmNotation();
+            };
+            tick();
+        };
 
-            this._questionActive = true;
-            this._entityApproaching = true;
-            // Reset escape timer with fresh budget for the retry
-            this._resetEscapeTimer();
-            this.messageText.setText('Now submit the correct rhythm!');
+        playMineBtn.on('pointerdown', () => playPattern(userPattern));
+        playAnswerBtn.on('pointerdown', () => playPattern(answerPattern));
+
+        continueBtn.on('pointerdown', () => {
+            if (onCleanup) onCleanup();
+            if (this._comparePlayTimer) { this._comparePlayTimer.remove(false); this._comparePlayTimer = null; }
+            this._clearCompareUI();
+            if (onContinue) onContinue();
         });
+    }
+
+    _clearCompareUI() {
+        if (this._compareUI) {
+            this._compareUI.forEach(o => o.destroy());
+            this._compareUI = [];
+        }
+        if (this._comparePlayTimer) {
+            this._comparePlayTimer.remove(false);
+            this._comparePlayTimer = null;
+        }
     }
 
     _clearRhythmUI() {
@@ -1781,6 +2265,15 @@ export class ChallengeScene extends Phaser.Scene {
     // ===================== RHYTHM READING (sight-tap) =====================
 
     _askRhythmReading() {
+        try { return this._askRhythmReadingInner(); } catch (err) {
+            console.error('_askRhythmReading error:', err);
+            // Recover: skip to next question
+            this._clearRhythmReadingUI();
+            this.time.delayedCall(300, () => this._askQuestion());
+        }
+    }
+
+    _askRhythmReadingInner() {
         this._clearRhythmReadingUI();
         this._stopRhythmPlayback();
 
@@ -1823,10 +2316,12 @@ export class ChallengeScene extends Phaser.Scene {
             pattern[candidates[Math.floor(Math.random() * candidates.length)]] = false;
         }
 
-        let currentGroup = 0;
-        const groupGrid  = pattern.map((v, i) => {
-            if (v) currentGroup = i + 1;
-            return currentGroup;
+        // Build groupGrid: each onset starts a new group, non-onset cells
+        // sustain the previous note so notation shows ties instead of rests.
+        let gid = 0;
+        const groupGrid = pattern.map((v) => {
+            if (v) gid++;
+            return gid;   // non-onset cells inherit previous group (sustain)
         });
 
         this._rrPattern    = pattern;
@@ -1841,17 +2336,22 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrCellRects  = [];
         this._rrCellLabels = [];
 
-        const spelled = spellPattern(groupGrid, subKey);
-        this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80);
+        let spelled = [];
+        try {
+            spelled = spellPattern(groupGrid, subKey);
+            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80);
+        } catch (err) {
+            console.error('RhythmReading notation error:', err);
+        }
 
         const title = this.add.text(width / 2, height * 0.22 - 68, 'SIGHT-TAP THIS RHYTHM', {
-            font: 'bold 14px monospace', fill: '#ffaa00',
+            font: 'bold 14px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(5);
         this._rrUI.push(title);
 
         const bpmTxt = this.add.text(width / 2, height * 0.22 + 65, `\u2669= ${this._rrBpm}`, {
-            font: '12px monospace', fill: '#887766', stroke: '#000', strokeThickness: 2
+            font: '12px monospace', fill: '#687880', stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(5);
         this._rrUI.push(bpmTxt);
 
@@ -1859,7 +2359,7 @@ export class ChallengeScene extends Phaser.Scene {
 
         const hint = this.add.text(width / 2, height * 0.40 + 42 + 14,
             'SPACE or MIDI: tap on every note onset', {
-            font: '11px monospace', fill: '#887766'
+            font: '11px monospace', fill: '#687880'
         }).setOrigin(0.5).setDepth(5);
         this._rrUI.push(hint);
 
@@ -1867,6 +2367,8 @@ export class ChallengeScene extends Phaser.Scene {
             if (e.code === 'Space') { e.preventDefault(); this._onRrTap(); }
         };
         document.addEventListener('keydown', this._rrKeyHandler);
+
+        this._questionActive = true;
 
         // Pause escape timer during entire rhythm reading sequence
         if (this._escapeTimer) this._escapeTimer.paused = true;
@@ -1887,7 +2389,7 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrCellH = cellH;
 
         const g = this.add.graphics().setDepth(4).setVisible(false);
-        g.lineStyle(1, 0x7799bb, 0.6);
+        g.lineStyle(1, 0x999999, 0.6);
         sub.downbeats.forEach(di => {
             if (!di) return;
             const lx = gridX + di * (cellW + GAP) - GAP / 2;
@@ -1902,13 +2404,13 @@ export class ChallengeScene extends Phaser.Scene {
             const isNote = this._rrPattern[i];
 
             const bg = this.add.rectangle(cx, cy, cellW, cellH,
-                isNote ? 0xddeeff : 0xf5f8ff)
-                .setStrokeStyle(1, isNote ? 0x7799cc : 0xbbccdd)
+                isNote ? 0xe8e8e8 : 0xffffff)
+                .setStrokeStyle(1, isNote ? 0x999999 : 0xcccccc)
                 .setDepth(5).setVisible(false);
 
             const lbl = this.add.text(cx, cy, sub.cells[i], {
                 font: isDB ? 'bold 14px monospace' : '11px monospace',
-                fill: isNote ? (isDB ? '#224466' : '#334455') : '#778899'
+                fill: isNote ? '#222222' : '#aaaaaa'
             }).setOrigin(0.5).setDepth(6).setVisible(false);
 
             this._rrCellRects.push(bg);
@@ -1918,7 +2420,7 @@ export class ChallengeScene extends Phaser.Scene {
     }
 
     _startRrRound() {
-        if (this._rrState !== 'idle') return;
+        if (this._rrState !== 'idle' || this._gameOverFlag) return;
         this._rrState = 'countdown';
         this._rrTaps  = [];
 
@@ -1930,7 +2432,7 @@ export class ChallengeScene extends Phaser.Scene {
         for (let b = 0; b < COUNT_IN; b++) {
             this._rrSchedule(() => {
                 this.messageText.setText(b < COUNT_IN - 1 ? `${COUNT_IN - b}...` : 'TAP!')
-                    .setStyle({ fill: '#ffcc00' });
+                    .setStyle({ fill: '#e8d098' });
                 this.audioEngine.playClick(b === 0);
             }, b * this._rrQuarterMs);
         }
@@ -1938,7 +2440,7 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrSchedule(() => {
             this._rrState    = 'recording';
             this._rrBarStart = performance.now();
-            this.messageText.setText('TAP!').setStyle({ fill: '#44ff88' });
+            this.messageText.setText('TAP!').setStyle({ fill: '#50d0b0' });
 
             sub.downbeats.forEach(di => {
                 this._rrSchedule(() => {
@@ -1969,24 +2471,46 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrStopAll();
         this._questionActive = false;
 
-        const sub      = this._rrSub;
         const cellMs   = this._rrCellMs;
-        const tol      = Math.max(100, Math.min(280, cellMs * 0.45));
+        const tol      = Math.max(140, Math.min(350, cellMs * 0.55));
         const latency  = this.tapLatencyMs || 0;
         const adjusted = this._rrTaps.map(t => t - latency);
         const expected = this._rrOnsetCells.map(i => i * cellMs);
 
+        // DP optimal matching: find maximum onset-tap matches in order
+        const nExp = expected.length;
+        const nTap = adjusted.length;
+        const dp = Array.from({ length: nExp + 1 }, () => new Array(nTap + 1).fill(0));
+        const dpMatch = Array.from({ length: nExp + 1 }, () => new Array(nTap + 1).fill(false));
+
+        for (let e = 1; e <= nExp; e++) {
+            for (let t = 1; t <= nTap; t++) {
+                dp[e][t] = Math.max(dp[e][t - 1], dp[e - 1][t]);
+                dpMatch[e][t] = false;
+                const dist = Math.abs(adjusted[t - 1] - expected[e - 1]);
+                if (dist < tol && dp[e - 1][t - 1] + 1 > dp[e][t]) {
+                    dp[e][t] = dp[e - 1][t - 1] + 1;
+                    dpMatch[e][t] = true;
+                }
+            }
+        }
+
+        // Backtrack to find which taps/onsets matched
         const usedTaps = new Set();
-        const results  = expected.map(exp => {
-            let bestIdx = -1, bestDiff = Infinity;
-            adjusted.forEach((tap, ti) => {
-                if (usedTaps.has(ti)) return;
-                const d = Math.abs(tap - exp);
-                if (d < tol && d < bestDiff) { bestDiff = d; bestIdx = ti; }
-            });
-            if (bestIdx >= 0) { usedTaps.add(bestIdx); return { hit: true }; }
-            return { hit: false };
-        });
+        const hitOnsets = new Set();
+        let ei = nExp, ti = nTap;
+        while (ei > 0 && ti > 0) {
+            if (dpMatch[ei][ti]) {
+                usedTaps.add(ti - 1);
+                hitOnsets.add(ei - 1);
+                ei--; ti--;
+            } else if (dp[ei][ti - 1] >= dp[ei - 1][ti]) {
+                ti--;
+            } else {
+                ei--;
+            }
+        }
+        const results = expected.map((_, i) => ({ hit: hitOnsets.has(i) }));
 
         const hits      = results.filter(r => r.hit).length;
         const total     = expected.length;
@@ -1999,12 +2523,11 @@ export class ChallengeScene extends Phaser.Scene {
 
         for (let i = 0; i < this._rrCells; i++) {
             const isNote = this._rrPattern[i];
-            const isDB   = sub.downbeats.includes(i);
-            this._rrCellRects[i]?.setFillStyle(isNote ? 0x1a2233 : 0x0c1018)
-                .setStrokeStyle(1, isNote ? 0x334466 : 0x1a2233);
+            this._rrCellRects[i]?.setFillStyle(isNote ? 0xdddddd : 0xf0f0f0)
+                .setStrokeStyle(1, isNote ? 0x999999 : 0xcccccc);
             if (this._rrCellLabels[i]) {
                 this._rrCellLabels[i].setStyle({
-                    fill: isNote ? (isDB ? '#aa9977' : '#887766') : '#2a2418'
+                    fill: isNote ? '#555555' : '#aaaaaa'
                 });
             }
         }
@@ -2012,10 +2535,10 @@ export class ChallengeScene extends Phaser.Scene {
         results.forEach((res, ei) => {
             const cell = this._rrOnsetCells[ei];
             if (res.hit) {
-                this._rrCellRects[cell]?.setFillStyle(0xbbeecc).setStrokeStyle(2, 0x44aa66);
+                this._rrCellRects[cell]?.setFillStyle(0xd4f5d4).setStrokeStyle(2, 0x44aa66);
                 if (this._rrCellLabels[cell]) this._rrCellLabels[cell].setStyle({ fill: '#226633' });
             } else {
-                this._rrCellRects[cell]?.setFillStyle(0xffddcc).setStrokeStyle(2, 0xff8800);
+                this._rrCellRects[cell]?.setFillStyle(0xffe0cc).setStrokeStyle(2, 0xff8800);
                 if (this._rrCellLabels[cell]) this._rrCellLabels[cell].setStyle({ fill: '#cc5500' });
             }
         });
@@ -2023,19 +2546,75 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrTaps.forEach((tap, ti) => {
             if (!usedTaps.has(ti)) {
                 const cell = Math.min(this._rrCells - 1, Math.max(0, Math.floor((tap - latency) / cellMs)));
-                this._rrCellRects[cell]?.setFillStyle(0x331111).setStrokeStyle(2, 0xff3333);
-                if (this._rrCellLabels[cell]) this._rrCellLabels[cell].setStyle({ fill: '#ff3333' });
+                this._rrCellRects[cell]?.setFillStyle(0xffcccc).setStrokeStyle(2, 0xdd3333);
+                if (this._rrCellLabels[cell]) this._rrCellLabels[cell].setStyle({ fill: '#cc2222' });
             }
         });
 
-        const passed   = accuracy >= 0.70 && extraTaps <= Math.max(1, Math.floor(total * 0.3));
+        const passed   = accuracy >= 0.80 && extraTaps <= Math.max(1, Math.floor(total * 0.3));
         const extraStr = extraTaps > 0 ? `  +${extraTaps} extra` : '';
         const msg      = `${pct}%  ${hits}/${total}${extraStr}`;
 
+        // Apply effects based on result
         if (passed) {
-            this._clearRhythmReadingUI();
+            this.audioEngine.playCorrect();
+            this.session.streak++;
+            this._showFlash('#50d0b0');
+            if (this.storyBattle) {
+                this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
+                this.session.correctAnswers = (this.session.correctAnswers || 0) + 1;
+                this._entityMeter = 100;
+                this._updateHpBars();
+                this._spawnFloatingHeart();
+                this._storyEntityDone = true;
+                this._addToRescuedPreview(
+                    this._entityData?.spriteKey || `villager-${this._entityKey}`,
+                    this._entityData?.name || 'Friend'
+                );
+            }
+        } else {
+            if (this.storyBattle) {
+                this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
+            }
+            if (!this.practiceMode && !this.storyBattle) {
+                if (this._applyWrongDamage()) {
+                    this._clearRhythmReadingUI();
+                    return;
+                }
+            }
         }
-        this._handleAnswer(passed, msg);
+
+        // Always show review for rhythm reading
+        const onContinue = () => {
+            this._clearRhythmReadingUI();
+            if (this.storyBattle) {
+                if (passed) {
+                    this.time.delayedCall(300, () => this._animalFlyOff('happy'));
+                } else {
+                    this.time.delayedCall(300, () => this._animalFlyOff('sad'));
+                }
+            } else if (this.practiceMode) {
+                this.time.delayedCall(300, () => this._askQuestion());
+            } else {
+                this._handleAnswer(passed, msg);
+            }
+        };
+        // Reconstruct user taps as cell pattern for compare playback
+        const userTapPattern = new Array(this._rrCells).fill(false);
+        this._rrTaps.forEach(t => {
+            const cell = Math.round((t - latency) / cellMs);
+            if (cell >= 0 && cell < userTapPattern.length) userTapPattern[cell] = true;
+        });
+
+        this._showRhythmCompareUI(pct, {
+            correct: passed,
+            onContinue,
+            userPattern: userTapPattern,
+            answerPattern: this._rrPattern,
+            sub: this._rrSub,
+            cellMs,
+        });
+        this._updateHud();
     }
 
     _clearRhythmReadingUI() {
@@ -2085,29 +2664,26 @@ export class ChallengeScene extends Phaser.Scene {
             this.session.score += pts;
 
             this.messageText.setText(`${message} +${pts} pts`);
-            this._showFlash('#44ff44');
+            this._showFlash('#50d0b0');
             this._onCorrectHit();
         } else {
             this.audioEngine.playWrong();
             this.session.streak = 0;
 
             this.messageText.setText(message);
-            this._showFlash('#dd8855');
+            this._showFlash('#e08868');
 
             if (!this.practiceMode) {
                 if (this._applyWrongDamage()) return;
             }
 
-            if (this._challengeType === 'tone' || this._challengeType === 'noteReading') {
-                this.time.delayedCall(800, () => {
-                    if (this._gameOverFlag) return;
-                    this._questionActive = true;
-                    this.messageText.setText('Try again...');
-                    if (this._challengeType === 'tone' && this._currentDegree) {
-                        const freq = this.musicTheory.getIntervalFreq(this._currentDegree);
-                        this.audioEngine.playInterval(freq, '2n');
-                    }
-                });
+            if (this.practiceMode) {
+                // Practice mode: always advance to a fresh question for all types
+                this._onWrongEffect();
+            } else if (this._challengeType === 'tone' || this._challengeType === 'noteReading') {
+                // Story mode: retry same question — re-enable input immediately
+                this._questionActive = true;
+                this.messageText.setText('Try again...');
             } else {
                 this._onWrongEffect();
             }
@@ -2147,22 +2723,22 @@ export class ChallengeScene extends Phaser.Scene {
             this.progression.save(this.playerStats);
         }
 
-        this.add.rectangle(width / 2, height / 2, 360, 200, 0x000022, 0.95)
-            .setStrokeStyle(2, 0x44ff44).setDepth(60);
+        this.add.rectangle(width / 2, height / 2, 360, 200, 0x142030, 0.95)
+            .setStrokeStyle(2, 0x50d0b0).setDepth(60);
         this.add.text(width / 2, height / 2 - 65, cfg.title, {
-            font: 'bold 30px monospace', fill: '#ffcc00',
+            font: 'bold 30px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 5
         }).setOrigin(0.5).setDepth(61);
         this.add.text(width / 2, height / 2 - 25, cfg.rewardLabel(xp, gold), {
-            font: '18px monospace', fill: '#ffcc00', stroke: '#000', strokeThickness: 3
+            font: '18px monospace', fill: '#e8d098', stroke: '#000', strokeThickness: 3
         }).setOrigin(0.5).setDepth(61);
         const accuracy = (this.session.totalAnswers || 0) > 0
             ? Math.round(((this.session.correctAnswers || 0) / this.session.totalAnswers) * 100) : 0;
         this.add.text(width / 2, height / 2 + 5, `Accuracy: ${accuracy}%`, {
-            font: '14px monospace', fill: '#aaccff'
+            font: '14px monospace', fill: '#90c8c0'
         }).setOrigin(0.5).setDepth(61);
         this.add.text(width / 2, height / 2 + 30, cfg.playerLabel(this.playerStats), {
-            font: '13px monospace', fill: '#88ffaa'
+            font: '13px monospace', fill: '#90c8c0'
         }).setOrigin(0.5).setDepth(61);
 
         this._makeBtn(width / 2, height / 2 + 70, 'CONTINUE', '#113311', '#225522', () => {
@@ -2182,17 +2758,39 @@ export class ChallengeScene extends Phaser.Scene {
         this.playerStats.hp = Math.max(1, Math.floor(this.playerStats.maxHp * 0.5));
         if (this.progression) this.progression.save(this.playerStats);
 
-        this.add.rectangle(width / 2, height / 2, 360, 150, cfg.bg, 0.95)
-            .setStrokeStyle(2, cfg.stroke).setDepth(60);
-        this.add.text(width / 2, height / 2 - 40, cfg.title, {
-            font: 'bold 30px monospace', fill: cfg.titleColor,
-            stroke: '#000000', strokeThickness: 5
+        // Dark overlay for cozy nighttime feel
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0a0e18, 0.85).setDepth(59);
+
+        // Bed with character tucked in: character behind bed, head peeking out top
+        const bedX = width / 2;
+        const bedY = height * 0.30;
+        const ck = this._charKey || 'avatar';
+        if (this.textures.exists('bed')) {
+            this.add.image(bedX, bedY - 9, 'bed').setScale(3.6).setDepth(60);
+        }
+        this.add.sprite(bedX, bedY - 43, `player-${ck}`, 0)
+            .setScale(3.2).setOrigin(0.5, 0.5).setDepth(61);
+
+        // Zzz floating text
+        const zzz = this.add.text(bedX + 40, bedY - 70, 'z z z', {
+            font: 'bold 22px monospace', fill: '#e8d098',
+            stroke: '#0a0e18', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(61).setAlpha(0.7);
+        this.tweens.add({
+            targets: zzz, y: zzz.y - 20, alpha: 0.3,
+            duration: 2000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+        });
+
+        this.add.text(width / 2, height * 0.52, cfg.title, {
+            font: 'bold 24px monospace', fill: cfg.titleColor,
+            stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(61);
-        this.add.text(width / 2, height / 2, cfg.message, {
-            font: '14px monospace', fill: cfg.messageColor
+        this.add.text(width / 2, height * 0.62, cfg.message, {
+            font: '13px monospace', fill: cfg.messageColor,
+            align: 'center'
         }).setOrigin(0.5).setDepth(61);
 
-        this._makeBtn(width / 2, height / 2 + 45, 'CONTINUE', cfg.btnBg, cfg.btnHover, () => {
+        this._makeBtn(width / 2, height * 0.76, 'CONTINUE', cfg.btnBg, cfg.btnHover, () => {
             this.audioEngine.dispose();
             this._returnFromStoryBattle(false);
         }).setDepth(61);
@@ -2209,9 +2807,7 @@ export class ChallengeScene extends Phaser.Scene {
             isSpecial: this._entityData?.isSpecial || this._entityData?.isBoss || false,
         };
 
-        const returnKey = this.isOverworldMode ? this._overlayReturnScene()
-                        : this.returnScene || 'PracticeMenuScene';
-
+        const returnKey = this.returnScene || 'PracticeMenuScene';
         const underlying = this.scene.get(returnKey);
         if (underlying && underlying._onBattleResult) {
             underlying._onBattleResult(resultData);
@@ -2233,25 +2829,49 @@ export class ChallengeScene extends Phaser.Scene {
         const pm = new ProgressionManager();
         pm.saveArcadeScore(scoreKey, this.session.score);
 
-        this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.8).setDepth(60);
+        // Dark nighttime overlay
+        this.add.rectangle(width / 2, height / 2, width, height, 0x0a0e18, 0.85).setDepth(59);
 
-        this.add.text(width / 2, height * 0.25, cfg.title, {
-            font: 'bold 52px monospace', fill: cfg.titleColor,
-            stroke: '#000000', strokeThickness: 6
-        }).setOrigin(0.5).setDepth(61);
+        // Bed with character tucked in: character behind bed, head peeking out top
+        const bedX = width / 2;
+        const bedY = height * 0.18;
+        const ck = this._charKey || 'avatar';
+        if (this.textures.exists('bed')) {
+            this.add.image(bedX, bedY - 9, 'bed').setScale(3.6).setDepth(60);
+        }
+        this.add.sprite(bedX, bedY - 43, `player-${ck}`, 0)
+            .setScale(3.2).setOrigin(0.5, 0.5).setDepth(61);
+        const zzz = this.add.text(bedX + 40, bedY - 60, 'z z z', {
+            font: 'bold 22px monospace', fill: '#e8d098',
+            stroke: '#0a0e18', strokeThickness: 3
+        }).setOrigin(0.5).setDepth(61).setAlpha(0.7);
+        this.tweens.add({
+            targets: zzz, y: zzz.y - 15, alpha: 0.3,
+            duration: 2000, yoyo: true, repeat: -1, ease: 'Sine.easeInOut'
+        });
 
-        this.add.text(width / 2, height * 0.42, `Score: ${this.session.score}`, {
-            font: 'bold 30px monospace', fill: '#ffcc00',
+        this.add.text(width / 2, height * 0.36, cfg.title, {
+            font: 'bold 22px monospace', fill: cfg.titleColor,
             stroke: '#000000', strokeThickness: 4
         }).setOrigin(0.5).setDepth(61);
 
-        this.add.text(width / 2, height * 0.52, `${cfg.entityLabel}: ${this.session.entitiesDefeated}`, {
-            font: '20px monospace', fill: '#88ff88',
+        this.add.text(width / 2, height * 0.44, cfg.message, {
+            font: '13px monospace', fill: cfg.messageColor,
+            align: 'center'
+        }).setOrigin(0.5).setDepth(61);
+
+        this.add.text(width / 2, height * 0.54, `Score: ${this.session.score}`, {
+            font: 'bold 26px monospace', fill: '#e8d098',
+            stroke: '#000000', strokeThickness: 4
+        }).setOrigin(0.5).setDepth(61);
+
+        this.add.text(width / 2, height * 0.61, `${cfg.entityLabel}: ${this.session.entitiesDefeated}`, {
+            font: '18px monospace', fill: '#50d0b0',
             stroke: '#000000', strokeThickness: 3
         }).setOrigin(0.5).setDepth(61);
 
-        this.add.text(width / 2, height * 0.60, `Rounds Survived: ${this.session.round}`, {
-            font: '18px monospace', fill: '#eedd88',
+        this.add.text(width / 2, height * 0.68, `Rounds: ${this.session.round}`, {
+            font: '16px monospace', fill: '#e8d098',
             stroke: '#000000', strokeThickness: 3
         }).setOrigin(0.5).setDepth(61);
 
@@ -2266,7 +2886,7 @@ export class ChallengeScene extends Phaser.Scene {
                     rhythmSubs: this.customRhythmSubs, tonesKey: this.tonesKey, sounds: this.soundSettings } });
         }).setDepth(61);
 
-        this._makeBtn(width / 2 + 110, height * 0.82, 'MENU', '#221111', '#443333', () => {
+        this._makeBtn(width / 2 + 110, height * 0.82, 'MENU', '#142030', '#243848', () => {
             this.audioEngine.dispose();
             this._returnToSource();
         }).setDepth(61);
@@ -2282,7 +2902,7 @@ export class ChallengeScene extends Phaser.Scene {
         const y = height * 0.70;
 
         this.add.text(width / 2, y - 20, `Helped ${this._rescuedList.length} villager${this._rescuedList.length !== 1 ? 's' : ''}!`, {
-            font: 'bold 13px monospace', fill: '#aabb88',
+            font: 'bold 13px monospace', fill: '#90c8c0',
             stroke: '#000000', strokeThickness: 2
         }).setOrigin(0.5).setDepth(61);
 
@@ -2328,7 +2948,7 @@ export class ChallengeScene extends Phaser.Scene {
 
     _makeBtn(x, y, label, bgColor, hoverColor, cb) {
         const btn = this.add.text(x, y, label, {
-            font: 'bold 18px monospace', fill: '#ffffff',
+            font: 'bold 18px monospace', fill: '#e8f0f0',
             backgroundColor: bgColor, padding: { x: 18, y: 9 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: hoverColor }));
@@ -2339,8 +2959,7 @@ export class ChallengeScene extends Phaser.Scene {
 
     _returnToSource() {
         if (this.isSidescrollMode) {
-            const returnKey = this.isOverworldMode ? this._overlayReturnScene()
-                            : this.returnScene || 'PracticeMenuScene';
+            const returnKey = this.returnScene || 'PracticeMenuScene';
             const underlying = this.scene.get(returnKey);
             if (underlying && underlying._onBattleResult) {
                 underlying._onBattleResult({
@@ -2360,32 +2979,6 @@ export class ChallengeScene extends Phaser.Scene {
 
     // ===================== PRACTICE MODE NPC =====================
 
-    _spawnFriendlyNpc(challengeType) {
-        const npcs = this._practiceNpcs();
-        const cfg = npcs[challengeType] || npcs.default;
-
-        if (this._npcSprite && this._npcType === challengeType) {
-            this._showNpcTip(challengeType);
-            return;
-        }
-
-        if (this._npcSprite) { this._npcSprite.destroy(); this._npcSprite = null; }
-        if (this._npcNameText) { this._npcNameText.destroy(); this._npcNameText = null; }
-
-        const NPC_X = 714;
-        this._npcType = challengeType;
-        this._npcSprite = this.add.sprite(NPC_X, GROUND_Y, cfg.key);
-        this._npcSprite.setOrigin(0.5, 1).setScale(cfg.scale).setDepth(2).setFlipX(cfg.flip);
-        this._npcSprite.play(cfg.anim);
-
-        this._npcNameText = this.add.text(NPC_X, GROUND_Y - cfg.h - 4, cfg.name, {
-            font: 'bold 12px monospace', fill: '#ffdd88',
-            stroke: '#000000', strokeThickness: 2
-        }).setOrigin(0.5, 1).setDepth(3);
-
-        this._showNpcTip(challengeType);
-    }
-
     _practiceNpcs() {
         return PRACTICE_NPCS_COZY;
     }
@@ -2399,24 +2992,19 @@ export class ChallengeScene extends Phaser.Scene {
         const bubbleW = 174;
         const bubbleH = 68;
         const bubbleX = 714 - bubbleW / 2 - 4;
-        const bubbleY = GROUND_Y - 90;
+        const bubbleY = GROUND_Y + 46;
 
-        const bg = this.add.rectangle(bubbleX, bubbleY, bubbleW, bubbleH, 0x112233, 0.93)
-            .setStrokeStyle(2, 0x88ccff).setDepth(8);
+        const bg = this.add.rectangle(bubbleX, bubbleY, bubbleW, bubbleH, 0x142030, 0.93)
+            .setStrokeStyle(2, 0x90c8c0).setDepth(8);
         const label = this.add.text(bubbleX, bubbleY - bubbleH / 2 + 8, 'TIP', {
-            font: 'bold 10px monospace', fill: '#88ccff'
+            font: 'bold 10px monospace', fill: '#90c8c0'
         }).setOrigin(0.5, 0).setDepth(9);
         const text = this.add.text(bubbleX, bubbleY + 6, `"${tip}"`, {
-            font: '11px monospace', fill: '#ccddff',
+            font: '11px monospace', fill: '#e8f0f0',
             wordWrap: { width: bubbleW - 16 }, align: 'center'
         }).setOrigin(0.5, 0.5).setDepth(9);
-        const tail = this.add.triangle(
-            bubbleX + bubbleW / 2 + 8, bubbleY + 4,
-            0, -7, 12, 0, 0, 7,
-            0x112233
-        ).setDepth(8);
 
-        this._npcBubble = [bg, label, text, tail];
+        this._npcBubble = [bg, label, text];
     }
 
     _clearNpc() {

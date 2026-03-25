@@ -13,18 +13,18 @@ import {
 
 const PANEL_W = 640;
 const PANEL_H = 460;
-const BG_COLOR     = 0x1a150e;
-const BORDER_COLOR = 0x665533;
-const TITLE_COLOR  = '#ffcc66';
-const LABEL_COLOR  = '#aa9977';
-const ON_COLOR     = '#ffcc00';
-const ON_BG        = '#2a2a00';
-const OFF_COLOR    = '#bbaa88';
-const OFF_BG       = '#2a2418';
-const SEL_COLOR    = '#ffcc00';
-const SEL_BG       = '#333311';
-const UNSEL_COLOR  = '#888888';
-const UNSEL_BG     = '#222222';
+const BG_COLOR     = 0x0c1420;
+const BORDER_COLOR = 0x243848;
+const TITLE_COLOR  = '#e8d098';
+const LABEL_COLOR  = '#687880';
+const ON_COLOR     = '#e8d098';
+const ON_BG        = '#1a2838';
+const OFF_COLOR    = '#90c8c0';
+const OFF_BG       = '#142030';
+const SEL_COLOR    = '#e8d098';
+const SEL_BG       = '#243848';
+const UNSEL_COLOR  = '#687880';
+const UNSEL_BG     = '#142030';
 const VOL_STEP     = 0.25;   // volume step per click
 const VOL_STEPS    = [0, 0.25, 0.5, 0.75, 1.0];
 
@@ -68,10 +68,10 @@ export class SettingsScene extends Phaser.Scene {
 
         // Close button
         const closeBtn = this.add.text(px + PANEL_W - 14, py + 14, '✕', {
-            font: 'bold 18px monospace', fill: '#887766',
+            font: 'bold 18px monospace', fill: '#687880',
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
-        closeBtn.on('pointerover', () => closeBtn.setStyle({ fill: '#dd8855' }));
-        closeBtn.on('pointerout',  () => closeBtn.setStyle({ fill: '#887766' }));
+        closeBtn.on('pointerover', () => closeBtn.setStyle({ fill: '#e08868' }));
+        closeBtn.on('pointerout',  () => closeBtn.setStyle({ fill: '#687880' }));
         closeBtn.on('pointerdown', () => this._close());
 
         // ESC to close
@@ -95,7 +95,7 @@ export class SettingsScene extends Phaser.Scene {
         this.add.text(px + 24, cy - 14, 'MIDI', {
             font: 'bold 11px monospace', fill: LABEL_COLOR,
         }).setOrigin(0, 0.5);
-        this.add.rectangle(width / 2, cy - 4, PANEL_W - 40, 1, 0x2233aa, 0.6);
+        this.add.rectangle(width / 2, cy - 4, PANEL_W - 40, 1, 0x243848, 0.6);
 
         // Status row
         cy += 14;
@@ -103,20 +103,20 @@ export class SettingsScene extends Phaser.Scene {
             font: '11px monospace', fill: LABEL_COLOR,
         }).setOrigin(0, 0.5);
         this._midiStatusLabel = this.add.text(px + 108, cy, 'Checking...', {
-            font: '11px monospace', fill: '#888888',
+            font: '11px monospace', fill: '#687880',
         }).setOrigin(0, 0.5);
 
         const reconnectBtn = this.add.text(px + PANEL_W - 120, cy, 'RESCAN', {
-            font: 'bold 10px monospace', fill: '#bbaa88',
-            backgroundColor: '#2a2418', padding: { x: 7, y: 4 },
+            font: 'bold 10px monospace', fill: '#90c8c0',
+            backgroundColor: '#142030', padding: { x: 7, y: 4 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
-        reconnectBtn.on('pointerover', () => reconnectBtn.setStyle({ fill: '#ffcc00' }));
-        reconnectBtn.on('pointerout',  () => reconnectBtn.setStyle({ fill: '#bbaa88' }));
+        reconnectBtn.on('pointerover', () => reconnectBtn.setStyle({ fill: '#e8d098' }));
+        reconnectBtn.on('pointerout',  () => reconnectBtn.setStyle({ fill: '#90c8c0' }));
         reconnectBtn.on('pointerdown', () => this._reconnectMidi());
 
         // Hint — Firefox caches MIDI devices at page load
         this.add.text(px + 24, cy + 14, 'Refresh page if new device not found', {
-            font: '9px monospace', fill: '#887766',
+            font: '9px monospace', fill: '#687880',
         }).setOrigin(0, 0.5);
 
         // Transpose row
@@ -127,15 +127,15 @@ export class SettingsScene extends Phaser.Scene {
 
         const tx = px + 120;
         const transpDecBtn = this.add.text(tx, cy, '◀', {
-            font: 'bold 14px monospace', fill: '#556688', padding: { x: 6, y: 3 },
+            font: 'bold 14px monospace', fill: '#687880', padding: { x: 6, y: 3 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
         this._transpLabel = this.add.text(tx + 28, cy, this._transpText(this.settings.midiTranspose), {
-            font: 'bold 11px monospace', fill: '#aaccee', padding: { x: 4, y: 3 },
+            font: 'bold 11px monospace', fill: '#90c8c0', padding: { x: 4, y: 3 },
         }).setOrigin(0, 0.5);
 
         const transpIncBtn = this.add.text(tx + 72, cy, '▶', {
-            font: 'bold 14px monospace', fill: '#556688', padding: { x: 6, y: 3 },
+            font: 'bold 14px monospace', fill: '#687880', padding: { x: 6, y: 3 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
         const updateTransp = (delta) => {
@@ -148,7 +148,7 @@ export class SettingsScene extends Phaser.Scene {
         transpIncBtn.on('pointerdown', () => updateTransp(+1));
 
         this.add.text(tx + 100, cy, 'semitones', {
-            font: '10px monospace', fill: '#887766',
+            font: '10px monospace', fill: '#687880',
         }).setOrigin(0, 0.5);
 
         // Start async MIDI status check
@@ -159,11 +159,11 @@ export class SettingsScene extends Phaser.Scene {
         this.add.text(px + 24, cy - 14, 'SOUNDS', {
             font: 'bold 11px monospace', fill: LABEL_COLOR,
         }).setOrigin(0, 0.5);
-        this.add.rectangle(width / 2, cy - 4, PANEL_W - 40, 1, 0x2233aa, 0.6);
+        this.add.rectangle(width / 2, cy - 4, PANEL_W - 40, 1, 0x243848, 0.6);
 
         // Column headers
-        this.add.text(px + 24 + 80,       cy + 2, 'PRESET', { font: '9px monospace', fill: '#887766' }).setOrigin(0, 0.5);
-        this.add.text(px + PANEL_W - 130, cy + 2, 'VOLUME',  { font: '9px monospace', fill: '#887766' }).setOrigin(0, 0.5);
+        this.add.text(px + 24 + 80,       cy + 2, 'PRESET', { font: '9px monospace', fill: '#687880' }).setOrigin(0, 0.5);
+        this.add.text(px + PANEL_W - 130, cy + 2, 'VOLUME',  { font: '9px monospace', fill: '#687880' }).setOrigin(0, 0.5);
 
         const soundRows = [
             { label: 'CLICK',  key: 'click',      presets: CLICK_PRESETS,       defaultPreset: 'stick', defaultVol: 1.0 },
@@ -215,17 +215,17 @@ export class SettingsScene extends Phaser.Scene {
 
             const volX = px + PANEL_W - 130;
             const decBtn = this.add.text(volX, rowY, '◀', {
-                font: 'bold 14px monospace', fill: '#556688',
+                font: 'bold 14px monospace', fill: '#687880',
                 padding: { x: 6, y: 3 },
             }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
             const volLabel = this.add.text(volX + 28, rowY, this._volText(vols[row.key]), {
-                font: 'bold 11px monospace', fill: '#aaccee',
+                font: 'bold 11px monospace', fill: '#90c8c0',
                 padding: { x: 4, y: 3 },
             }).setOrigin(0, 0.5);
 
             const incBtn = this.add.text(volX + 82, rowY, '▶', {
-                font: 'bold 14px monospace', fill: '#556688',
+                font: 'bold 14px monospace', fill: '#687880',
                 padding: { x: 6, y: 3 },
             }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
@@ -235,8 +235,8 @@ export class SettingsScene extends Phaser.Scene {
                 const next = VOL_STEPS[Math.max(0, Math.min(VOL_STEPS.length - 1, idx + delta))];
                 vols[row.key] = next;
                 volLabel.setText(this._volText(next));
-                decBtn.setStyle({ fill: next <= 0    ? '#2a3344' : '#556688' });
-                incBtn.setStyle({ fill: next >= 1.0  ? '#2a3344' : '#556688' });
+                decBtn.setStyle({ fill: next <= 0    ? '#1a2838' : '#687880' });
+                incBtn.setStyle({ fill: next >= 1.0  ? '#1a2838' : '#687880' });
                 this._save();
             };
 
@@ -245,17 +245,17 @@ export class SettingsScene extends Phaser.Scene {
 
             // Dim arrows at limits
             const initVol = this._snapVol(vols[row.key]);
-            if (initVol <= 0)   decBtn.setStyle({ fill: '#2a3344' });
-            if (initVol >= 1.0) incBtn.setStyle({ fill: '#2a3344' });
+            if (initVol <= 0)   decBtn.setStyle({ fill: '#1a2838' });
+            if (initVol >= 1.0) incBtn.setStyle({ fill: '#1a2838' });
         });
 
         // ── Edit Avatar button ────────────────────────────────
         const avatarBtn = this.add.text(px + 24, py + PANEL_H - 44, 'EDIT AVATAR', {
-            font: 'bold 13px monospace', fill: '#bbaa88',
-            backgroundColor: '#2a2418', padding: { x: 10, y: 6 },
+            font: 'bold 13px monospace', fill: '#90c8c0',
+            backgroundColor: '#142030', padding: { x: 10, y: 6 },
         }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
-        avatarBtn.on('pointerover', () => avatarBtn.setStyle({ fill: '#ffcc00' }));
-        avatarBtn.on('pointerout',  () => avatarBtn.setStyle({ fill: '#bbaa88' }));
+        avatarBtn.on('pointerover', () => avatarBtn.setStyle({ fill: '#e8d098' }));
+        avatarBtn.on('pointerout',  () => avatarBtn.setStyle({ fill: '#90c8c0' }));
         avatarBtn.on('pointerdown', () => {
             this.scene.pause('SettingsScene');
             this.scene.launch('AvatarBuilderScene', { callerScene: 'SettingsScene' });
@@ -263,7 +263,7 @@ export class SettingsScene extends Phaser.Scene {
 
         // ── Hint text ─────────────────────────────────────────
         this.add.text(width / 2, py + PANEL_H - 16, 'ESC or ✕ to close', {
-            font: '10px monospace', fill: '#334455',
+            font: '10px monospace', fill: '#687880',
         }).setOrigin(0.5);
     }
 
@@ -274,7 +274,7 @@ export class SettingsScene extends Phaser.Scene {
     async _checkMidiStatus() {
         if (!this._midiStatusLabel) return;
         if (!navigator.requestMIDIAccess) {
-            this._midiStatusLabel.setText('Not supported').setStyle({ fill: '#ff6644' });
+            this._midiStatusLabel.setText('Not supported').setStyle({ fill: '#e08868' });
             return;
         }
         this._midiInput = new MidiInput();
@@ -290,7 +290,7 @@ export class SettingsScene extends Phaser.Scene {
             const text = reason === 'not-supported' ? 'Not supported'
                        : reason === 'permission-denied' ? 'Permission denied'
                        : 'Unavailable';
-            this._midiStatusLabel.setText(text).setStyle({ fill: '#ff6644' });
+            this._midiStatusLabel.setText(text).setStyle({ fill: '#e08868' });
             return;
         }
         // Actually try to open each port — Firefox reports unplugged devices as state=connected
@@ -299,15 +299,15 @@ export class SettingsScene extends Phaser.Scene {
             const first = alive[0].name || 'Unknown';
             const truncated = first.length > 26 ? first.slice(0, 24) + '…' : first;
             const label = alive.length > 1 ? `${truncated} +${alive.length - 1}` : truncated;
-            this._midiStatusLabel.setText(label).setStyle({ fill: '#44cc66' });
+            this._midiStatusLabel.setText(label).setStyle({ fill: '#50d0b0' });
         } else {
-            this._midiStatusLabel.setText('No device found').setStyle({ fill: '#ffaa44' });
+            this._midiStatusLabel.setText('No device found').setStyle({ fill: '#e8d098' });
         }
     }
 
     async _reconnectMidi() {
         if (!this._midiStatusLabel) return;
-        this._midiStatusLabel.setText('Scanning...').setStyle({ fill: '#888888' });
+        this._midiStatusLabel.setText('Scanning...').setStyle({ fill: '#687880' });
 
         if (this._midiInput) this._midiInput.dispose();
 
