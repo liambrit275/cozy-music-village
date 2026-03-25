@@ -272,6 +272,15 @@ export class ChallengeScene extends Phaser.Scene {
             this._cancelEncounterTimer();
             if (this.midiInput) this.midiInput.dispose();
             this._clearNpc();
+            // Remove document-level listeners that survive scene destruction
+            if (this._rrKeyHandler) {
+                document.removeEventListener('keydown', this._rrKeyHandler);
+                this._rrKeyHandler = null;
+            }
+            if (this._farmerKeyHandler) {
+                document.removeEventListener('keydown', this._farmerKeyHandler);
+                this._farmerKeyHandler = null;
+            }
         });
 
         // Init audio + apply sound presets
@@ -398,6 +407,10 @@ export class ChallengeScene extends Phaser.Scene {
         btnBg.on('pointerover', () => btnBg.setFillStyle(0x68e0c0));
         btnBg.on('pointerout', () => btnBg.setFillStyle(0x50d0b0));
         btnBg.on('pointerdown', () => {
+            if (this._farmerKeyHandler) {
+                document.removeEventListener('keydown', this._farmerKeyHandler);
+                this._farmerKeyHandler = null;
+            }
             this._farmerUI.forEach(o => o.destroy());
             this._farmerUI = [];
             this._showFarmerTutorial = false;
@@ -405,17 +418,18 @@ export class ChallengeScene extends Phaser.Scene {
         });
 
         // Also allow SPACE/ENTER to dismiss
-        const keyHandler = (e) => {
+        this._farmerKeyHandler = (e) => {
             if (e.code === 'Space' || e.code === 'Enter') {
                 e.preventDefault();
-                document.removeEventListener('keydown', keyHandler);
+                document.removeEventListener('keydown', this._farmerKeyHandler);
+                this._farmerKeyHandler = null;
                 this._farmerUI.forEach(o => o.destroy());
                 this._farmerUI = [];
                 this._showFarmerTutorial = false;
                 if (onDismiss) onDismiss();
             }
         };
-        document.addEventListener('keydown', keyHandler);
+        document.addEventListener('keydown', this._farmerKeyHandler);
     }
 
     _openSettings() {
@@ -673,6 +687,7 @@ export class ChallengeScene extends Phaser.Scene {
             this._encounterTimerLoop.remove(false);
             this._encounterTimerLoop = null;
         }
+        this._cancelEscapeTimer();
     }
 
     _cancelEscapeTimer() {
@@ -1320,6 +1335,11 @@ export class ChallengeScene extends Phaser.Scene {
     }
 
     _clearChallengeUI(type) {
+        // Clear DOM overlays (VexFlow SVG) to prevent accumulation
+        this.staffRenderer.clear();
+        this.rhythmNotationRenderer.clear();
+        this._staffVisible = false;
+
         switch (type) {
             case 'tone':
                 this._clearSolfegeButtons();
@@ -2494,7 +2514,7 @@ export class ChallengeScene extends Phaser.Scene {
             this.session.streak = 0;
             this._showFlash('#e08868');
         }
-        if (this._escapeTimer) this._escapeTimer.paused = true;
+        this._cancelEscapeTimer();
 
         if (colorCells) colorCells();
 
@@ -2814,6 +2834,7 @@ export class ChallengeScene extends Phaser.Scene {
         this._rrState = 'feedback';
         this._rrStopAll();
         this._questionActive = false;
+        this._cancelEscapeTimer();
 
         const cellMs   = this._rrCellMs;
         const tol      = Math.max(140, Math.min(350, cellMs * 0.55));

@@ -301,7 +301,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         const on = this.settings.gradual;
         this.gradualBtn.setText(on ? '✓ GRADUAL' : '✗ GRADUAL');
         this.gradualBtn.setStyle({
-            backgroundColor: on ? '#142030' : '#142030',
+            backgroundColor: on ? '#243848' : '#142030',
             fill: on ? '#e8d098' : '#687880'
         });
     }
@@ -316,7 +316,7 @@ export class ArcadeMenuScene extends Phaser.Scene {
         const on = this.settings.practice;
         this.practiceBtn.setText(on ? '✓ PRACTICE' : '✗ PRACTICE');
         this.practiceBtn.setStyle({
-            backgroundColor: on ? '#142030' : '#142030',
+            backgroundColor: on ? '#243848' : '#142030',
             fill: on ? '#50d0b0' : '#687880'
         });
     }

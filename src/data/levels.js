@@ -401,7 +401,7 @@ export const STORY_LEVELS = [
         },
         tones: {
             enabled: true,
-            degrees: ['1', '2', '3', '4', '5', '7'],
+            degrees: ['1', '2', '3', '4', '5', '6', '7'],
         },
     },
     {
