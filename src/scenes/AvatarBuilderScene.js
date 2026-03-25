@@ -386,8 +386,18 @@ export class AvatarBuilderScene extends Phaser.Scene {
             }
 
             this.scene.stop('AvatarBuilderScene');
-            if (this.callerScene) this.scene.resume(this.callerScene);
+            this._returnToCaller();
         });
+    }
+
+    _returnToCaller() {
+        if (!this.callerScene) return;
+        const caller = this.scene.get(this.callerScene);
+        if (caller && caller.scene.isPaused()) {
+            this.scene.resume(this.callerScene);
+        } else {
+            this.scene.start(this.callerScene);
+        }
     }
 
     _makeBackBtn(height) {
@@ -399,7 +409,7 @@ export class AvatarBuilderScene extends Phaser.Scene {
         btn.on('pointerout',  () => btn.setStyle({ fill: TEXT_ACCENT }));
         btn.on('pointerdown', () => {
             this.scene.stop('AvatarBuilderScene');
-            if (this.callerScene) this.scene.resume(this.callerScene);
+            this._returnToCaller();
         });
     }
 }
