@@ -966,19 +966,20 @@ export class ChallengeScene extends Phaser.Scene {
     _onWrongEffect() {
         this._encounterQuestionsAnswered = (this._encounterQuestionsAnswered || 0) + 1;
 
-        // Rhythm encounters: 1 question per animal — move to next animal even on wrong
+        // Rhythm encounters: story mode gets multiple attempts, arcade moves on
         if (this._isRhythmEncounter && !this.practiceMode) {
-            this._cancelEncounterTimer();
-            this.time.delayedCall(800, () => {
-                if (this._gameOverFlag) return;
-                if (this.storyBattle) {
-                    this._animalFlyOff('sad');
-                } else {
-                    // Non-story: just spawn next animal (no defeat screen)
+            if (this.storyBattle) {
+                // Story: just ask another question (same animal, try again)
+                this.time.delayedCall(500, () => this._askQuestion());
+            } else {
+                // Arcade: move to next animal
+                this._cancelEncounterTimer();
+                this.time.delayedCall(800, () => {
+                    if (this._gameOverFlag) return;
                     if (this._entitySprite) { this._entitySprite.destroy(); this._entitySprite = null; }
                     this._spawnNextEntity();
-                }
-            });
+                });
+            }
             return;
         }
 
