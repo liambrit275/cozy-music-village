@@ -80,16 +80,22 @@ export const RhythmMixin = {
         const cells = sub.cells.length;
         const cellMs = (60000 / RHYTHM_BPM) * sub.cellFraction;
 
-        const pattern = new Array(cells).fill(false);
-        const noteTarget = Math.max(2, Math.floor(cells * (0.3 + Math.random() * 0.4)));
-        let noteCount = 0;
-        for (let i = 0; i < cells; i++) {
-            if (Math.random() < (sub.downbeats.includes(i) ? 0.75 : 0.4) && noteCount < noteTarget) {
-                pattern[i] = true;
-                noteCount++;
+        // Generate pattern, avoid repeating the exact same rhythm
+        let pattern, attempts = 0;
+        do {
+            pattern = new Array(cells).fill(false);
+            const noteTarget = Math.max(2, Math.floor(cells * (0.3 + Math.random() * 0.4)));
+            let noteCount = 0;
+            for (let i = 0; i < cells; i++) {
+                if (Math.random() < (sub.downbeats.includes(i) ? 0.75 : 0.4) && noteCount < noteTarget) {
+                    pattern[i] = true;
+                    noteCount++;
+                }
             }
-        }
-        pattern[0] = true;
+            pattern[0] = true;
+            attempts++;
+        } while (this._lastRhythmPattern && pattern.join() === this._lastRhythmPattern.join() && attempts < 5);
+        this._lastRhythmPattern = pattern;
         if (pattern.filter(v => v).length < 2) pattern[Math.floor(cells / 2)] = true;
 
         this._rhythmPattern = pattern;

@@ -96,16 +96,22 @@ export const RhythmReadingMixin = {
         this._rrCells   = n;
         this._rrCellMs  = cellMs;
 
-        const restFrac   = 0.05 + Math.random() * 0.50;
-        const pattern    = new Array(n).fill(true);
-        const restTarget = Math.floor(n * restFrac);
-        for (let r = 0; r < restTarget; r++) {
-            const candidates = pattern
-                .map((v, i) => (v && i > 0) ? i : -1)
-                .filter(i => i >= 0);
-            if (!candidates.length) break;
-            pattern[candidates[Math.floor(Math.random() * candidates.length)]] = false;
-        }
+        // Generate pattern, avoid repeating the exact same rhythm
+        let pattern, attempts = 0;
+        do {
+            const restFrac   = 0.05 + Math.random() * 0.50;
+            pattern    = new Array(n).fill(true);
+            const restTarget = Math.floor(n * restFrac);
+            for (let r = 0; r < restTarget; r++) {
+                const candidates = pattern
+                    .map((v, i) => (v && i > 0) ? i : -1)
+                    .filter(i => i >= 0);
+                if (!candidates.length) break;
+                pattern[candidates[Math.floor(Math.random() * candidates.length)]] = false;
+            }
+            attempts++;
+        } while (this._lastRrPattern && pattern.join() === this._lastRrPattern.join() && attempts < 5);
+        this._lastRrPattern = pattern;
 
         // Build groupGrid: each onset starts a new group, non-onset cells
         // sustain the previous note so notation shows ties instead of rests.
