@@ -56,7 +56,7 @@ const DEFAULT_SETTINGS = {
     noteRanges: ['onStaff'],
     rhythmSubs: ['quarter'],
     rhythmMeters: ['4'],
-    tapLatencyMs: 0,
+    tapLatencyMs: 110,
     characterKey: 'avatar',
     sounds: {
         drone: 'pad', interval: 'synth', click: 'stick', rhythmNote: 'snare',
