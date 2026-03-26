@@ -694,27 +694,70 @@ export const RhythmMixin = {
         this._compareUI = [playMineBtn, playAnswerBtn, continueBtn];
 
         const self = this;
-        const playPattern = (pat) => {
-            if (onCleanup) onCleanup();
+        let comparePlaying = false;
+
+        const stopCompare = () => {
+            comparePlaying = false;
             if (self._comparePlayTimer) { self._comparePlayTimer.remove(false); self._comparePlayTimer = null; }
-            let i = 0;
+        };
+
+        const playCountIn = (pat) => {
+            if (!comparePlaying) return;
+            const tsInfo = self._rhythmTimeSigInfo || TIME_SIG_INFO['4/4'];
+            const nBeats = tsInfo.beats;
+            const cellsPerBeat = sub.downbeats.length > 1
+                ? sub.downbeats[1] - sub.downbeats[0]
+                : sub.cells.length;
+            const beatDuration = cellsPerBeat * cellMs;
+            let b = 0;
             const tick = () => {
-                if (sub?.downbeats?.includes(i)) self.audioEngine.playClick(i === 0);
-                if (pat[i]) self.audioEngine.playDrumNote();
-                i++;
-                if (i < pat.length) {
-                    self._comparePlayTimer = self.time.delayedCall(cellMs, tick);
+                if (!comparePlaying) return;
+                self.audioEngine.playClick(b === 0);
+                b++;
+                if (b < nBeats) {
+                    self._comparePlayTimer = self.time.delayedCall(beatDuration, tick);
+                } else {
+                    self._comparePlayTimer = self.time.delayedCall(beatDuration, () => {
+                        if (comparePlaying) playOnce(pat);
+                    });
                 }
             };
             tick();
         };
 
-        playMineBtn.on('pointerdown', () => playPattern(userPattern));
-        playAnswerBtn.on('pointerdown', () => playPattern(answerPattern));
+        const playOnce = (pat) => {
+            if (!comparePlaying) return;
+            let i = 0;
+            const tick = () => {
+                if (!comparePlaying) return;
+                if (sub?.downbeats?.includes(i)) self.audioEngine.playClick(i === 0);
+                if (pat[i]) self.audioEngine.playDrumNote();
+                i++;
+                if (i < pat.length) {
+                    self._comparePlayTimer = self.time.delayedCall(cellMs, tick);
+                } else {
+                    // Loop: pause then count-in again
+                    self._comparePlayTimer = self.time.delayedCall(cellMs, () => {
+                        if (comparePlaying) playCountIn(pat);
+                    });
+                }
+            };
+            tick();
+        };
+
+        const startLoop = (pat) => {
+            stopCompare();
+            if (onCleanup) onCleanup();
+            comparePlaying = true;
+            playCountIn(pat);
+        };
+
+        playMineBtn.on('pointerdown', () => startLoop(userPattern));
+        playAnswerBtn.on('pointerdown', () => startLoop(answerPattern));
 
         continueBtn.on('pointerdown', () => {
+            stopCompare();
             if (onCleanup) onCleanup();
-            if (this._comparePlayTimer) { this._comparePlayTimer.remove(false); this._comparePlayTimer = null; }
             this._clearCompareUI();
             if (onContinue) onContinue();
         });
