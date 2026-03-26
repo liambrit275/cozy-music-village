@@ -115,12 +115,19 @@ function mergeEvents(groupGrid, ticksPerCell) {
 function maxDurationAt(pos, remaining, beatSize, midpoint, splitAtBeats) {
     let limit = remaining;
 
-    // Rule 1: half-bar midpoint — always mandatory (when defined)
+    // Adaptive rule: on-beat, beat-aligned durations need no splitting.
+    // A half note starting on beat 2 in 4/4 can cross the midpoint.
+    // Only off-beat or sub-beat events need to show beat boundaries.
+    if (pos % beatSize === 0 && remaining % beatSize === 0) {
+        return limit;
+    }
+
+    // Rule 1: half-bar midpoint (off-beat/sub-beat events only)
     if (midpoint != null && pos < midpoint && pos + limit > midpoint) {
         limit = midpoint - pos;
     }
 
-    // Rule 2: beat boundaries — always split, never cross a beat line
+    // Rule 2: beat boundaries (off-beat/sub-beat events only)
     if (splitAtBeats) {
         const nextBeat = (Math.floor(pos / beatSize) + 1) * beatSize;
         if (pos + limit > nextBeat) {
@@ -181,8 +188,8 @@ function resolveTimeSig(subdivision, timeSigInfo) {
         const beatSize = timeSigInfo.beatTicks ?? (compound ? 3 : 4);
         const midpoint = timeSigInfo.midpoint ?? null;
         const ticksPerCell = timeSigInfo.ticksPerCell ?? TICKS_PER_CELL[subdivision] ?? 1;
-        // Split at beats only for sub-beat subdivisions (sixteenth level).
-        // Eighth note subdivisions should allow quarter notes without ties.
+        // Split at beats for sub-beat subdivisions only (16ths, not 8ths).
+        // The adaptive rule in maxDurationAt handles on-beat 16th-level events.
         const splitAtBeats = timeSigInfo.splitAtBeats ?? (ticksPerCell * 2 < beatSize);
         return { ticksPerCell, compound, beatSize, midpoint, splitAtBeats };
     }
