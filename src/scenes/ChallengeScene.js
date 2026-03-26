@@ -1306,8 +1306,8 @@ export class ChallengeScene extends Phaser.Scene {
             types = ALL_CHALLENGE_TYPES;
         }
 
-        // Avoid repeating the same type twice in a row
-        if (types.length > 1 && this._lastChallengeType) {
+        // Avoid repeating the same type twice in a row (skip if only 2 types)
+        if (types.length > 2 && this._lastChallengeType) {
             const filtered = types.filter(t => t !== this._lastChallengeType);
             if (filtered.length > 0) types = filtered;
         }

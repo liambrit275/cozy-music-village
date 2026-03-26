@@ -37,12 +37,12 @@ export const NoteReadingMixin = {
         const noteConfig = this._getNoteReadingConfig();
         // Use instrument-derived clef if available, otherwise fall back to scene setting
         const clefForQuestion = noteConfig?.clef || this.clefSetting;
-        // Avoid repeating the same note consecutively
+        // Avoid repeating the same note consecutively (give up after 3 tries — small pools shouldn't force alternation)
         let attempts = 0;
         do {
             this._currentNoteQuestion = this.noteReadingEngine.buildQuestion(this.session.round, clefForQuestion, noteConfig);
             attempts++;
-        } while (this._currentNoteQuestion && this._lastNoteId === this._currentNoteQuestion.noteId && attempts < 5);
+        } while (this._currentNoteQuestion && this._lastNoteId === this._currentNoteQuestion.noteId && attempts < 3);
         if (this._currentNoteQuestion) this._lastNoteId = this._currentNoteQuestion.noteId;
 
         if (!this._currentNoteQuestion) {

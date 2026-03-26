@@ -47,9 +47,9 @@ export const ToneChallengeMixin = {
     },
 
     _fireTonesQuestion(degrees, width, height) {
-        // Avoid repeating the same degree consecutively
+        // Avoid repeating the same degree consecutively (skip if only 2 options — would alternate predictably)
         let pick = degrees[Math.floor(Math.random() * degrees.length)];
-        if (degrees.length > 1) {
+        if (degrees.length > 2) {
             while (pick === this._lastToneDegree) {
                 pick = degrees[Math.floor(Math.random() * degrees.length)];
             }
