@@ -749,7 +749,8 @@ export const RhythmMixin = {
             stopCompare();
             if (onCleanup) onCleanup();
             comparePlaying = true;
-            playCountIn(pat);
+            // First time: play immediately so they hear it. Loops after include count-in.
+            playOnce(pat);
         };
 
         playMineBtn.on('pointerdown', () => startLoop(userPattern));
