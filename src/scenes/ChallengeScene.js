@@ -1291,25 +1291,29 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.mode === 'rhythm') return 'rhythm';
         if (this.mode === 'rhythmReading') return 'rhythmReading';
 
+        let types;
+
         // Story level system — pick from level's enabled challenge types
         if (this._storyLevel) {
-            const types = getLevelChallengeTypes(this._storyLevel);
-            return types[Math.floor(Math.random() * types.length)];
-        }
-
-        // Story mode — use the entity's specific type; mixed → pick one random type
-        if (this.storyBattle && this._entityData) {
+            types = getLevelChallengeTypes(this._storyLevel);
+        } else if (this.storyBattle && this._entityData) {
+            // Story mode — use the entity's specific type; mixed → random
             const et = this._getEntityChallengeType();
-            if (et === 'tone') return 'tone';
-            if (et === 'noteReading') return 'noteReading';
-            if (et === 'rhythm') return 'rhythm';
-            if (et === 'rhythmReading') return 'rhythmReading';
-            // 'mixed' — pick one type for this entire encounter
-            return ALL_CHALLENGE_TYPES[Math.floor(Math.random() * ALL_CHALLENGE_TYPES.length)];
+            if (et && et !== 'mixed' && ALL_CHALLENGE_TYPES.includes(et)) return et;
+            types = ALL_CHALLENGE_TYPES;
+        } else {
+            // 'all' mode
+            types = ALL_CHALLENGE_TYPES;
         }
 
-        // 'all' mode — one type per entity (picked fresh each spawn)
-        return ALL_CHALLENGE_TYPES[Math.floor(Math.random() * ALL_CHALLENGE_TYPES.length)];
+        // Avoid repeating the same type twice in a row
+        if (types.length > 1 && this._lastChallengeType) {
+            const filtered = types.filter(t => t !== this._lastChallengeType);
+            if (filtered.length > 0) types = filtered;
+        }
+        const pick = types[Math.floor(Math.random() * types.length)];
+        this._lastChallengeType = pick;
+        return pick;
     }
 
     // ===================== QUESTION DISPATCH =====================
