@@ -536,15 +536,18 @@ export const RhythmMixin = {
             if (this.storyBattle) {
                 this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
                 this.session.correctAnswers = (this.session.correctAnswers || 0) + 1;
-                this._entityMeter = 100;
+                const gain = Math.ceil(100 / 3); // 3 correct rhythms to rescue
+                this._entityMeter = Math.min(100, (this._entityMeter || 0) + gain);
                 this._updateHpBars();
                 this._spawnFloatingHeart();
                 this._showFlash('#50d0b0');
-                this._storyEntityDone = true;
-                this._addToRescuedPreview(
-                    this._entityData?.spriteKey || `villager-${this._entityKey}`,
-                    this._entityData?.name || 'Friend'
-                );
+                if (this._entityMeter >= 100) {
+                    this._storyEntityDone = true;
+                    this._addToRescuedPreview(
+                        this._entityData?.spriteKey || `villager-${this._entityKey}`,
+                        this._entityData?.name || 'Friend'
+                    );
+                }
             }
         } else {
             if (this.storyBattle) {
@@ -566,7 +569,11 @@ export const RhythmMixin = {
             this._showFlash('#50d0b0');
             if (this.storyBattle) {
                 this.audioEngine.playCorrect();
-                this.time.delayedCall(500, () => this._animalFlyOff('happy'));
+                if (this._entityMeter >= 100) {
+                    this.time.delayedCall(500, () => this._animalFlyOff('happy'));
+                } else {
+                    this.time.delayedCall(500, () => this._askQuestion());
+                }
             } else if (this.practiceMode) {
                 this.audioEngine.playCorrect();
                 this.time.delayedCall(600, () => this._askQuestion());

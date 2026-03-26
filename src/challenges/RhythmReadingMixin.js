@@ -402,14 +402,17 @@ export const RhythmReadingMixin = {
             if (this.storyBattle) {
                 this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
                 this.session.correctAnswers = (this.session.correctAnswers || 0) + 1;
-                this._entityMeter = 100;
+                const gain = Math.ceil(100 / 3); // 3 correct rhythms to rescue
+                this._entityMeter = Math.min(100, (this._entityMeter || 0) + gain);
                 this._updateHpBars();
                 this._spawnFloatingHeart();
-                this._storyEntityDone = true;
-                this._addToRescuedPreview(
-                    this._entityData?.spriteKey || `villager-${this._entityKey}`,
-                    this._entityData?.name || 'Friend'
-                );
+                if (this._entityMeter >= 100) {
+                    this._storyEntityDone = true;
+                    this._addToRescuedPreview(
+                        this._entityData?.spriteKey || `villager-${this._entityKey}`,
+                        this._entityData?.name || 'Friend'
+                    );
+                }
             }
         } else {
             if (this.storyBattle) {
@@ -428,10 +431,11 @@ export const RhythmReadingMixin = {
         const onContinue = () => {
             this._clearRhythmReadingUI();
             if (this.storyBattle) {
-                if (passed) {
+                if (this._entityMeter >= 100) {
                     this.time.delayedCall(300, () => this._animalFlyOff('happy'));
                 } else {
-                    this.time.delayedCall(300, () => this._animalFlyOff('sad'));
+                    // Not done yet — ask another rhythm
+                    this.time.delayedCall(300, () => this._askQuestion());
                 }
             } else if (this.practiceMode) {
                 this.time.delayedCall(300, () => this._askQuestion());
