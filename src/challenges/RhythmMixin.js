@@ -527,8 +527,6 @@ export const RhythmMixin = {
         const perfect = pct === 100;
 
         if (correct) {
-            this.audioEngine.playCorrect();
-            this.session.streak++;
             if (this.storyBattle) {
                 this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
                 this.session.correctAnswers = (this.session.correctAnswers || 0) + 1;
@@ -561,10 +559,13 @@ export const RhythmMixin = {
             this.messageText.setText(`${pct}% — ${perfect ? 'Perfect!' : 'Correct!'}`);
             this._showFlash('#50d0b0');
             if (this.storyBattle) {
+                this.audioEngine.playCorrect();
                 this.time.delayedCall(500, () => this._animalFlyOff('happy'));
             } else if (this.practiceMode) {
+                this.audioEngine.playCorrect();
                 this.time.delayedCall(600, () => this._askQuestion());
             } else {
+                // Arcade: _handleAnswer plays the sound
                 this.time.delayedCall(600, () => this._handleAnswer(true, `${pct}% correct!`));
             }
             this._updateHud();
