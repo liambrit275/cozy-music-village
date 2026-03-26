@@ -522,7 +522,8 @@ export class ChallengeScene extends Phaser.Scene {
     // ===================== PLAYER SPRITE =====================
 
     _createPlayerSprite(charKey) {
-        this.playerSprite = this.add.sprite(PLAYER_X, GROUND_Y, `player-${charKey}`, 0);
+        const texKey = this.textures.exists(`player-${charKey}`) ? `player-${charKey}` : '__DEFAULT';
+        this.playerSprite = this.add.sprite(PLAYER_X, GROUND_Y, texKey, 0);
         this.playerSprite.setOrigin(0.5, 1);
         // Match entity scale: entities target 80px from ~17px frames (≈4.7x).
         // Player is 32px, so 4.0x ≈ 128px — similar visual presence.
@@ -1500,7 +1501,8 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.textures.exists('bed')) {
             this.add.image(bedX, bedY - 9, 'bed').setScale(3.6).setDepth(60);
         }
-        this.add.sprite(bedX, bedY - 43, `player-${ck}`, 0)
+        const bedTexKey = this.textures.exists(`player-${ck}`) ? `player-${ck}` : '__DEFAULT';
+        this.add.sprite(bedX, bedY - 43, bedTexKey, 0)
             .setScale(3.2).setOrigin(0.5, 0.5).setDepth(61);
 
         // Zzz floating text
@@ -1571,7 +1573,8 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.textures.exists('bed')) {
             this.add.image(bedX, bedY - 9, 'bed').setScale(3.6).setDepth(60);
         }
-        this.add.sprite(bedX, bedY - 43, `player-${ck}`, 0)
+        const bedTexKey = this.textures.exists(`player-${ck}`) ? `player-${ck}` : '__DEFAULT';
+        this.add.sprite(bedX, bedY - 43, bedTexKey, 0)
             .setScale(3.2).setOrigin(0.5, 0.5).setDepth(61);
         const zzz = this.add.text(bedX + 40, bedY - 60, 'z z z', {
             font: 'bold 22px monospace', fill: '#e8d098',
