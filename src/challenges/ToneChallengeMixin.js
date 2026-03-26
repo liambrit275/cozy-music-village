@@ -10,7 +10,8 @@ export const ToneChallengeMixin = {
         const { width, height } = this.cameras.main;
         const degrees = this._getTonesPool();
 
-        const fixedKey = this.tonesKey !== 'random' ? this.tonesKey : null;
+        // Story mode: always use C. Arcade: use selected key or random.
+        const fixedKey = this.storyBattle ? 'C' : (this.tonesKey !== 'random' ? this.tonesKey : null);
 
         if (this._droneQuestionsLeft <= 0) {
             this.audioEngine.stopDrone();
