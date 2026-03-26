@@ -160,6 +160,7 @@ export const RhythmReadingMixin = {
         this._rrKeyHandler = (e) => {
             if (e.code === 'Space') {
                 e.preventDefault();
+                if (e.repeat) return; // ignore key repeat from holding down
                 if (this._rrReadyBtn) { this._startWhenReady(); return; }
                 this._onRrTap();
             }
