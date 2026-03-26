@@ -158,7 +158,11 @@ export const RhythmReadingMixin = {
         this._rrUI.push(hint);
 
         this._rrKeyHandler = (e) => {
-            if (e.code === 'Space') { e.preventDefault(); this._onRrTap(); }
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (this._rrReadyBtn) { this._startWhenReady(); return; }
+                this._onRrTap();
+            }
         };
         document.addEventListener('keydown', this._rrKeyHandler);
 
@@ -167,7 +171,33 @@ export const RhythmReadingMixin = {
         // Pause escape timer during entire rhythm reading sequence
         if (this._escapeTimer) this._escapeTimer.paused = true;
 
-        this._rrSchedule(() => this._startRrRound(), 1200);
+        // Story/practice: show READY button so user can study the rhythm first
+        // Arcade (non-practice): auto-start after brief delay
+        if (this.storyBattle || this.practiceMode) {
+            const readyBtn = this.add.text(width / 2, height * 0.58, 'READY', {
+                font: 'bold 20px monospace', fill: '#0c1420',
+                backgroundColor: '#50d0b0', padding: { x: 24, y: 10 },
+            }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+            readyBtn.on('pointerover', () => readyBtn.setStyle({ backgroundColor: '#68e0c0' }));
+            readyBtn.on('pointerout', () => readyBtn.setStyle({ backgroundColor: '#50d0b0' }));
+            readyBtn.on('pointerdown', () => this._startWhenReady());
+            this._rrReadyBtn = readyBtn;
+            this._rrUI.push(readyBtn);
+
+            this.messageText.setText('Study the rhythm, then press READY');
+        } else {
+            this._rrReadyBtn = null;
+            this._rrSchedule(() => this._startRrRound(), 1200);
+        }
+    },
+
+    _startWhenReady() {
+        if (this._rrReadyBtn) {
+            this._rrReadyBtn.destroy();
+            this._rrReadyBtn = null;
+        }
+        this.messageText.setText('');
+        this._rrSchedule(() => this._startRrRound(), 400);
     },
 
     _buildRrGrid(width, height) {
