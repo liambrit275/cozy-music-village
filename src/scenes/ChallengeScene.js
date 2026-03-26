@@ -600,13 +600,14 @@ export class ChallengeScene extends Phaser.Scene {
         this.messageText.setText(`${data.name} needs your help!`);
 
         this._cancelEscapeTimer();
-        if (!this.practiceMode) {
+        // Story mode: no timers until level 5
+        const useTimers = !this.practiceMode && !(this.storyBattle && (this.storyLevelId || 1) < 5);
+        if (useTimers) {
             const escapeMs = Math.max(8000, 15000 - (this.session.round - 1) * 300);
             this._escapeTimer = this.time.delayedCall(escapeMs, () => {
                 if (!this._gameOverFlag) this._triggerEscape();
             });
 
-            // Visual timer bar under the animal (all modes except rhythmReading)
             if (this._challengeType !== 'rhythmReading') {
                 this._buildEscapeTimerBar(escapeMs);
             }
@@ -616,8 +617,7 @@ export class ChallengeScene extends Phaser.Scene {
         this.time.delayedCall(startDelay, () => {
             if (this._gameOverFlag) return;
 
-            // Tone/NoteReading: start encounter timer (animal leaves when time expires)
-            if (!this._isRhythmEncounter && !this.practiceMode) {
+            if (!this._isRhythmEncounter && useTimers) {
                 const timerSec = isSpecial ? 30 : 20;
                 this._startEncounterTimer(timerSec);
             }
@@ -674,7 +674,8 @@ export class ChallengeScene extends Phaser.Scene {
 
     _resetEscapeTimer() {
         this._cancelEscapeTimer();
-        if (!this.practiceMode && !this._gameOverFlag) {
+        const useTimers = !this.practiceMode && !(this.storyBattle && (this.storyLevelId || 1) < 5);
+        if (useTimers && !this._gameOverFlag) {
             const escapeMs = Math.max(8000, 15000 - (this.session.round - 1) * 300);
             this._escapeTimer = this.time.delayedCall(escapeMs, () => {
                 if (!this._gameOverFlag) this._triggerEscape();
@@ -887,9 +888,16 @@ export class ChallengeScene extends Phaser.Scene {
     _helpVillager() {
         this._encounterQuestionsAnswered = (this._encounterQuestionsAnswered || 0) + 1;
 
-        // Rhythm encounters: 1 question per animal — auto-complete on answer
-        const autoComplete = this._isRhythmEncounter;
-        const happinessGain = autoComplete ? 100 : (25 + Math.floor(Math.random() * 20));
+        // Story mode: rhythm = 3 questions per animal, tone/note = 10 questions
+        // Arcade: rhythm = 1 question (auto-complete), tone/note = ~4 questions
+        let happinessGain;
+        if (this.storyBattle) {
+            happinessGain = this._isRhythmEncounter
+                ? Math.ceil(100 / 3)  // 3 rhythm questions to rescue
+                : 10;                  // 10 tone/note questions to rescue
+        } else {
+            happinessGain = this._isRhythmEncounter ? 100 : (25 + Math.floor(Math.random() * 20));
+        }
         this._entityMeter = Math.min(100, (this._entityMeter || 0) + happinessGain);
         this._updateHpBars();
         this._spawnFloatingHeart();
@@ -1374,7 +1382,9 @@ export class ChallengeScene extends Phaser.Scene {
             this.messageText.setText(message);
             this._showFlash('#e08868');
 
-            if (!this.practiceMode) {
+            // No energy loss in practice mode or story levels 1-2
+            const noDamage = this.practiceMode || (this.storyBattle && (this.storyLevelId || 1) < 3);
+            if (!noDamage) {
                 if (this._applyWrongDamage()) return;
             }
 

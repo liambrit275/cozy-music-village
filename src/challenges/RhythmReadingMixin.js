@@ -378,7 +378,8 @@ export const RhythmReadingMixin = {
             if (this.storyBattle) {
                 this.session.totalAnswers = (this.session.totalAnswers || 0) + 1;
             }
-            if (!this.practiceMode && !this.storyBattle) {
+            const noDamage = this.practiceMode || (this.storyBattle && (this.storyLevelId || 1) < 3);
+            if (!noDamage) {
                 if (this._applyWrongDamage()) {
                     this._clearRhythmReadingUI();
                     return;
