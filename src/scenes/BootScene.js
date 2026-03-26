@@ -442,12 +442,19 @@ export class BootScene extends Phaser.Scene {
     _composeAvatar(settings) {
         const canvas = BootScene._composeLayeredAvatar(this.textures, settings);
 
-        // Register as Phaser texture (remove old if exists)
-        if (this.textures.exists('player-avatar')) this.textures.remove('player-avatar');
-        this.textures.addCanvas('player-avatar', canvas);
-        const tex = this.textures.get('player-avatar');
-        for (let i = 0; i < 32; i++) {
-            tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+        if (this.textures.exists('player-avatar')) {
+            // Update canvas in place — keeps existing animation frame references valid
+            const tex = this.textures.get('player-avatar');
+            tex.context.clearRect(0, 0, 256, 128);
+            tex.context.drawImage(canvas, 0, 0);
+            tex.refresh();
+        } else {
+            // First time: create texture and add frame data
+            this.textures.addCanvas('player-avatar', canvas);
+            const tex = this.textures.get('player-avatar');
+            for (let i = 0; i < 32; i++) {
+                tex.add(i, 0, (i % 8) * 32, Math.floor(i / 8) * 32, 32, 32);
+            }
         }
     }
 
