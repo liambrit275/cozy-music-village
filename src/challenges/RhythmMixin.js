@@ -490,8 +490,8 @@ export const RhythmMixin = {
             this._rhythmPlayTimer.remove(false);
             this._rhythmPlayTimer = null;
         }
-        if (this._rhythmCursor) this._rhythmCursor.setVisible(false);
-        if (this._rhythmPlayBtn) this._rhythmPlayBtn.setText('▶ PLAY');
+        if (this._rhythmCursor && this._rhythmCursor.active) this._rhythmCursor.setVisible(false);
+        if (this._rhythmPlayBtn && this._rhythmPlayBtn.active) this._rhythmPlayBtn.setText('▶ PLAY');
     },
 
     _submitRhythm() {
