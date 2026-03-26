@@ -857,11 +857,21 @@ export class ChallengeScene extends Phaser.Scene {
         if (this.playerStats.hp <= 0) {
             this._gameOverFlag = true;
             this._clearAllUI();
-            this.time.delayedCall(600, () => this._gameOver());
+            if (this.storyBattle) {
+                this.time.delayedCall(600, () => this._storyDefeat());
+            } else {
+                this.time.delayedCall(600, () => this._gameOver());
+            }
             return;
         }
 
-        this.time.delayedCall(800, () => this._spawnNextEntity());
+        if (this.storyBattle) {
+            // Story: animal got away = defeat for this encounter
+            this.time.delayedCall(800, () => this._storyDefeat());
+        } else {
+            // Arcade: spawn next
+            this.time.delayedCall(800, () => this._spawnNextEntity());
+        }
     }
 
     update() {
@@ -1037,7 +1047,12 @@ export class ChallengeScene extends Phaser.Scene {
                 this._returnPlayerThenSpawn();
             }
         } else {
-            this.time.delayedCall(300, () => this._storyDefeat());
+            if (this.storyBattle) {
+                this.time.delayedCall(300, () => this._storyDefeat());
+            } else {
+                // Arcade: just spawn next entity after a wrong rhythm answer
+                this._returnPlayerThenSpawn();
+            }
         }
     }
 
