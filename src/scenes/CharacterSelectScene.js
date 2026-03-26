@@ -41,19 +41,24 @@ export class CharacterSelectScene extends Phaser.Scene {
         const previewX = width / 2;
         const previewY = height / 2 - 40;
 
-        if (this.textures.exists('player-avatar')) {
-            // Show a single 32x32 frame crop of the avatar at large scale
-            const fullCanvas = this.textures.get('player-avatar').getSourceImage();
-            const cropCanvas = document.createElement('canvas');
-            cropCanvas.width = 32; cropCanvas.height = 32;
-            const ctx = cropCanvas.getContext('2d');
-            ctx.drawImage(fullCanvas, 0, 0, 32, 32, 0, 0, 32, 32);
-            if (this.textures.exists('char-select-avatar-crop')) {
-                this.textures.remove('char-select-avatar-crop');
+        try {
+            if (this.textures.exists('player-avatar')) {
+                const fullCanvas = this.textures.get('player-avatar').getSourceImage();
+                if (fullCanvas) {
+                    const cropCanvas = document.createElement('canvas');
+                    cropCanvas.width = 32; cropCanvas.height = 32;
+                    const ctx = cropCanvas.getContext('2d');
+                    ctx.drawImage(fullCanvas, 0, 0, 32, 32, 0, 0, 32, 32);
+                    if (this.textures.exists('char-select-avatar-crop')) {
+                        this.textures.remove('char-select-avatar-crop');
+                    }
+                    this.textures.addCanvas('char-select-avatar-crop', cropCanvas);
+                    const preview = this.add.image(previewX, previewY, 'char-select-avatar-crop');
+                    preview.setScale(5).setOrigin(0.5);
+                }
             }
-            this.textures.addCanvas('char-select-avatar-crop', cropCanvas);
-            const preview = this.add.image(previewX, previewY, 'char-select-avatar-crop');
-            preview.setScale(5).setOrigin(0.5);
+        } catch (e) {
+            console.warn('Avatar preview failed:', e);
         }
 
         // Ready message
