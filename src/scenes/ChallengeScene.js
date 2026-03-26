@@ -14,6 +14,7 @@ import { VILLAGERS } from '../data/villagers.js';
 import { getLevelChallengeTypes, getStoryLevel, normalizeInstrumentId } from '../data/levels.js';
 import { GROUND_Y, PLAYER_X } from '../challenges/challengeConstants.js';
 import { safeTex } from '../systems/safeTexture.js';
+import { UserProfileManager } from '../systems/UserProfileManager.js';
 import { ToneChallengeMixin } from '../challenges/ToneChallengeMixin.js';
 import { NoteReadingMixin } from '../challenges/NoteReadingMixin.js';
 import { RhythmMixin } from '../challenges/RhythmMixin.js';
@@ -1447,6 +1448,7 @@ export class ChallengeScene extends Phaser.Scene {
             }
 
             this.progression.save(this.playerStats);
+            try { UserProfileManager.syncLocalStorageToProfile(); } catch (e) { /* ignore */ }
         }
 
         this.add.rectangle(width / 2, height / 2, 360, 200, 0x142030, 0.95)
@@ -1493,7 +1495,10 @@ export class ChallengeScene extends Phaser.Scene {
 
         const cfg = this._defeatConfig();
         this.playerStats.hp = Math.max(1, Math.floor(this.playerStats.maxHp * 0.5));
-        if (this.progression) this.progression.save(this.playerStats);
+        if (this.progression) {
+            this.progression.save(this.playerStats);
+            try { UserProfileManager.syncLocalStorageToProfile(); } catch (e) { /* ignore */ }
+        }
 
         // Dark overlay for cozy nighttime feel
         this.add.rectangle(width / 2, height / 2, width, height, 0x0a0e18, 0.85).setDepth(59);
@@ -1565,6 +1570,7 @@ export class ChallengeScene extends Phaser.Scene {
         const scoreKey = this.mode;
         const pm = new ProgressionManager();
         pm.saveArcadeScore(scoreKey, this.session.score);
+        try { UserProfileManager.syncLocalStorageToProfile(); } catch (e) { /* ignore */ }
 
         // Dark nighttime overlay
         this.add.rectangle(width / 2, height / 2, width, height, 0x0a0e18, 0.85).setDepth(59);
