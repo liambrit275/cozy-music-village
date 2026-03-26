@@ -144,10 +144,36 @@ export class BootScene extends Phaser.Scene {
             progressBar.fillStyle(0x50d0b0, 1);
             progressBar.fillRect(width / 2 - 150, height / 2 - 15, 300 * value, 30);
         });
+
+        // Track failed asset loads — create placeholder textures so sprites never crash
+        this._failedAssets = [];
+        this.load.on('loaderror', (file) => {
+            console.warn('Asset failed to load:', file.key, file.url);
+            this._failedAssets.push(file.key);
+        });
+
         this.load.on('complete', () => {
             progressBar.destroy();
             progressBox.destroy();
             loadingText.destroy();
+
+            // Create placeholder textures for any assets that failed to load
+            if (this._failedAssets.length > 0) {
+                console.warn('Creating placeholders for failed assets:', this._failedAssets);
+                this._failedAssets.forEach(key => {
+                    if (!this.textures.exists(key)) {
+                        const c = document.createElement('canvas');
+                        c.width = 32; c.height = 32;
+                        const ctx = c.getContext('2d');
+                        ctx.fillStyle = '#ff00ff';
+                        ctx.fillRect(0, 0, 32, 32);
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(0, 0, 16, 16);
+                        ctx.fillRect(16, 16, 16, 16);
+                        this.textures.addCanvas(key, c);
+                    }
+                });
+            }
         });
 
         // ── PRE-COLORED CHARACTER BODIES (char1–char8) ─────────────────────

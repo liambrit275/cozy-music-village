@@ -5,6 +5,7 @@
 import { getStoryLevel } from '../data/levels.js';
 import { ProgressionManager } from '../systems/ProgressionManager.js';
 import { UserProfileManager } from '../systems/UserProfileManager.js';
+import { safeTex } from '../systems/safeTexture.js';
 
 const WORLD_W = 1600;
 const WORLD_H = 1400;
@@ -297,8 +298,7 @@ export class TopDownScene extends Phaser.Scene {
     // ── PLAYER ────────────────────────────────────────────────────────────
 
     _createPlayer() {
-        const texKey = this.textures.exists('player-avatar') ? 'player-avatar' : 'char1-walk';
-        this.player = this.physics.add.sprite(WORLD_W / 2, WORLD_H / 2, texKey, 0);
+        this.player = this.physics.add.sprite(WORLD_W / 2, WORLD_H / 2, safeTex(this, 'player-avatar', 0), 0);
         this.player.setScale(2.5);
         this.player.body.setSize(18, 16);
         this.player.body.setOffset(7, 14);
