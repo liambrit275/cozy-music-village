@@ -75,6 +75,7 @@ export class TopDownScene extends Phaser.Scene {
         this._createPlayer();
         this._createFarmer();
         this._spawnAnimals();
+        this._setupCollisions();
 
         this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
         this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
@@ -224,16 +225,16 @@ export class TopDownScene extends Phaser.Scene {
 
         // Create layers from the Tiled JSON — names must match layer names in the map
         const layerNames = ['ground', 'paths', 'fences', 'decorations'];
-        this._fenceLayer = null;
+        this._collideLayers = [];
         for (const name of layerNames) {
             const layer = map.createLayer(name, tilesets);
             if (layer) {
                 layer.setScale(scale);
                 layer.setDepth(name === 'decorations' ? 2 : name === 'fences' ? 1 : 0);
-                if (name === 'fences') {
-                    // All non-empty fence tiles are collidable
+                // Fences and decorations block movement
+                if (name === 'fences' || name === 'decorations') {
                     layer.setCollisionByExclusion([-1, 0]);
-                    this._fenceLayer = layer;
+                    this._collideLayers.push(layer);
                 }
             }
         }
@@ -264,6 +265,28 @@ export class TopDownScene extends Phaser.Scene {
     // ── Dummy to avoid errors if old code references it ──
     _borderTreePositions() { return []; }
 
+    // ── COLLISIONS ────────────────────────────────────────────────────────
+
+    _setupCollisions() {
+        const bodies = [this.player, this.farmer, this.animalGroup].filter(Boolean);
+
+        // Collide all entities with fence + decoration tile layers
+        if (this._collideLayers) {
+            for (const layer of this._collideLayers) {
+                for (const body of bodies) {
+                    this.physics.add.collider(body, layer);
+                }
+            }
+        }
+
+        // Collide all entities with object rectangles (buildings, lake)
+        if (this._collisionBodies) {
+            for (const body of bodies) {
+                this.physics.add.collider(body, this._collisionBodies);
+            }
+        }
+    }
+
     // ── PLAYER ────────────────────────────────────────────────────────────
 
     _createPlayer() {
@@ -274,23 +297,16 @@ export class TopDownScene extends Phaser.Scene {
         this.player.setCollideWorldBounds(true);
         this.player.setDepth(5);
         this._facing = 'down';
-
-        // Collide player with map objects (buildings, lake, etc.)
-        if (this._collisionBodies) {
-            this.physics.add.collider(this.player, this._collisionBodies);
-        }
-        // Collide player with fence tiles
-        if (this._fenceLayer) {
-            this.physics.add.collider(this.player, this._fenceLayer);
-        }
     }
 
     // ── FARMER NPC ──────────────────────────────────────────────────────
 
     _createFarmer() {
-        this.farmer = this.add.sprite(FARMER_POS.x, FARMER_POS.y, 'farmer-walk', 0);
+        this.farmer = this.physics.add.sprite(FARMER_POS.x, FARMER_POS.y, 'farmer-walk', 0);
         this.farmer.setScale(2.8);
         this.farmer.setDepth(5);
+        this.farmer.body.setImmovable(true); // player can't push farmer
+        this.farmer.setCollideWorldBounds(true);
         this.farmer.play('farmer-idle', true);
 
         // "Talk" prompt floating above farmer
