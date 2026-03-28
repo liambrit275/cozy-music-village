@@ -202,21 +202,13 @@ export class TopDownScene extends Phaser.Scene {
     _loadTiledMap(scale) {
         const map = this.make.tilemap({ key: 'farm-map' });
 
-        // Add each tileset image — name must match the tileset name in the .tsx files
+        // Add each tileset — name in JSON must match a loaded texture key
         const tilesets = [];
         for (const tsData of map.tilesets) {
             const name = tsData.name;
-            // Map tileset names to loaded texture keys
-            const textureKey = {
-                'outdoor-tiles': 'outdoor-tiles',
-                'full-tiles':    'full-tiles',
-                'nature-global': 'nature-global',
-                'fishing-tiles': 'fishing-tiles',
-                'buildings':     'buildings',
-                'items':         'items',
-            }[name];
-            if (textureKey && this.textures.exists(textureKey)) {
-                const ts = map.addTilesetImage(name, textureKey, 16, 16, 0, 0);
+            // Texture key is same as tileset name for all our tilesets
+            if (this.textures.exists(name)) {
+                const ts = map.addTilesetImage(name, name, 16, 16, 0, 0);
                 if (ts) tilesets.push(ts);
             }
         }
