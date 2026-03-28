@@ -403,11 +403,14 @@ export class BootScene extends Phaser.Scene {
         });
         // Squirrel: 114×114 → 6 cols × 6 rows
         {
+            // Squirrel: 114×114 @ 19×19 = 6 cols × 6 rows
+            // Row 0 (0-5): walk down (6 frames), Row 1 (6-11): walk right (6 frames)
+            // Row 2 (12-13): walk up (2 frames), Row 3 (18-19): walk left (2 frames)
             const sheet = 'villager-squirrel';
             this._createAnimIfNew('squirrel-walk-down',  sheet, 0,  5,  5, -1);
             this._createAnimIfNew('squirrel-walk-right', sheet, 6,  11, 5, -1);
-            this._createAnimIfNew('squirrel-walk-up',    sheet, 12, 17, 5, -1);
-            this._createAnimIfNew('squirrel-walk-left',  sheet, 18, 23, 5, -1);
+            this._createAnimIfNew('squirrel-walk-up',    sheet, 12, 13, 5, -1);
+            this._createAnimIfNew('squirrel-walk-left',  sheet, 18, 19, 5, -1);
             this._createAnimIfNew('squirrel-idle',       sheet, 0,  0,  1, -1);
         }
         // Rat: 72×108 → 4 cols × 6 rows
