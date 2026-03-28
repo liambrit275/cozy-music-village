@@ -251,6 +251,10 @@ export class BootScene extends Phaser.Scene {
             { frameWidth: 18, frameHeight: 18 }
         );
 
+        // ── UI ASSETS ──────────────────────────────────────────────────────
+        this.load.image('ui-buttons', 'assets/cozy/ui/buttons.png');
+        this.load.image('ui-panels',  'assets/cozy/ui/panels.png');
+
         // ── EFFECTS ─────────────────────────────────────────────────────────
         this.load.image('heart', 'assets/cozy/effects/heart.png');
 

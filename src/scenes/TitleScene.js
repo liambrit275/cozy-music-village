@@ -13,6 +13,9 @@ export class TitleScene extends Phaser.Scene {
 
         this.cameras.main.setBackgroundColor('#0c1420');
 
+        // ── Define UI button frames from buttons.png (256×224) ──
+        this._initUIFrames();
+
         // Floating particles
         for (let i = 0; i < 40; i++) {
             const x = Math.random() * width;
@@ -52,15 +55,15 @@ export class TitleScene extends Phaser.Scene {
             fill: '#687880'
         }).setOrigin(0.5);
 
-        // STORY button
-        this.createButton(width / 2 - 100, height / 2 + 40, '▶  STORY', () => {
+        // STORY button (wooden)
+        this._createWoodButton(width / 2 - 100, height / 2 + 40, 'STORY', 'btn-start', 'btn-start-hover', () => {
             this.scene.start('CharacterSelectScene', { isNewGame: true });
-        }, '#142030', '#243848');
+        });
 
-        // ARCADE button
-        this.createButton(width / 2 + 100, height / 2 + 40, 'ARCADE', () => {
+        // ARCADE button (wooden)
+        this._createWoodButton(width / 2 + 100, height / 2 + 40, 'ARCADE', 'btn-exit', 'btn-exit-hover', () => {
             this.goToPractice();
-        }, '#142030', '#243848');
+        });
 
         // Instructions
         this.add.text(width / 2, height - 50, 'Identify intervals, tap rhythms, and read notes to help the village!', {
@@ -70,7 +73,7 @@ export class TitleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Settings gear
-        this.add.text(width - 16, 10, '⚙', {
+        this.add.text(width - 16, 10, '\u2699', {
             font: 'bold 28px monospace', fill: '#687880',
             padding: { x: 4, y: 2 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
@@ -95,7 +98,6 @@ export class TitleScene extends Phaser.Scene {
                     try { UserProfileManager.logout(); } catch (e) { /* ignore */ }
                     this.scene.start('LoginScene');
                 });
-                // Teacher dashboard button
                 if (UserProfileManager.isTeacher(activeUser)) {
                     const dashBtn = this.add.text(16, 50, 'Teacher Dashboard', {
                         font: '11px monospace', fill: '#687880',
@@ -105,7 +107,50 @@ export class TitleScene extends Phaser.Scene {
                     dashBtn.on('pointerdown', () => this.scene.start('TeacherDashboardScene'));
                 }
             }
-        } catch (e) { /* ignore - user features just won't show */ }
+        } catch (e) { /* ignore */ }
+    }
+
+    _initUIFrames() {
+        if (!this.textures.exists('ui-buttons')) return;
+        const tex = this.textures.get('ui-buttons');
+        if (tex.has('btn-start')) return; // already defined
+
+        // Row 0 (y=16): normal state buttons, each 53×41
+        tex.add('btn-start',     0,   6, 16, 53, 41);
+        tex.add('btn-exit',      0,  70, 16, 53, 41);
+        tex.add('btn-new',       0, 134, 16, 53, 41);
+        tex.add('btn-save',      0, 198, 16, 53, 41);
+        // Row 1 (y=64): hover/pressed state buttons
+        tex.add('btn-start-hover', 0,   6, 64, 53, 41);
+        tex.add('btn-exit-hover',  0,  70, 64, 53, 41);
+        tex.add('btn-new-hover',   0, 134, 64, 53, 41);
+        tex.add('btn-save-hover',  0, 198, 64, 53, 41);
+        // Row 2 (y=112): back button
+        tex.add('btn-back',       0,   6, 112, 53, 41);
+        // Large panel (y=163)
+        tex.add('wood-panel',     0,   2, 163, 103, 56);
+    }
+
+    _createWoodButton(x, y, label, normalFrame, hoverFrame, callback) {
+        if (!this.textures.exists('ui-buttons') || !this.textures.get('ui-buttons').has(normalFrame)) {
+            // Fallback to text button
+            return this.createButton(x, y, label, callback);
+        }
+
+        const btn = this.add.image(x, y, 'ui-buttons', normalFrame)
+            .setScale(2.5).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        const text = this.add.text(x, y - 2, label, {
+            font: 'bold 14px monospace', fill: '#fff8e0',
+            stroke: '#5a3a0a', strokeThickness: 3,
+        }).setOrigin(0.5);
+
+        btn.on('pointerover', () => btn.setFrame(hoverFrame));
+        btn.on('pointerout', () => btn.setFrame(normalFrame));
+        btn.on('pointerdown', callback);
+        text.on('pointerdown', callback); // clickable text too
+
+        return btn;
     }
 
     goToPractice() {
