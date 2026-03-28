@@ -270,7 +270,7 @@ export const RhythmReadingMixin = {
         for (let b = 0; b < COUNT_IN; b++) {
             this._rrSchedule(() => {
                 this.messageText.setText(b < COUNT_IN - 1 ? `${b + 1}...` : `${b + 1}!`)
-                    .setStyle({ fill: '#e8d098' });
+                    .setStyle({ fill: '#e8d098', fontSize: '36px' });
                 this.audioEngine.playClick(b === 0);
             }, b * beatMs);
         }
@@ -278,7 +278,7 @@ export const RhythmReadingMixin = {
         this._rrSchedule(() => {
             this._rrState    = 'recording';
             this._rrBarStart = performance.now();
-            this.messageText.setText('TAP!').setStyle({ fill: '#50d0b0' });
+            this.messageText.setText('TAP!').setStyle({ fill: '#50d0b0', fontSize: '36px' });
 
             sub.downbeats.forEach(di => {
                 this._rrSchedule(() => {
@@ -309,6 +309,8 @@ export const RhythmReadingMixin = {
         this._rrStopAll();
         this._questionActive = false;
         this._cancelEscapeTimer();
+        // Restore normal font size after count-in
+        this.messageText.setStyle({ fontSize: '16px' });
 
         const cellMs   = this._rrCellMs;
         const tol      = Math.max(140, Math.min(350, cellMs * 0.55));
