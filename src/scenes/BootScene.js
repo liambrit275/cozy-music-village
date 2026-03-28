@@ -415,11 +415,14 @@ export class BootScene extends Phaser.Scene {
         }
         // Rat: 72×108 → 4 cols × 6 rows
         {
+            // Rat: 72×108 @ 18×18 = 4 cols × 6 rows
+            // Row 0 (0-3): walk down (4 frames), Row 1 (4-7): walk right (4 frames)
+            // Row 2 (8-9): walk up (2 frames), Row 3 (12-13): walk left (2 frames)
             const sheet = 'villager-rat';
             this._createAnimIfNew('rat-walk-down',  sheet, 0,  3,  5, -1);
             this._createAnimIfNew('rat-walk-right', sheet, 4,  7,  5, -1);
-            this._createAnimIfNew('rat-walk-up',    sheet, 8,  11, 5, -1);
-            this._createAnimIfNew('rat-walk-left',  sheet, 12, 15, 5, -1);
+            this._createAnimIfNew('rat-walk-up',    sheet, 8,  9,  5, -1);
+            this._createAnimIfNew('rat-walk-left',  sheet, 12, 13, 5, -1);
             this._createAnimIfNew('rat-idle',       sheet, 0,  0,  1, 0);
         }
 
