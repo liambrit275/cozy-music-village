@@ -226,7 +226,7 @@ export class TopDownScene extends Phaser.Scene {
             width: MAP_W,
             height: MAP_H,
         });
-        const tileset = map.addTilesetImage('outdoor-tiles');
+        const tileset = map.addTilesetImage('outdoor-tiles', 'outdoor-tiles', TILE_SIZE, TILE_SIZE, 0, 0);
 
         // ── Ground layer ──
         const ground = map.createBlankLayer('ground', tileset);
