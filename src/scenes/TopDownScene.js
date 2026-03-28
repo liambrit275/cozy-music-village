@@ -610,13 +610,16 @@ export class TopDownScene extends Phaser.Scene {
 
             const ab = a.def.animBase;
             const ax = Math.abs(a.vx), ay = Math.abs(a.vy);
-            const _play = (key) => {
-                if (this.anims.exists(key)) sp.play(key, true);
+            // Determine desired animation key
+            let animKey;
+            if (ax < 5 && ay < 5) animKey = `${ab}-idle`;
+            else if (ax > ay)     animKey = a.vx < 0 ? `${ab}-walk-left` : `${ab}-walk-right`;
+            else                  animKey = a.vy < 0 ? `${ab}-walk-up`   : `${ab}-walk-down`;
+            // Only switch animation if it's different from what's playing
+            if (sp.anims.currentAnim?.key !== animKey) {
+                if (this.anims.exists(animKey)) sp.play(animKey, true);
                 else if (this.anims.exists(`${ab}-idle`)) sp.play(`${ab}-idle`, true);
-            };
-            if      (ax < 2 && ay < 2) _play(`${ab}-idle`);
-            else if (ax > ay)           _play(a.vx < 0 ? `${ab}-walk-left` : `${ab}-walk-right`);
-            else                        _play(a.vy < 0 ? `${ab}-walk-up`   : `${ab}-walk-down`);
+            }
         });
     }
 
