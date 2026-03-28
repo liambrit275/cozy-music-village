@@ -223,18 +223,20 @@ export class TopDownScene extends Phaser.Scene {
 
         if (tilesets.length === 0) return;
 
-        // Create layers from the Tiled JSON — names must match layer names in the map
+        // Create layers from the Tiled JSON
         const layerNames = ['ground', 'paths', 'fences', 'decorations'];
         this._collideLayers = [];
+        this._fenceLayer = null;
         for (const name of layerNames) {
             const layer = map.createLayer(name, tilesets);
             if (layer) {
                 layer.setScale(scale);
                 layer.setDepth(name === 'decorations' ? 2 : name === 'fences' ? 1 : 0);
-                // Fences and decorations block movement
-                if (name === 'fences' || name === 'decorations') {
+                // Only fences block movement (not decorations)
+                if (name === 'fences') {
                     layer.setCollisionByExclusion([-1, 0]);
                     this._collideLayers.push(layer);
+                    this._fenceLayer = layer;
                 }
             }
         }
@@ -245,19 +247,31 @@ export class TopDownScene extends Phaser.Scene {
         this.physics.world.setBounds(70, 70, mapW - 140, mapH - 140);
         this.cameras.main.setBounds(0, 0, mapW, mapH);
 
-        // Create collision bodies from the "objects" layer
+        // Build a set of blocked tile positions (for spawn validation)
+        this._blockedTiles = new Set();
+        if (this._fenceLayer) {
+            const fw = map.width, fh = map.height;
+            for (let ty = 0; ty < fh; ty++) {
+                for (let tx = 0; tx < fw; tx++) {
+                    const tile = this._fenceLayer.getTileAt(tx, ty);
+                    if (tile && tile.index > 0) {
+                        this._blockedTiles.add(`${tx},${ty}`);
+                    }
+                }
+            }
+        }
+
+        // Read objects layer — store doors for future use
+        this._doors = {};
         const objLayer = map.getObjectLayer('objects');
         if (objLayer) {
-            this._collisionBodies = this.physics.add.staticGroup();
             for (const obj of objLayer.objects) {
-                // Object coordinates are in tile pixels — scale them
-                const x = obj.x * scale + (obj.width * scale) / 2;
-                const y = obj.y * scale + (obj.height * scale) / 2;
-                const w = obj.width * scale;
-                const h = obj.height * scale;
-                const body = this.add.zone(x, y, w, h);
-                this.physics.add.existing(body, true); // true = static
-                this._collisionBodies.add(body);
+                const name = (obj.name || '').toLowerCase();
+                const wx = obj.x * scale;
+                const wy = obj.y * scale;
+                if (name.includes('door')) {
+                    this._doors[name] = { x: wx, y: wy };
+                }
             }
         }
     }
@@ -270,19 +284,12 @@ export class TopDownScene extends Phaser.Scene {
     _setupCollisions() {
         const bodies = [this.player, this.farmer, this.animalGroup].filter(Boolean);
 
-        // Collide all entities with fence + decoration tile layers
+        // Collide all entities with fence tile layer
         if (this._collideLayers) {
             for (const layer of this._collideLayers) {
                 for (const body of bodies) {
                     this.physics.add.collider(body, layer);
                 }
-            }
-        }
-
-        // Collide all entities with object rectangles (buildings, lake)
-        if (this._collisionBodies) {
-            for (const body of bodies) {
-                this.physics.add.collider(body, this._collisionBodies);
             }
         }
     }
@@ -665,8 +672,26 @@ export class TopDownScene extends Phaser.Scene {
 
         RESCUE_ANIMALS.forEach((def, i) => {
             const pos = SPAWN_POSITIONS[i] || { x: 400 + i * 100, y: 400 };
-            const x = pos.x + Phaser.Math.Between(-40, 40);
-            const y = pos.y + Phaser.Math.Between(-40, 40);
+            let x = pos.x + Phaser.Math.Between(-40, 40);
+            let y = pos.y + Phaser.Math.Between(-40, 40);
+
+            // Ensure spawn is not inside a fence tile
+            if (this._blockedTiles && this._blockedTiles.size > 0) {
+                const SCALE = 2, TS = 16;
+                for (let attempt = 0; attempt < 20; attempt++) {
+                    const tx = Math.floor(x / (TS * SCALE));
+                    const ty = Math.floor(y / (TS * SCALE));
+                    const blocked = this._blockedTiles.has(`${tx},${ty}`)
+                        || this._blockedTiles.has(`${tx+1},${ty}`)
+                        || this._blockedTiles.has(`${tx-1},${ty}`)
+                        || this._blockedTiles.has(`${tx},${ty+1}`)
+                        || this._blockedTiles.has(`${tx},${ty-1}`);
+                    if (!blocked) break;
+                    // Try a new random offset
+                    x = pos.x + Phaser.Math.Between(-80, 80);
+                    y = pos.y + Phaser.Math.Between(-80, 80);
+                }
+            }
 
             const sp = this.physics.add.sprite(x, y, def.spriteKey, 0);
             sp.setScale(def.scale);
