@@ -473,49 +473,70 @@ export class ChallengeScene extends Phaser.Scene {
         g.fillStyle(pal.ground, 0.5);
         g.fillRect(0, GROUND_Y - 4, width, 8);
 
+        // Grass fringe at ground line
         g.fillStyle(pal.ground, 0.25);
         for (let x = 0; x < width; x += 3) {
             const h = 20 + Math.sin(x * 0.012) * 12 + Math.sin(x * 0.03) * 6;
             g.fillRect(x, GROUND_Y - h, 3, h);
         }
 
-        g.fillStyle(0x2e7d32, 0.4);
-        for (let i = 0; i < 18; i++) {
-            const gx = 40 + i * 44 + ((i * 17) % 20);
-            const gy = GROUND_Y + 8 + (i % 3) * 15;
-            g.fillRect(gx, gy, 2, 6);
-            g.fillRect(gx + 3, gy - 2, 2, 8);
-            g.fillRect(gx + 6, gy + 1, 2, 5);
-        }
-
-        pal.flowers.forEach((color, fi) => {
-            for (let i = 0; i < 5; i++) {
-                const fx = 30 + fi * 230 + i * 48 + ((fi + i) * 37) % 60;
-                const fy = GROUND_Y + 10 + ((fi + i) * 13) % 30;
-                g.fillStyle(color, 0.7);
-                g.fillCircle(fx, fy, 3);
-                g.fillStyle(pal.accent, 0.6);
-                g.fillCircle(fx, fy, 1.5);
-            }
-        });
-
+        // Clouds
         g.fillStyle(0xffffff, 0.15);
         [[120, 60], [340, 40], [560, 70], [700, 35]].forEach(([cx, cy]) => {
             g.fillEllipse(cx, cy, 60, 20);
             g.fillEllipse(cx + 20, cy - 8, 40, 16);
         });
 
-        const treeColor = (pal.ground & 0xfefefe) >> 1;
-        [[50, 0.6], [180, 0.8], [680, 0.7], [760, 0.5]].forEach(([tx, ts]) => {
-            const th = 50 * ts;
-            const ty = GROUND_Y;
-            g.fillStyle(0x4a3520, 0.4);
-            g.fillRect(tx - 2, ty - th * 0.4, 4, th * 0.4);
-            g.fillStyle(treeColor, 0.35);
-            g.fillCircle(tx, ty - th * 0.55, 16 * ts);
-            g.fillCircle(tx - 8 * ts, ty - th * 0.65, 12 * ts);
-            g.fillCircle(tx + 8 * ts, ty - th * 0.65, 12 * ts);
-        });
+        // ── Nature sprite decorations from nature-global.png ──
+        if (this.textures.exists('nature-global')) {
+            const nat = this.textures.get('nature-global');
+            // Register frames if not already done (TopDownScene or BootScene may have done it)
+            if (!nat.has('tree0')) {
+                nat.add('tree0', 0,   1,  2, 30, 62);
+                nat.add('tree1', 0,  33,  0, 31, 64);
+                nat.add('tree2', 0,  68,  0, 27, 64);
+                nat.add('tree3', 0,  96,  0, 32, 64);
+                nat.add('tree4', 0, 128, 33, 32, 31);
+                nat.add('flower0', 0,  18, 82, 12, 12);
+                nat.add('flower1', 0,  67, 83, 10, 10);
+                nat.add('flower2', 0,  82, 82, 13, 13);
+                nat.add('flower3', 0, 100, 81,  9, 13);
+                nat.add('flower4', 0, 114, 82, 10, 12);
+                nat.add('bush0', 0,   0, 146, 31, 14);
+                nat.add('bush1', 0,  96, 145, 16, 15);
+                nat.add('bush2', 0, 129, 146, 31, 14);
+                nat.add('leaf0', 0,  51, 65, 11, 14);
+                nat.add('leaf1', 0,  83, 67, 10, 10);
+            }
+
+            // Background trees (behind characters, low alpha)
+            const trees = ['tree0', 'tree1', 'tree0', 'tree3'];
+            [55, 185, 640, 750].forEach((tx, i) => {
+                this.add.image(tx, GROUND_Y, 'nature-global', trees[i])
+                    .setScale(2 + (i % 2) * 0.8).setOrigin(0.5, 0.9).setDepth(0).setAlpha(0.8);
+            });
+
+            // Bushes on ground
+            [120, 350, 530, 700].forEach((bx, i) => {
+                const key = ['bush0', 'bush1', 'bush2', 'bush0'][i];
+                this.add.image(bx, GROUND_Y + 10, 'nature-global', key)
+                    .setScale(2.2).setDepth(0).setAlpha(0.7);
+            });
+
+            // Flowers scattered on ground
+            for (let i = 0; i < 14; i++) {
+                const fx = 25 + i * 58 + ((i * 31) % 25);
+                const fy = GROUND_Y + 8 + ((i * 17) % 22);
+                this.add.image(fx, fy, 'nature-global', `flower${i % 5}`)
+                    .setScale(1.8).setDepth(0).setAlpha(0.75);
+            }
+
+            // A couple of leaves floating near ground
+            [280, 470].forEach((lx, i) => {
+                this.add.image(lx, GROUND_Y + 5, 'nature-global', `leaf${i}`)
+                    .setScale(1.5).setDepth(0).setAlpha(0.5);
+            });
+        }
 
         const hexStr = '#' + pal.sky[0].toString(16).padStart(6, '0');
         this.cameras.main.setBackgroundColor(hexStr);
