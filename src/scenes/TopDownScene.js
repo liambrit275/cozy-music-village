@@ -161,135 +161,282 @@ export class TopDownScene extends Phaser.Scene {
     }
 
     // ── WORLD DRAWING ─────────────────────────────────────────────────────
-    // Single Graphics object for the entire world — no per-tree objects, no RenderTexture.
+    // Tilemap-based world using outdoor-tiles.png and nature-global.png.
 
     _drawWorld() {
-        // Camera background = base grass colour (zero cost, fills viewport every frame)
         this.cameras.main.setBackgroundColor('#3d7a3d');
+        this.cameras.main.roundPixels = true;
 
-        // One Graphics object for everything that scrolls with the world
-        const g = this.add.graphics();
+        // outdoor-tiles.png: 448×432, 16×16 tiles → 28 cols × 27 rows
+        const TILE_COLS = 28;
+        const TILE_SIZE = 16;
+        const SCALE = 2; // Each 16px tile renders at 32px
 
-        // ── Grass base ──────────────────────────────────────────────────
-        g.fillStyle(0x3d7a3d);
-        g.fillRect(0, 0, WORLD_W, WORLD_H);
+        // Map dimensions (in tiles at native 16px)
+        const MAP_W = Math.ceil(WORLD_W / (TILE_SIZE * SCALE)); // 50
+        const MAP_H = Math.ceil(WORLD_H / (TILE_SIZE * SCALE)); // 44
 
-        // Grass variation — simple rectangles (no loops with hundreds of calls)
-        const patches = [
-            [100, 80,  300, 200], [500, 300, 250, 150], [900, 100, 200, 300],
-            [200, 600, 350, 200], [700, 700, 300, 250], [1100, 400, 200, 350],
-            [300, 1000, 400, 200], [800, 1100, 300, 200], [1300, 800, 200, 300],
-            [50,  400, 150, 400], [1400, 200, 150, 500], [600, 1200, 400, 150],
-        ];
-        g.fillStyle(0x336633);
-        patches.forEach(([x, y, w, h]) => g.fillRect(x, y, w, h));
-        g.fillStyle(0x469946);
-        patches.forEach(([x, y, w, h]) => g.fillRect(x + w/3, y + h/3, w/2, h/2));
+        // ── Tile index helpers (row * 28 + col) ──
+        const T = (col, row) => row * TILE_COLS + col;
 
-        // ── Dirt paths ──────────────────────────────────────────────────
-        g.fillStyle(0x8b6914);
-        // Vertical path (slightly wavy — 3 rect segments)
-        g.fillRect(WORLD_W/2 - 22,   0,   44, WORLD_H/3);
-        g.fillRect(WORLD_W/2 - 30,   WORLD_H/3, 44, WORLD_H/3);
-        g.fillRect(WORLD_W/2 - 18,   WORLD_H*2/3, 44, WORLD_H/3);
-        // Horizontal path
-        g.fillRect(0,   WORLD_H/2 - 22, WORLD_W, 44);
+        // Key tile indices from outdoor-tiles.png
+        const GRASS = {
+            fill:   T(2, 1),   // Solid grass fill
+            fill2:  T(3, 1),   // Grass variation
+            tl:     T(0, 0),   // Top-left corner
+            t:      T(1, 0),   // Top edge
+            tr:     T(3, 0),   // Top-right corner
+            l:      T(0, 1),   // Left edge
+            r:      T(3, 1),   // Right edge
+            bl:     T(0, 2),   // Bottom-left corner
+            b:      T(1, 2),   // Bottom edge
+            br:     T(3, 2),   // Bottom-right corner
+        };
+        const DIRT = {
+            fill:   T(2, 4),   // Solid dirt/path
+            fill2:  T(3, 4),   // Dirt variation
+        };
+        const WATER = {
+            fill:   T(5, 7),   // Water center
+        };
+        const FENCE = {
+            h:      T(9, 3),   // Horizontal fence rail
+            v:      T(8, 4),   // Vertical fence rail
+            post:   T(8, 3),   // Fence post
+        };
 
-        // ── Border dark strip ───────────────────────────────────────────
-        g.fillStyle(0x1a4a1a);
-        g.fillRect(0, 0, WORLD_W, 32);
-        g.fillRect(0, WORLD_H - 32, WORLD_W, 32);
-        g.fillRect(0, 0, 32, WORLD_H);
-        g.fillRect(WORLD_W - 32, 0, 32, WORLD_H);
+        // Create procedural tilemap
+        const map = this.make.tilemap({
+            tileWidth: TILE_SIZE,
+            tileHeight: TILE_SIZE,
+            width: MAP_W,
+            height: MAP_H,
+        });
+        const tileset = map.addTilesetImage('outdoor-tiles');
 
-        // ── Border fence rails ──────────────────────────────────────────
-        g.lineStyle(6, 0xc8a060, 1);
-        g.strokeRect(10, 10, WORLD_W - 20, WORLD_H - 20);
-        g.lineStyle(3, 0xb89050, 0.8);
-        g.strokeRect(17, 17, WORLD_W - 34, WORLD_H - 34);
+        // ── Ground layer ──
+        const ground = map.createBlankLayer('ground', tileset);
+        ground.setScale(SCALE);
+        ground.setDepth(0);
 
-        // ── Fence posts (every 120px) ───────────────────────────────────
-        g.fillStyle(0xc8a060);
-        for (let x = 10; x <= WORLD_W - 10; x += 120) {
-            g.fillRect(x - 4, 4, 8, 28);
-            g.fillRect(x - 4, WORLD_H - 32, 8, 28);
+        // Fill all with grass
+        ground.fill(GRASS.fill, 0, 0, MAP_W, MAP_H);
+
+        // Scatter grass variations
+        for (let i = 0; i < 200; i++) {
+            const gx = Phaser.Math.Between(2, MAP_W - 3);
+            const gy = Phaser.Math.Between(2, MAP_H - 3);
+            ground.putTileAt(GRASS.fill2, gx, gy);
         }
-        for (let y = 130; y < WORLD_H - 10; y += 120) {
-            g.fillRect(4, y - 4, 28, 8);
-            g.fillRect(WORLD_W - 32, y - 4, 28, 8);
+
+        // ── Dirt paths ──
+        const pathLayer = map.createBlankLayer('paths', tileset);
+        pathLayer.setScale(SCALE);
+        pathLayer.setDepth(1);
+
+        // Vertical path (center)
+        const pathCX = Math.floor(MAP_W / 2);
+        for (let y = 0; y < MAP_H; y++) {
+            pathLayer.putTileAt(DIRT.fill, pathCX - 1, y);
+            pathLayer.putTileAt(DIRT.fill2, pathCX, y);
         }
 
-        // ── Enclosure (top-right) ───────────────────────────────────────
+        // Horizontal path (center)
+        const pathCY = Math.floor(MAP_H / 2);
+        for (let x = 0; x < MAP_W; x++) {
+            pathLayer.putTileAt(DIRT.fill, x, pathCY - 1);
+            pathLayer.putTileAt(DIRT.fill2, x, pathCY);
+        }
+
+        // Path to enclosure (top right)
+        const encPathY = 5;
+        for (let x = pathCX; x < MAP_W - 4; x++) {
+            pathLayer.putTileAt(DIRT.fill, x, encPathY);
+            pathLayer.putTileAt(DIRT.fill2, x, encPathY + 1);
+        }
+
+        // ── Border (dark grass edge around world) ──
+        for (let x = 0; x < MAP_W; x++) {
+            ground.putTileAt(GRASS.t, x, 0);
+            ground.putTileAt(GRASS.b, x, MAP_H - 1);
+        }
+        for (let y = 0; y < MAP_H; y++) {
+            ground.putTileAt(GRASS.l, 0, y);
+            ground.putTileAt(GRASS.r, MAP_W - 1, y);
+        }
+        ground.putTileAt(GRASS.tl, 0, 0);
+        ground.putTileAt(GRASS.tr, MAP_W - 1, 0);
+        ground.putTileAt(GRASS.bl, 0, MAP_H - 1);
+        ground.putTileAt(GRASS.br, MAP_W - 1, MAP_H - 1);
+
+        // ── Small pond ──
+        const pondX = 12, pondY = 30;
+        for (let py = 0; py < 3; py++) {
+            for (let px = 0; px < 4; px++) {
+                pathLayer.putTileAt(WATER.fill, pondX + px, pondY + py);
+            }
+        }
+
+        // ── Enclosure (top-right) ──
         const ex = WORLD_W - 340, ey = 50, ew = 290, eh = 240;
         this._enc = { x: ex, y: ey, w: ew, h: eh, cx: ex + ew / 2, cy: ey + eh / 2 };
 
-        g.fillStyle(0x55aa55);
-        g.fillRect(ex, ey, ew, eh);
+        // Enclosure grass floor (lighter)
+        const encTX = Math.floor(ex / (TILE_SIZE * SCALE));
+        const encTY = Math.floor(ey / (TILE_SIZE * SCALE));
+        const encTW = Math.ceil(ew / (TILE_SIZE * SCALE));
+        const encTH = Math.ceil(eh / (TILE_SIZE * SCALE));
+        for (let ty = encTY; ty < encTY + encTH; ty++) {
+            for (let tx = encTX; tx < encTX + encTW; tx++) {
+                ground.putTileAt(GRASS.fill2, tx, ty);
+            }
+        }
 
-        // Flowers (fixed positions — no loop randomness at draw time)
+        // Enclosure fence (graphics overlay — tiles don't have exact fence shape)
+        const fenceG = this.add.graphics().setDepth(2);
+        fenceG.lineStyle(5, 0xc8a060, 1);
+        fenceG.strokeRect(ex, ey, ew, eh);
+        fenceG.fillStyle(0xc8a060);
+        for (let x = ex; x <= ex + ew; x += 40) {
+            fenceG.fillRect(x - 3, ey - 8, 6, 18);
+            fenceG.fillRect(x - 3, ey + eh - 8, 6, 18);
+        }
+        for (let y = ey + 40; y < ey + eh; y += 40) {
+            fenceG.fillRect(ex - 5, y - 3, 12, 6);
+            fenceG.fillRect(ex + ew - 7, y - 3, 12, 6);
+        }
+        // Gate gap
+        fenceG.fillStyle(0x55aa55);
+        fenceG.fillRect(ex + ew / 2 - 22, ey + eh - 3, 44, 14);
+
+        // ── Border fence rails (graphics) ──
+        const borderG = this.add.graphics().setDepth(2);
+        borderG.lineStyle(6, 0xc8a060, 1);
+        borderG.strokeRect(10, 10, WORLD_W - 20, WORLD_H - 20);
+        borderG.lineStyle(3, 0xb89050, 0.8);
+        borderG.strokeRect(17, 17, WORLD_W - 34, WORLD_H - 34);
+
+        // Fence posts
+        borderG.fillStyle(0xc8a060);
+        for (let x = 10; x <= WORLD_W - 10; x += 120) {
+            borderG.fillRect(x - 4, 4, 8, 28);
+            borderG.fillRect(x - 4, WORLD_H - 32, 8, 28);
+        }
+        for (let y = 130; y < WORLD_H - 10; y += 120) {
+            borderG.fillRect(4, y - 4, 28, 8);
+            borderG.fillRect(WORLD_W - 32, y - 4, 28, 8);
+        }
+
+        // ── Decorations from nature-global.png ──
+        // nature-global: 160×208, 16×16 tiles → 10 cols × 13 rows
+        // Load as spritesheet for individual tile placement
+        if (!this.textures.exists('nature-tiles')) {
+            // Slice nature-global into 16×16 frames at runtime
+            const natTex = this.textures.get('nature-global');
+            const natSrc = natTex.getSourceImage();
+            const NCols = 10, NRows = 13;
+            for (let r = 0; r < NRows; r++) {
+                for (let c = 0; c < NCols; c++) {
+                    natTex.add(r * NCols + c, 0, c * 16, r * 16, 16, 16);
+                }
+            }
+            this.textures.addFrame = true; // Mark as sliced
+        }
+
+        // Nature tile indices (row * 10 + col)
+        const NT = (col, row) => row * 10 + col;
+        const TREE_FRAMES = [NT(0, 0), NT(1, 0), NT(2, 0), NT(3, 0), NT(4, 0)]; // Big trees (top halves)
+        const BUSH_FRAMES = [NT(0, 3), NT(1, 3), NT(2, 3), NT(3, 3)]; // Bushes
+        const FLOWER_FRAMES = [NT(0, 5), NT(1, 5), NT(2, 5), NT(3, 5), NT(4, 5), NT(5, 5)]; // Flowers
+        const ROCK_FRAMES = [NT(0, 7), NT(1, 7), NT(2, 7)]; // Rocks
+        const MUSHROOM_FRAMES = [NT(0, 8), NT(1, 8), NT(2, 8)]; // Mushrooms
+
+        // Place trees around border and scattered
+        const treePts = [
+            ...this._borderTreePositions(140),
+            { x: 500, y: 350 }, { x: 750, y: 250 }, { x: 1100, y: 700 },
+            { x: 350, y: 950 }, { x: 800, y: 1050 }, { x: 200, y: 1200 },
+            { x: 1300, y: 1100 }, { x: 550, y: 1300 }, { x: 1000, y: 200 },
+            { x: 400, y: 500 }, { x: 150, y: 750 }, { x: 1400, y: 600 },
+        ];
+        treePts.forEach((p, i) => {
+            const frame = TREE_FRAMES[i % TREE_FRAMES.length];
+            const tree = this.add.image(p.x, p.y, 'nature-global', frame);
+            tree.setScale(3 + Math.random() * 1.5);
+            tree.setDepth(3);
+            tree.setAlpha(0.95);
+        });
+
+        // Scatter bushes
+        const bushPts = [
+            { x: 300, y: 400 }, { x: 650, y: 600 }, { x: 1000, y: 500 },
+            { x: 450, y: 1100 }, { x: 900, y: 900 }, { x: 1200, y: 300 },
+            { x: 180, y: 300 }, { x: 1350, y: 950 }, { x: 700, y: 1250 },
+        ];
+        bushPts.forEach((p, i) => {
+            const frame = BUSH_FRAMES[i % BUSH_FRAMES.length];
+            this.add.image(p.x, p.y, 'nature-global', frame)
+                .setScale(2.5).setDepth(2).setAlpha(0.9);
+        });
+
+        // Scatter flowers in meadow areas
         const flowerPts = [
+            { x: 250, y: 200 }, { x: 320, y: 180 }, { x: 420, y: 230 },
+            { x: 600, y: 400 }, { x: 680, y: 380 }, { x: 720, y: 450 },
+            { x: 900, y: 300 }, { x: 950, y: 350 }, { x: 1050, y: 320 },
+            { x: 300, y: 800 }, { x: 400, y: 850 }, { x: 500, y: 780 },
+            { x: 1100, y: 1000 }, { x: 1200, y: 950 }, { x: 1150, y: 1050 },
+            { x: 200, y: 1100 }, { x: 350, y: 1150 }, { x: 450, y: 1050 },
+        ];
+        flowerPts.forEach((p, i) => {
+            const frame = FLOWER_FRAMES[i % FLOWER_FRAMES.length];
+            this.add.image(p.x, p.y, 'nature-global', frame)
+                .setScale(2).setDepth(1).setAlpha(0.85);
+        });
+
+        // Scatter rocks
+        const rockPts = [
+            { x: 550, y: 550 }, { x: 850, y: 800 }, { x: 1250, y: 450 },
+            { x: 380, y: 1250 }, { x: 1050, y: 1200 }, { x: 150, y: 600 },
+        ];
+        rockPts.forEach((p, i) => {
+            const frame = ROCK_FRAMES[i % ROCK_FRAMES.length];
+            this.add.image(p.x, p.y, 'nature-global', frame)
+                .setScale(2.5).setDepth(1);
+        });
+
+        // Scatter mushrooms
+        const mushPts = [
+            { x: 480, y: 400 }, { x: 820, y: 280 }, { x: 1150, y: 750 },
+            { x: 270, y: 1050 },
+        ];
+        mushPts.forEach((p, i) => {
+            const frame = MUSHROOM_FRAMES[i % MUSHROOM_FRAMES.length];
+            this.add.image(p.x, p.y, 'nature-global', frame)
+                .setScale(2).setDepth(1);
+        });
+
+        // Enclosure flowers
+        const encFlowers = [
             [ex+30, ey+40], [ex+80, ey+60], [ex+140, ey+35], [ex+200, ey+55],
             [ex+250, ey+45], [ex+50, ey+100], [ex+120, ey+120], [ex+180, ey+100],
             [ex+240, ey+130], [ex+70, ey+170], [ex+160, ey+180], [ex+220, ey+160],
         ];
-        const fc = [0xff99cc, 0xffdd55, 0xcc77ff, 0x88ccff];
-        flowerPts.forEach(([fx, fy], i) => {
-            g.fillStyle(fc[i % 4]);
-            g.fillCircle(fx, fy, 4);
+        encFlowers.forEach(([fx, fy], i) => {
+            const frame = FLOWER_FRAMES[i % FLOWER_FRAMES.length];
+            this.add.image(fx, fy, 'nature-global', frame)
+                .setScale(1.8).setDepth(1);
         });
 
-        // Enclosure fence
-        g.lineStyle(5, 0xc8a060, 1);
-        g.strokeRect(ex, ey, ew, eh);
-        g.fillStyle(0xc8a060);
-        for (let x = ex; x <= ex + ew; x += 40) {
-            g.fillRect(x - 3, ey - 8, 6, 18);
-            g.fillRect(x - 3, ey + eh - 8, 6, 18);
-        }
-        // Side posts
-        for (let y = ey + 40; y < ey + eh; y += 40) {
-            g.fillRect(ex - 5, y - 3, 12, 6);
-            g.fillRect(ex + ew - 7, y - 3, 12, 6);
-        }
-        // Gate gap
-        g.fillStyle(0x55aa55);
-        g.fillRect(ex + ew/2 - 22, ey + eh - 3, 44, 14);
-
-        // ── Trees — all in ONE graphics object ─────────────────────────
-        const treePts = [
-            // Border trees (sparse, every 180px)
-            ...this._borderTreePositions(180),
-            // Inner scattered trees
-            { x: 500, y: 350 }, { x: 750, y: 250 }, { x: 1100, y: 700 },
-            { x: 350, y: 950 }, { x: 800, y: 1050 }, { x: 200, y: 1200 },
-            { x: 1300, y: 1100 }, { x: 550, y: 1300 }, { x: 1000, y: 200 },
-        ];
-        const trunks  = [0x5a3a0a, 0x6a4a12, 0x4a2a06, 0x5a3a0a];
-        const canopy1 = [0x1a5e1a, 0x3a8833, 0x336622, 0x266622];
-        const canopy2 = [0x2a7a2a, 0x4a9944, 0x2a5a1a, 0x2a7a2a];
-
-        treePts.forEach((p, i) => {
-            const t = i % 4;
-            g.fillStyle(0x000000, 0.1);
-            g.fillEllipse(p.x + 3, p.y + 7, 24, 8);
-            g.fillStyle(trunks[t]);
-            g.fillRect(p.x - 3, p.y - 3, 7, 18);
-            g.fillStyle(canopy1[t]);
-            g.fillCircle(p.x, p.y - 15, 17);
-            g.fillStyle(canopy2[t]);
-            g.fillCircle(p.x - 7, p.y - 19, 10);
-            g.fillCircle(p.x + 7, p.y - 19, 10);
-        });
-
-        // Enclosure label on top
+        // Enclosure label
         this.add.text(ex + ew / 2, ey + 18, 'Animal Home', {
             font: 'bold 12px monospace', fill: '#ffffcc', stroke: '#336633', strokeThickness: 3
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(3);
     }
 
     _borderTreePositions(spacing) {
         const pts = [];
-        const pad = 30;
+        const pad = 45;
         for (let x = pad + spacing; x < WORLD_W - pad; x += spacing) {
             pts.push({ x, y: pad });
             pts.push({ x, y: WORLD_H - pad });
