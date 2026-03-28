@@ -251,11 +251,6 @@ export class BootScene extends Phaser.Scene {
             { frameWidth: 18, frameHeight: 18 }
         );
 
-        // ── UI ASSETS ──────────────────────────────────────────────────────
-        this.load.image('ui-buttons', 'assets/cozy/ui/buttons.png');
-        this.load.image('ui-panels',  'assets/cozy/ui/panels.png');
-        this.load.image('ui-all',     'assets/cozy/ui/ui-all.png');
-
         // ── EFFECTS ─────────────────────────────────────────────────────────
         this.load.image('heart', 'assets/cozy/effects/heart.png');
 
@@ -442,9 +437,6 @@ export class BootScene extends Phaser.Scene {
         this._createAnimIfNew('adventurer-run',    'adventurer-run',    0, 7, 10, -1);
         this._createAnimIfNew('adventurer-attack', 'adventurer-attack', 0, 7, 12, 0);
 
-        // ── UI FRAME REGISTRATION (global, all scenes can use) ────────────
-        this._registerUIFrames();
-
         // ── TRANSITION ──────────────────────────────────────────────────────
         this.scene.start('LoginScene');
     }
@@ -571,79 +563,6 @@ export class BootScene extends Phaser.Scene {
         }
 
         return canvas;
-    }
-
-    /**
-     * Register named frames on UI sprite sheets so all scenes can reference them.
-     */
-    _registerUIFrames() {
-        // ── ui-buttons (256×224) — wooden buttons (have icons baked in) ──
-        if (this.textures.exists('ui-buttons')) {
-            const tex = this.textures.get('ui-buttons');
-            if (!tex.has('wood-panel')) {
-                // Large wood panel sign (y=163) — clean, no icons
-                tex.add('wood-panel', 0, 2, 163, 103, 56);
-            }
-        }
-
-        // ── ui-all (848×480) — clean wood buttons and panels (no icons) ──
-        if (this.textures.exists('ui-all')) {
-            const tex = this.textures.get('ui-all');
-            if (!tex.has('btn-wood')) {
-                // Clean wood button (no icons) — dark panel at (16,296) 64×52
-                tex.add('btn-wood',      0,  16, 296, 64, 52);
-                // Clean wood bar — medium bar at (128,245) 60×22
-                tex.add('btn-bar',       0, 128, 245, 60, 22);
-                // Clean smaller bar at (128,276) 48×18
-                tex.add('btn-bar-sm',    0, 128, 276, 48, 18);
-                // Small square panels at (2,228) and (66,228) 60×57
-                tex.add('panel-sq',      0,   2, 228, 60, 57);
-                tex.add('panel-sq2',     0,  66, 228, 60, 57);
-                // Large sign/board at (1,356) 149×98
-                tex.add('panel-lg',      0,   1, 356, 149, 98);
-                // Medium sign at (97,311) 206×40
-                tex.add('panel-banner',  0,  97, 311, 206, 40);
-            }
-        }
-
-        // ── nature-global (160×208) — trees, flowers, etc. ──
-        if (this.textures.exists('nature-global')) {
-            const nat = this.textures.get('nature-global');
-            if (!nat.has('tree0')) {
-                // Trees (measured via pixel scan)
-                nat.add('tree0', 0,   1,  2, 30, 62);
-                nat.add('tree1', 0,  33,  0, 31, 64);
-                nat.add('tree2', 0,  68,  0, 27, 64);
-                nat.add('tree3', 0,  96,  0, 32, 64);
-                nat.add('tree4', 0, 128, 33, 32, 31);
-                // Flowers
-                nat.add('flower0', 0,  18, 82, 12, 12);
-                nat.add('flower1', 0,  67, 83, 10, 10);
-                nat.add('flower2', 0,  82, 82, 13, 13);
-                nat.add('flower3', 0, 100, 81,  9, 13);
-                nat.add('flower4', 0, 114, 82, 10, 12);
-                nat.add('flower5', 0, 130, 82, 12, 12);
-                // Mushrooms
-                nat.add('mush0', 0,  17, 113, 14, 15);
-                nat.add('mush1', 0,  98, 114, 12, 14);
-                nat.add('mush2', 0, 114,  99, 12, 13);
-                nat.add('mush3', 0, 112, 112, 15, 16);
-                // Rocks
-                nat.add('rock0', 0,   0, 130, 10, 12);
-                nat.add('rock1', 0,  18, 131, 12, 13);
-                nat.add('rock2', 0,  34, 130, 10, 14);
-                nat.add('rock3', 0,  98, 132, 12, 12);
-                // Bushes
-                nat.add('bush0', 0,   0, 146, 31, 14);
-                nat.add('bush1', 0,  96, 145, 16, 15);
-                nat.add('bush2', 0, 129, 146, 31, 14);
-                // Leaves
-                nat.add('leaf0', 0,  51, 65, 11, 14);
-                nat.add('leaf1', 0,  83, 67, 10, 10);
-                nat.add('leaf2', 0, 113, 65, 12, 14);
-                nat.add('leaf3', 0, 146, 65, 11, 12);
-            }
-        }
     }
 
     /**

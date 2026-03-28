@@ -61,26 +61,16 @@ export class LoginScene extends Phaser.Scene {
         // Username field
         const fw = 240, fh = 32, fy = height * 0.38;
         this.add.text(width / 2, fy - 22, 'USERNAME', { font: '10px monospace', fill: '#687880' }).setOrigin(0.5);
-        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('wood-panel')) {
-            this._userBg = this.add.image(width / 2, fy, 'ui-buttons', 'wood-panel')
-                .setDisplaySize(fw, fh).setInteractive({ useHandCursor: true });
-        } else {
-            this._userBg = this.add.rectangle(width / 2, fy, fw, fh, 0x1a2838)
-                .setStrokeStyle(2, 0x50d0b0).setInteractive({ useHandCursor: true });
-        }
+        this._userBg = this.add.rectangle(width / 2, fy, fw, fh, 0x1a2838)
+            .setStrokeStyle(2, 0x50d0b0).setInteractive({ useHandCursor: true });
         this._userTxt = this.add.text(width / 2 - fw / 2 + 12, fy, '|', {
             font: '14px monospace', fill: '#e8d098' }).setOrigin(0, 0.5);
 
         // Password field
         const py = fy + 60;
         this.add.text(width / 2, py - 22, 'PASSWORD', { font: '10px monospace', fill: '#687880' }).setOrigin(0.5);
-        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('wood-panel')) {
-            this._passBg = this.add.image(width / 2, py, 'ui-buttons', 'wood-panel')
-                .setDisplaySize(fw, fh).setInteractive({ useHandCursor: true });
-        } else {
-            this._passBg = this.add.rectangle(width / 2, py, fw, fh, 0x1a2838)
-                .setStrokeStyle(2, 0x243848).setInteractive({ useHandCursor: true });
-        }
+        this._passBg = this.add.rectangle(width / 2, py, fw, fh, 0x1a2838)
+            .setStrokeStyle(2, 0x243848).setInteractive({ useHandCursor: true });
         this._passTxt = this.add.text(width / 2 - fw / 2 + 12, py, '', {
             font: '14px monospace', fill: '#e8d098' }).setOrigin(0, 0.5);
 
@@ -124,14 +114,8 @@ export class LoginScene extends Phaser.Scene {
 
     _setFocus(f) {
         this._focus = f;
-        // Highlight focused field: use tint for image-based inputs, strokeStyle for rectangles
-        if (this._userBg.setStrokeStyle) {
-            this._userBg.setStrokeStyle(2, f === 'username' ? 0x50d0b0 : 0x243848);
-            this._passBg.setStrokeStyle(2, f === 'password' ? 0x50d0b0 : 0x243848);
-        } else {
-            this._userBg.setTint(f === 'username' ? 0xccffcc : 0xffffff);
-            this._passBg.setTint(f === 'password' ? 0xccffcc : 0xffffff);
-        }
+        this._userBg.setStrokeStyle(2, f === 'username' ? 0x50d0b0 : 0x243848);
+        this._passBg.setStrokeStyle(2, f === 'password' ? 0x50d0b0 : 0x243848);
         this._render();
     }
 

@@ -52,15 +52,15 @@ export class TitleScene extends Phaser.Scene {
             fill: '#687880'
         }).setOrigin(0.5);
 
-        // STORY button (wooden)
-        this._createWoodButton(width / 2 - 100, height / 2 + 40, 'STORY', 'btn-start', 'btn-start-hover', () => {
+        // STORY button
+        this.createButton(width / 2 - 100, height / 2 + 40, '▶  STORY', () => {
             this.scene.start('CharacterSelectScene', { isNewGame: true });
-        });
+        }, '#142030', '#243848');
 
-        // ARCADE button (wooden)
-        this._createWoodButton(width / 2 + 100, height / 2 + 40, 'ARCADE', 'btn-exit', 'btn-exit-hover', () => {
+        // ARCADE button
+        this.createButton(width / 2 + 100, height / 2 + 40, 'ARCADE', () => {
             this.goToPractice();
-        });
+        }, '#142030', '#243848');
 
         // Instructions
         this.add.text(width / 2, height - 50, 'Identify intervals, tap rhythms, and read notes to help the village!', {
@@ -70,7 +70,7 @@ export class TitleScene extends Phaser.Scene {
         }).setOrigin(0.5);
 
         // Settings gear
-        this.add.text(width - 16, 10, '\u2699', {
+        this.add.text(width - 16, 10, '⚙', {
             font: 'bold 28px monospace', fill: '#687880',
             padding: { x: 4, y: 2 }
         }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
@@ -95,6 +95,7 @@ export class TitleScene extends Phaser.Scene {
                     try { UserProfileManager.logout(); } catch (e) { /* ignore */ }
                     this.scene.start('LoginScene');
                 });
+                // Teacher dashboard button
                 if (UserProfileManager.isTeacher(activeUser)) {
                     const dashBtn = this.add.text(16, 50, 'Teacher Dashboard', {
                         font: '11px monospace', fill: '#687880',
@@ -104,26 +105,7 @@ export class TitleScene extends Phaser.Scene {
                     dashBtn.on('pointerdown', () => this.scene.start('TeacherDashboardScene'));
                 }
             }
-        } catch (e) { /* ignore */ }
-    }
-
-    _createWoodButton(x, y, label, _normalFrame, _hoverFrame, callback) {
-        // Use clean wood button from ui-all (no baked-in icons)
-        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
-            const btn = this.add.image(x, y, 'ui-all', 'btn-wood')
-                .setScale(2.2).setOrigin(0.5).setInteractive({ useHandCursor: true });
-            const text = this.add.text(x, y - 2, label, {
-                font: 'bold 14px monospace', fill: '#fff8e0',
-                stroke: '#5a3a0a', strokeThickness: 3,
-            }).setOrigin(0.5);
-            btn.on('pointerover', () => btn.setTint(0xdddddd));
-            btn.on('pointerout', () => btn.clearTint());
-            btn.on('pointerdown', callback);
-            text.on('pointerdown', callback);
-            return btn;
-        }
-        // Fallback to text button
-        return this.createButton(x, y, label, callback);
+        } catch (e) { /* ignore - user features just won't show */ }
     }
 
     goToPractice() {

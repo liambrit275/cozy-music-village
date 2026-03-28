@@ -337,7 +337,58 @@ export class TopDownScene extends Phaser.Scene {
         }
 
         // ── Decorations from nature-global.png ──
-        // Frames registered globally in BootScene._registerUIFrames()
+        // The spritesheet has VARIABLE sized items:
+        //   Trees: ~32×48 each (top 3 rows)
+        //   Small items (leaves, flowers, rocks, bugs): 16×16 each (rows 3+)
+        // We define custom frames with exact pixel regions.
+        const natTex = this.textures.get('nature-global');
+        if (!natTex.has('tree0')) {
+            // Tree bounding boxes measured with pixel scanning:
+            // Sprite 4+6: x=1,y=2 30×30 + x=1,y=34 30×30 = round green tree (full: 1,2,30,62)
+            // Sprite 0:   x=33,y=0 31×64 = bushy green tree
+            // Sprite 1+7: x=68,y=0 23×32 + x=68,y=34 27×30 = medium tree (full: 68,0,27,64)
+            // Sprite 2:   x=96,y=0 32×64 = grey/dead tree
+            // Sprite 3:   x=130,y=1 30×31 = pink blossom (top)
+            // Sprite 5:   x=128,y=33 32×31 = autumn/pink tree (bottom)
+            natTex.add('tree0', 0,   1,  2, 30, 62);  // Round green tree (full height)
+            natTex.add('tree1', 0,  33,  0, 31, 64);  // Bushy green tree (full height)
+            natTex.add('tree2', 0,  68,  0, 27, 64);  // Medium tree (full height)
+            natTex.add('tree3', 0,  96,  0, 32, 64);  // Grey/dead tree (full height)
+            natTex.add('tree4', 0, 128, 33, 32, 31);  // Autumn/pink tree
+
+            // Small items from lower rows (measured via flood-fill scan)
+            // Leaves (y≈65-79, ~12×14 each)
+            natTex.add('leaf0', 0,  51, 65, 11, 14);
+            natTex.add('leaf1', 0,  83, 67, 10, 10);
+            natTex.add('leaf2', 0, 113, 65, 12, 14);
+            natTex.add('leaf3', 0, 146, 65, 11, 12);
+
+            // Flowers (y≈82-94, ~12×12 each)
+            natTex.add('flower0', 0,  18, 82, 12, 12);
+            natTex.add('flower1', 0,  67, 83, 10, 10);
+            natTex.add('flower2', 0,  82, 82, 13, 13);
+            natTex.add('flower3', 0, 100, 81, 9, 13);
+            natTex.add('flower4', 0, 114, 82, 10, 12);
+            natTex.add('flower5', 0, 130, 82, 12, 12);
+
+            // Mushrooms/small plants (y≈96-110)
+            natTex.add('mush0', 0,  17, 113, 14, 15);
+            natTex.add('mush1', 0,  98, 114, 12, 14);
+            natTex.add('mush2', 0, 114, 99, 12, 13);
+            natTex.add('mush3', 0, 112, 112, 15, 16);
+
+            // Rocks (y≈130-144, ~10-12px)
+            natTex.add('rock0', 0,   0, 130, 10, 12);
+            natTex.add('rock1', 0,  18, 131, 12, 13);
+            natTex.add('rock2', 0,  34, 130, 10, 14);
+            natTex.add('rock3', 0,  98, 132, 12, 12);
+
+            // Bushes (y≈146-160, ~16-31px wide)
+            natTex.add('bush0', 0,   0, 146, 31, 14);
+            natTex.add('bush1', 0,  96, 145, 16, 15);
+            natTex.add('bush2', 0, 129, 146, 31, 14);
+        }
+
         const TREE_KEYS = ['tree0', 'tree1', 'tree2', 'tree3', 'tree4'];
         const FLOWER_KEYS = ['flower0', 'flower1', 'flower2', 'flower3', 'flower4', 'flower5'];
         const BUSH_KEYS = ['bush0', 'bush1', 'bush2'];
@@ -557,17 +608,11 @@ export class TopDownScene extends Phaser.Scene {
             .setScrollFactor(0).setDepth(50);
         this._dialogueUI.push(overlay);
 
-        // Dialogue panel (wood panel sprite or fallback rectangle)
+        // Dialogue panel
         const panelW = 640, panelH = 200;
         const panelX = width / 2, panelY = height - panelH / 2 - 20;
-        let panel;
-        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('wood-panel')) {
-            panel = this.add.image(panelX, panelY, 'ui-buttons', 'wood-panel')
-                .setDisplaySize(panelW, panelH).setScrollFactor(0).setDepth(51);
-        } else {
-            panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0x142030, 0.95)
-                .setStrokeStyle(2, 0x50d0b0).setScrollFactor(0).setDepth(51);
-        }
+        const panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0x142030, 0.95)
+            .setStrokeStyle(2, 0x50d0b0).setScrollFactor(0).setDepth(51);
         this._dialogueUI.push(panel);
 
         // Farmer portrait
@@ -604,27 +649,18 @@ export class TopDownScene extends Phaser.Scene {
         }).setScrollFactor(0).setDepth(52);
         this._dialogueUI.push(tutText);
 
-        // "Got it!" button (wood button or fallback)
+        // "Got it!" button
         const btnY = panelY + panelH / 2 - 28;
-        let btnBg;
-        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
-            btnBg = this.add.image(panelX, btnY, 'ui-all', 'btn-wood')
-                .setScale(1.6).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-            btnBg.on('pointerover', () => btnBg.setTint(0xdddddd));
-            btnBg.on('pointerout', () => btnBg.clearTint());
-        } else {
-            btnBg = this.add.rectangle(panelX, btnY, 100, 30, 0x225522)
-                .setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-            btnBg.on('pointerover', () => btnBg.setFillStyle(0x337733));
-            btnBg.on('pointerout', () => btnBg.setFillStyle(0x225522));
-        }
+        const btnBg = this.add.rectangle(panelX, btnY, 100, 30, 0x225522)
+            .setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
         this._dialogueUI.push(btnBg);
-        const btnLabel = this.add.text(panelX, btnY - 2, 'Got it!', {
-            font: 'bold 13px monospace', fill: '#fff8e0',
-            stroke: '#5a3a0a', strokeThickness: 3,
+        const btnLabel = this.add.text(panelX, btnY, 'Got it!', {
+            font: 'bold 14px monospace', fill: '#e8f0f0'
         }).setOrigin(0.5).setScrollFactor(0).setDepth(53);
         this._dialogueUI.push(btnLabel);
 
+        btnBg.on('pointerover', () => btnBg.setFillStyle(0x337733));
+        btnBg.on('pointerout', () => btnBg.setFillStyle(0x225522));
         btnBg.on('pointerdown', () => this._dismissFarmerDialogue());
 
         // Keyboard dismiss — use a delayed listener so it doesn't fire on the same frame
@@ -735,17 +771,11 @@ export class TopDownScene extends Phaser.Scene {
             .setScrollFactor(0).setDepth(50).setInteractive();
         ui.push(overlay);
 
-        // Panel background (wood panel or fallback)
+        // Panel background
         const panelW = 500, panelH = 340;
         const panelX = width / 2, panelY = height / 2;
-        let panel;
-        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('wood-panel')) {
-            panel = this.add.image(panelX, panelY, 'ui-buttons', 'wood-panel')
-                .setDisplaySize(panelW, panelH).setScrollFactor(0).setDepth(51);
-        } else {
-            panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0x1a2838, 0.95)
-                .setScrollFactor(0).setDepth(51).setStrokeStyle(2, 0xc8a060);
-        }
+        const panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0x1a2838, 0.95)
+            .setScrollFactor(0).setDepth(51).setStrokeStyle(2, 0xc8a060);
         ui.push(panel);
 
         // Title text
@@ -768,40 +798,19 @@ export class TopDownScene extends Phaser.Scene {
         }).setOrigin(0.5).setScrollFactor(0).setDepth(52);
         ui.push(pageText);
 
-        // Navigation buttons (wood sprites or fallback text)
-        const hasWoodBtns = this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood');
-        const navBtnY = panelY + panelH / 2 - 50;
+        // Navigation buttons
+        const btnStyle = {
+            font: 'bold 16px monospace', fill: '#e8f0f0',
+            backgroundColor: '#335566', padding: { x: 16, y: 8 },
+        };
 
-        let prevBtn, nextBtn;
-        if (hasWoodBtns) {
-            prevBtn = this.add.image(panelX - 100, navBtnY, 'ui-all', 'btn-wood')
-                .setScale(1.4).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-            prevBtn.on('pointerover', () => prevBtn.setTint(0xdddddd));
-            prevBtn.on('pointerout', () => prevBtn.clearTint());
-            const prevLabel = this.add.text(panelX - 100, navBtnY - 2, 'Prev', {
-                font: 'bold 12px monospace', fill: '#fff8e0', stroke: '#5a3a0a', strokeThickness: 3,
-            }).setOrigin(0.5).setScrollFactor(0).setDepth(53);
-            ui.push(prevLabel);
-
-            nextBtn = this.add.image(panelX + 100, navBtnY, 'ui-all', 'btn-wood')
-                .setScale(1.4).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-            nextBtn.on('pointerover', () => nextBtn.setTint(0xdddddd));
-            nextBtn.on('pointerout', () => nextBtn.clearTint());
-        } else {
-            const btnStyle = { font: 'bold 16px monospace', fill: '#e8f0f0', backgroundColor: '#335566', padding: { x: 16, y: 8 } };
-            prevBtn = this.add.text(panelX - 100, navBtnY, 'Prev', btnStyle)
-                .setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-            nextBtn = this.add.text(panelX + 100, navBtnY, 'Next', btnStyle)
-                .setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-        }
+        const prevBtn = this.add.text(panelX - 100, panelY + panelH / 2 - 50, '\u25C0 Prev', btnStyle)
+            .setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
         ui.push(prevBtn);
-        ui.push(nextBtn);
 
-        // Next button label (updated dynamically in render)
-        const nextLabel = hasWoodBtns ? this.add.text(panelX + 100, navBtnY - 2, 'Next', {
-            font: 'bold 12px monospace', fill: '#fff8e0', stroke: '#5a3a0a', strokeThickness: 3,
-        }).setOrigin(0.5).setScrollFactor(0).setDepth(53) : null;
-        if (nextLabel) ui.push(nextLabel);
+        const nextBtn = this.add.text(panelX + 100, panelY + panelH / 2 - 50, 'Next \u25B6', btnStyle)
+            .setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+        ui.push(nextBtn);
 
         const closeBtn = this.add.text(panelX + panelW / 2 - 12, panelY - panelH / 2 + 12, 'X', {
             font: 'bold 18px monospace', fill: '#e08868',
@@ -815,12 +824,7 @@ export class TopDownScene extends Phaser.Scene {
             bodyText.setText(p.lines.map(l => '\u2022  ' + l).join('\n'));
             pageText.setText(`${page + 1} / ${PAGES.length}`);
             prevBtn.setVisible(page > 0);
-            const isLast = page >= PAGES.length - 1;
-            if (nextLabel) {
-                nextLabel.setText(isLast ? 'Got it!' : 'Next');
-            } else {
-                nextBtn.setText(isLast ? 'Got it!' : 'Next \u25B6');
-            }
+            nextBtn.setText(page < PAGES.length - 1 ? 'Next \u25B6' : 'Got it!');
         };
 
         prevBtn.on('pointerdown', () => { if (page > 0) { page--; render(); } });

@@ -443,19 +443,6 @@ export class ArcadeMenuScene extends Phaser.Scene {
     }
 
     _makeBtn(x, y, label, bgColor, hoverColor, cb) {
-        // Use clean wood button from ui-all
-        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
-            const img = this.add.image(x, y, 'ui-all', 'btn-wood')
-                .setScale(1.8).setOrigin(0.5).setInteractive({ useHandCursor: true });
-            img.on('pointerover', () => img.setTint(0xdddddd));
-            img.on('pointerout', () => img.clearTint());
-            img.on('pointerdown', cb);
-            this.add.text(x, y - 2, label, {
-                font: 'bold 13px monospace', fill: '#fff8e0',
-                stroke: '#5a3a0a', strokeThickness: 3,
-            }).setOrigin(0.5);
-            return img;
-        }
         const btn = this.add.text(x, y, label, {
             font: 'bold 20px monospace',
             fill: '#e8f0f0',
