@@ -264,6 +264,7 @@ export class BootScene extends Phaser.Scene {
         this.load.image('outdoor-tiles',  'assets/cozy/environment/outdoor-tiles.png');
         // Tiled tilemap + all tileset images referenced in farm.json
         this.load.tilemapTiledJSON('farm-map', 'tilemaps/farm.json');
+        this.load.tilemapTiledJSON('challenge-bg', 'tilemaps/challenge-bg.json');
         this.load.image('full-tiles',     'tilemaps/tilesets/full-tiles.png');
         this.load.image('fishing-tiles',  'tilemaps/tilesets/fishing-tiles.png');
         this.load.image('fishing-deco',   'tilemaps/tilesets/fishing-deco.png');

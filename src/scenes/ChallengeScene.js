@@ -487,55 +487,30 @@ export class ChallengeScene extends Phaser.Scene {
             g.fillEllipse(cx + 20, cy - 8, 40, 16);
         });
 
-        // ── Nature sprite decorations from nature-global.png ──
-        if (this.textures.exists('nature-global')) {
-            const nat = this.textures.get('nature-global');
-            // Register frames if not already done (TopDownScene or BootScene may have done it)
-            if (!nat.has('tree0')) {
-                nat.add('tree0', 0,   1,  2, 30, 62);
-                nat.add('tree1', 0,  33,  0, 31, 64);
-                nat.add('tree2', 0,  68,  0, 27, 64);
-                nat.add('tree3', 0,  96,  0, 32, 64);
-                nat.add('tree4', 0, 128, 33, 32, 31);
-                nat.add('flower0', 0,  18, 82, 12, 12);
-                nat.add('flower1', 0,  67, 83, 10, 10);
-                nat.add('flower2', 0,  82, 82, 13, 13);
-                nat.add('flower3', 0, 100, 81,  9, 13);
-                nat.add('flower4', 0, 114, 82, 10, 12);
-                nat.add('bush0', 0,   0, 146, 31, 14);
-                nat.add('bush1', 0,  96, 145, 16, 15);
-                nat.add('bush2', 0, 129, 146, 31, 14);
-                nat.add('leaf0', 0,  51, 65, 11, 14);
-                nat.add('leaf1', 0,  83, 67, 10, 10);
+        // ── Tiled map background (trees, bushes, flowers painted in Tiled) ──
+        if (this.cache.tilemap.has('challenge-bg')) {
+            try {
+                const map = this.make.tilemap({ key: 'challenge-bg' });
+                const tilesets = [];
+                for (const tsData of map.tilesets) {
+                    if (this.textures.exists(tsData.name)) {
+                        const ts = map.addTilesetImage(tsData.name, tsData.name, 16, 16, 0, 0);
+                        if (ts) tilesets.push(ts);
+                    }
+                }
+                if (tilesets.length > 0) {
+                    const scale = 2; // 16px tiles → 32px rendered (25×32 = 800, 19×32 = 608)
+                    for (const layerName of ['ground', 'trees', 'decorations']) {
+                        const layer = map.createLayer(layerName, tilesets);
+                        if (layer) {
+                            layer.setScale(scale);
+                            layer.setDepth(layerName === 'trees' ? 0 : 0);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to load challenge background map:', e);
             }
-
-            // Background trees (behind characters, low alpha)
-            const trees = ['tree0', 'tree1', 'tree0', 'tree3'];
-            [55, 185, 640, 750].forEach((tx, i) => {
-                this.add.image(tx, GROUND_Y, 'nature-global', trees[i])
-                    .setScale(2 + (i % 2) * 0.8).setOrigin(0.5, 0.9).setDepth(0).setAlpha(0.8);
-            });
-
-            // Bushes on ground
-            [120, 350, 530, 700].forEach((bx, i) => {
-                const key = ['bush0', 'bush1', 'bush2', 'bush0'][i];
-                this.add.image(bx, GROUND_Y + 10, 'nature-global', key)
-                    .setScale(2.2).setDepth(0).setAlpha(0.7);
-            });
-
-            // Flowers scattered on ground
-            for (let i = 0; i < 14; i++) {
-                const fx = 25 + i * 58 + ((i * 31) % 25);
-                const fy = GROUND_Y + 8 + ((i * 17) % 22);
-                this.add.image(fx, fy, 'nature-global', `flower${i % 5}`)
-                    .setScale(1.8).setDepth(0).setAlpha(0.75);
-            }
-
-            // A couple of leaves floating near ground
-            [280, 470].forEach((lx, i) => {
-                this.add.image(lx, GROUND_Y + 5, 'nature-global', `leaf${i}`)
-                    .setScale(1.5).setDepth(0).setAlpha(0.5);
-            });
         }
 
         const hexStr = '#' + pal.sky[0].toString(16).padStart(6, '0');
