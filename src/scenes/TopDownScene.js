@@ -230,6 +230,22 @@ export class TopDownScene extends Phaser.Scene {
         const mapH = map.heightInPixels * scale;
         this.physics.world.setBounds(70, 70, mapW - 140, mapH - 140);
         this.cameras.main.setBounds(0, 0, mapW, mapH);
+
+        // Create collision bodies from the "objects" layer
+        const objLayer = map.getObjectLayer('objects');
+        if (objLayer) {
+            this._collisionBodies = this.physics.add.staticGroup();
+            for (const obj of objLayer.objects) {
+                // Object coordinates are in tile pixels — scale them
+                const x = obj.x * scale + (obj.width * scale) / 2;
+                const y = obj.y * scale + (obj.height * scale) / 2;
+                const w = obj.width * scale;
+                const h = obj.height * scale;
+                const body = this.add.zone(x, y, w, h);
+                this.physics.add.existing(body, true); // true = static
+                this._collisionBodies.add(body);
+            }
+        }
     }
 
     // ── Dummy to avoid errors if old code references it ──
@@ -245,6 +261,11 @@ export class TopDownScene extends Phaser.Scene {
         this.player.setCollideWorldBounds(true);
         this.player.setDepth(5);
         this._facing = 'down';
+
+        // Collide player with map objects (buildings, lake, etc.)
+        if (this._collisionBodies) {
+            this.physics.add.collider(this.player, this._collisionBodies);
+        }
     }
 
     // ── FARMER NPC ──────────────────────────────────────────────────────
