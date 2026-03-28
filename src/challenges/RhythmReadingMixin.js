@@ -269,7 +269,7 @@ export const RhythmReadingMixin = {
 
         for (let b = 0; b < COUNT_IN; b++) {
             this._rrSchedule(() => {
-                this.messageText.setText(b < COUNT_IN - 1 ? `${COUNT_IN - b}...` : 'TAP!')
+                this.messageText.setText(b < COUNT_IN - 1 ? `${b + 1}...` : `${b + 1}!`)
                     .setStyle({ fill: '#e8d098' });
                 this.audioEngine.playClick(b === 0);
             }, b * beatMs);
