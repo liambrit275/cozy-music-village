@@ -328,28 +328,62 @@ export class TopDownScene extends Phaser.Scene {
         }
 
         // ── Decorations from nature-global.png ──
-        // nature-global: 160×208, 16×16 tiles → 10 cols × 13 rows
-        // Load as spritesheet for individual tile placement
-        if (!this.textures.exists('nature-tiles')) {
-            // Slice nature-global into 16×16 frames at runtime
-            const natTex = this.textures.get('nature-global');
-            const natSrc = natTex.getSourceImage();
-            const NCols = 10, NRows = 13;
-            for (let r = 0; r < NRows; r++) {
-                for (let c = 0; c < NCols; c++) {
-                    natTex.add(r * NCols + c, 0, c * 16, r * 16, 16, 16);
-                }
-            }
-            this.textures.addFrame = true; // Mark as sliced
+        // The spritesheet has VARIABLE sized items:
+        //   Trees: ~32×48 each (top 3 rows)
+        //   Small items (leaves, flowers, rocks, bugs): 16×16 each (rows 3+)
+        // We define custom frames with exact pixel regions.
+        const natTex = this.textures.get('nature-global');
+        if (!natTex.has('tree0')) {
+            // Large trees (manually measured from the 160×208 sheet)
+            natTex.add('tree0', 0,   0,  0, 32, 48);  // Big round green tree
+            natTex.add('tree1', 0,  32,  0, 32, 48);  // Bushy green tree
+            natTex.add('tree2', 0,  64,  0, 32, 48);  // Grey/dead tree
+            natTex.add('tree3', 0,  96,  0, 32, 32);  // Pink blossom tree
+            natTex.add('tree4', 0, 128,  0, 32, 32);  // Small autumn tree
+
+            // Small trees / saplings (row 2-3 area, ~16×32)
+            natTex.add('sapling0', 0,  0, 48, 16, 32);
+            natTex.add('sapling1', 0, 16, 48, 16, 32);
+            natTex.add('sapling2', 0, 32, 48, 16, 32);
+            natTex.add('sapling3', 0, 48, 48, 16, 32);
+
+            // Leaves / small foliage (16×16 items, row ~5 area, y≈80)
+            natTex.add('leaf0', 0,   0, 80, 16, 16);
+            natTex.add('leaf1', 0,  16, 80, 16, 16);
+            natTex.add('leaf2', 0,  32, 80, 16, 16);
+            natTex.add('leaf3', 0,  48, 80, 16, 16);
+
+            // Flowers (16×16, y≈96)
+            natTex.add('flower0', 0,   0, 96, 16, 16);
+            natTex.add('flower1', 0,  16, 96, 16, 16);
+            natTex.add('flower2', 0,  32, 96, 16, 16);
+            natTex.add('flower3', 0,  48, 96, 16, 16);
+            natTex.add('flower4', 0,  64, 96, 16, 16);
+            natTex.add('flower5', 0,  80, 96, 16, 16);
+
+            // Mushrooms (16×16, y≈112)
+            natTex.add('mush0', 0,   0, 112, 16, 16);
+            natTex.add('mush1', 0,  16, 112, 16, 16);
+            natTex.add('mush2', 0,  32, 112, 16, 16);
+            natTex.add('mush3', 0,  48, 112, 16, 16);
+
+            // Rocks (16×16, y≈128)
+            natTex.add('rock0', 0,   0, 128, 16, 16);
+            natTex.add('rock1', 0,  16, 128, 16, 16);
+            natTex.add('rock2', 0,  32, 128, 16, 16);
+            natTex.add('rock3', 0,  48, 128, 16, 16);
+
+            // Bushes (16×16, y≈144)
+            natTex.add('bush0', 0,   0, 144, 16, 16);
+            natTex.add('bush1', 0,  16, 144, 16, 16);
+            natTex.add('bush2', 0,  32, 144, 16, 16);
         }
 
-        // Nature tile indices (row * 10 + col)
-        const NT = (col, row) => row * 10 + col;
-        const TREE_FRAMES = [NT(0, 0), NT(1, 0), NT(2, 0), NT(3, 0), NT(4, 0)]; // Big trees (top halves)
-        const BUSH_FRAMES = [NT(0, 3), NT(1, 3), NT(2, 3), NT(3, 3)]; // Bushes
-        const FLOWER_FRAMES = [NT(0, 5), NT(1, 5), NT(2, 5), NT(3, 5), NT(4, 5), NT(5, 5)]; // Flowers
-        const ROCK_FRAMES = [NT(0, 7), NT(1, 7), NT(2, 7)]; // Rocks
-        const MUSHROOM_FRAMES = [NT(0, 8), NT(1, 8), NT(2, 8)]; // Mushrooms
+        const TREE_KEYS = ['tree0', 'tree1', 'tree2', 'tree3', 'tree4'];
+        const FLOWER_KEYS = ['flower0', 'flower1', 'flower2', 'flower3', 'flower4', 'flower5'];
+        const BUSH_KEYS = ['bush0', 'bush1', 'bush2'];
+        const ROCK_KEYS = ['rock0', 'rock1', 'rock2', 'rock3'];
+        const MUSH_KEYS = ['mush0', 'mush1', 'mush2', 'mush3'];
 
         // Place trees around border and scattered
         const treePts = [
@@ -360,11 +394,9 @@ export class TopDownScene extends Phaser.Scene {
             { x: 400, y: 500 }, { x: 150, y: 750 }, { x: 1400, y: 600 },
         ];
         treePts.forEach((p, i) => {
-            const frame = TREE_FRAMES[i % TREE_FRAMES.length];
-            const tree = this.add.image(p.x, p.y, 'nature-global', frame);
-            tree.setScale(3 + Math.random() * 1.5);
-            tree.setDepth(3);
-            tree.setAlpha(0.95);
+            const key = TREE_KEYS[i % TREE_KEYS.length];
+            this.add.image(p.x, p.y, 'nature-global', key)
+                .setScale(2.5 + Math.random()).setDepth(3).setOrigin(0.5, 0.85);
         });
 
         // Scatter bushes
@@ -374,12 +406,12 @@ export class TopDownScene extends Phaser.Scene {
             { x: 180, y: 300 }, { x: 1350, y: 950 }, { x: 700, y: 1250 },
         ];
         bushPts.forEach((p, i) => {
-            const frame = BUSH_FRAMES[i % BUSH_FRAMES.length];
-            this.add.image(p.x, p.y, 'nature-global', frame)
-                .setScale(2.5).setDepth(2).setAlpha(0.9);
+            const key = BUSH_KEYS[i % BUSH_KEYS.length];
+            this.add.image(p.x, p.y, 'nature-global', key)
+                .setScale(2.5).setDepth(2);
         });
 
-        // Scatter flowers in meadow areas
+        // Scatter flowers
         const flowerPts = [
             { x: 250, y: 200 }, { x: 320, y: 180 }, { x: 420, y: 230 },
             { x: 600, y: 400 }, { x: 680, y: 380 }, { x: 720, y: 450 },
@@ -389,9 +421,9 @@ export class TopDownScene extends Phaser.Scene {
             { x: 200, y: 1100 }, { x: 350, y: 1150 }, { x: 450, y: 1050 },
         ];
         flowerPts.forEach((p, i) => {
-            const frame = FLOWER_FRAMES[i % FLOWER_FRAMES.length];
-            this.add.image(p.x, p.y, 'nature-global', frame)
-                .setScale(2).setDepth(1).setAlpha(0.85);
+            const key = FLOWER_KEYS[i % FLOWER_KEYS.length];
+            this.add.image(p.x, p.y, 'nature-global', key)
+                .setScale(2).setDepth(1);
         });
 
         // Scatter rocks
@@ -400,8 +432,8 @@ export class TopDownScene extends Phaser.Scene {
             { x: 380, y: 1250 }, { x: 1050, y: 1200 }, { x: 150, y: 600 },
         ];
         rockPts.forEach((p, i) => {
-            const frame = ROCK_FRAMES[i % ROCK_FRAMES.length];
-            this.add.image(p.x, p.y, 'nature-global', frame)
+            const key = ROCK_KEYS[i % ROCK_KEYS.length];
+            this.add.image(p.x, p.y, 'nature-global', key)
                 .setScale(2.5).setDepth(1);
         });
 
@@ -411,8 +443,8 @@ export class TopDownScene extends Phaser.Scene {
             { x: 270, y: 1050 },
         ];
         mushPts.forEach((p, i) => {
-            const frame = MUSHROOM_FRAMES[i % MUSHROOM_FRAMES.length];
-            this.add.image(p.x, p.y, 'nature-global', frame)
+            const key = MUSH_KEYS[i % MUSH_KEYS.length];
+            this.add.image(p.x, p.y, 'nature-global', key)
                 .setScale(2).setDepth(1);
         });
 
@@ -423,8 +455,8 @@ export class TopDownScene extends Phaser.Scene {
             [ex+240, ey+130], [ex+70, ey+170], [ex+160, ey+180], [ex+220, ey+160],
         ];
         encFlowers.forEach(([fx, fy], i) => {
-            const frame = FLOWER_FRAMES[i % FLOWER_FRAMES.length];
-            this.add.image(fx, fy, 'nature-global', frame)
+            const key = FLOWER_KEYS[i % FLOWER_KEYS.length];
+            this.add.image(fx, fy, 'nature-global', key)
                 .setScale(1.8).setDepth(1);
         });
 
