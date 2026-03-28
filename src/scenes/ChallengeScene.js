@@ -517,21 +517,6 @@ export class ChallengeScene extends Phaser.Scene {
             g.fillCircle(tx + 8 * ts, ty - th * 0.65, 12 * ts);
         });
 
-        // Nature-global tree sprites on the ground (behind characters)
-        if (this.textures.exists('nature-global')) {
-            const nat = this.textures.get('nature-global');
-            if (!nat.has('tree0')) {
-                nat.add('tree0', 0,   1,  2, 30, 62);
-                nat.add('tree1', 0,  33,  0, 31, 64);
-                nat.add('tree3', 0,  96,  0, 32, 64);
-            }
-            [{ x: 60, k: 'tree0', s: 2.2 }, { x: 190, k: 'tree1', s: 2.6 },
-             { x: 650, k: 'tree0', s: 2.4 }, { x: 755, k: 'tree3', s: 2.0 }]
-            .forEach(({ x, k, s }) => {
-                this.add.image(x, GROUND_Y, 'nature-global', k)
-                    .setScale(s).setOrigin(0.5, 0.85).setDepth(0).setAlpha(0.85);
-            });
-        }
 
         const hexStr = '#' + pal.sky[0].toString(16).padStart(6, '0');
         this.cameras.main.setBackgroundColor(hexStr);
