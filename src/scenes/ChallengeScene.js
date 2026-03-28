@@ -473,44 +473,64 @@ export class ChallengeScene extends Phaser.Scene {
         g.fillStyle(pal.ground, 0.5);
         g.fillRect(0, GROUND_Y - 4, width, 8);
 
-        // Grass fringe at ground line
         g.fillStyle(pal.ground, 0.25);
         for (let x = 0; x < width; x += 3) {
             const h = 20 + Math.sin(x * 0.012) * 12 + Math.sin(x * 0.03) * 6;
             g.fillRect(x, GROUND_Y - h, 3, h);
         }
 
-        // Clouds
+        g.fillStyle(0x2e7d32, 0.4);
+        for (let i = 0; i < 18; i++) {
+            const gx = 40 + i * 44 + ((i * 17) % 20);
+            const gy = GROUND_Y + 8 + (i % 3) * 15;
+            g.fillRect(gx, gy, 2, 6);
+            g.fillRect(gx + 3, gy - 2, 2, 8);
+            g.fillRect(gx + 6, gy + 1, 2, 5);
+        }
+
+        pal.flowers.forEach((color, fi) => {
+            for (let i = 0; i < 5; i++) {
+                const fx = 30 + fi * 230 + i * 48 + ((fi + i) * 37) % 60;
+                const fy = GROUND_Y + 10 + ((fi + i) * 13) % 30;
+                g.fillStyle(color, 0.7);
+                g.fillCircle(fx, fy, 3);
+                g.fillStyle(pal.accent, 0.6);
+                g.fillCircle(fx, fy, 1.5);
+            }
+        });
+
         g.fillStyle(0xffffff, 0.15);
         [[120, 60], [340, 40], [560, 70], [700, 35]].forEach(([cx, cy]) => {
             g.fillEllipse(cx, cy, 60, 20);
             g.fillEllipse(cx + 20, cy - 8, 40, 16);
         });
 
-        // ── Tiled map background (trees, bushes, flowers painted in Tiled) ──
-        if (this.cache.tilemap.has('challenge-bg')) {
-            try {
-                const map = this.make.tilemap({ key: 'challenge-bg' });
-                const tilesets = [];
-                for (const tsData of map.tilesets) {
-                    if (this.textures.exists(tsData.name)) {
-                        const ts = map.addTilesetImage(tsData.name, tsData.name, 16, 16, 0, 0);
-                        if (ts) tilesets.push(ts);
-                    }
-                }
-                if (tilesets.length > 0) {
-                    const scale = 2; // 16px tiles → 32px rendered (25×32 = 800, 19×32 = 608)
-                    for (const layerName of ['ground', 'trees', 'decorations']) {
-                        const layer = map.createLayer(layerName, tilesets);
-                        if (layer) {
-                            layer.setScale(scale);
-                            layer.setDepth(layerName === 'trees' ? 0 : 0);
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Failed to load challenge background map:', e);
+        const treeColor = (pal.ground & 0xfefefe) >> 1;
+        [[50, 0.6], [180, 0.8], [680, 0.7], [760, 0.5]].forEach(([tx, ts]) => {
+            const th = 50 * ts;
+            const ty = GROUND_Y;
+            g.fillStyle(0x4a3520, 0.4);
+            g.fillRect(tx - 2, ty - th * 0.4, 4, th * 0.4);
+            g.fillStyle(treeColor, 0.35);
+            g.fillCircle(tx, ty - th * 0.55, 16 * ts);
+            g.fillCircle(tx - 8 * ts, ty - th * 0.65, 12 * ts);
+            g.fillCircle(tx + 8 * ts, ty - th * 0.65, 12 * ts);
+        });
+
+        // Nature-global tree sprites on the ground (behind characters)
+        if (this.textures.exists('nature-global')) {
+            const nat = this.textures.get('nature-global');
+            if (!nat.has('tree0')) {
+                nat.add('tree0', 0,   1,  2, 30, 62);
+                nat.add('tree1', 0,  33,  0, 31, 64);
+                nat.add('tree3', 0,  96,  0, 32, 64);
             }
+            [{ x: 60, k: 'tree0', s: 2.2 }, { x: 190, k: 'tree1', s: 2.6 },
+             { x: 650, k: 'tree0', s: 2.4 }, { x: 755, k: 'tree3', s: 2.0 }]
+            .forEach(({ x, k, s }) => {
+                this.add.image(x, GROUND_Y, 'nature-global', k)
+                    .setScale(s).setOrigin(0.5, 0.85).setDepth(0).setAlpha(0.85);
+            });
         }
 
         const hexStr = '#' + pal.sky[0].toString(16).padStart(6, '0');
