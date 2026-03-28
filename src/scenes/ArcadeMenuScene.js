@@ -443,16 +443,12 @@ export class ArcadeMenuScene extends Phaser.Scene {
     }
 
     _makeBtn(x, y, label, bgColor, hoverColor, cb) {
-        // Try wood button sprite, fall back to text button
-        const frameMap = { 'START': 'btn-start', 'BACK': 'btn-back', 'LATENCY': 'btn-exit' };
-        const hoverMap = { 'START': 'btn-start-hover', 'BACK': 'btn-back', 'LATENCY': 'btn-exit-hover' };
-        const frame = frameMap[label];
-        if (frame && this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has(frame)) {
-            const img = this.add.image(x, y, 'ui-buttons', frame)
-                .setScale(2).setOrigin(0.5).setInteractive({ useHandCursor: true });
-            const hover = hoverMap[label] || frame;
-            img.on('pointerover', () => img.setFrame(hover));
-            img.on('pointerout', () => img.setFrame(frame));
+        // Use clean wood button from ui-all
+        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
+            const img = this.add.image(x, y, 'ui-all', 'btn-wood')
+                .setScale(1.8).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            img.on('pointerover', () => img.setTint(0xdddddd));
+            img.on('pointerout', () => img.clearTint());
             img.on('pointerdown', cb);
             this.add.text(x, y - 2, label, {
                 font: 'bold 13px monospace', fill: '#fff8e0',

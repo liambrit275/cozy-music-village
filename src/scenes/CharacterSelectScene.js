@@ -70,12 +70,12 @@ export class CharacterSelectScene extends Phaser.Scene {
             font: '11px monospace', fill: '#687880'
         }).setOrigin(0.5);
 
-        // Start Adventure button (wood sprite or fallback)
-        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('btn-start')) {
-            const btnImg = this.add.image(width / 2, height - 44, 'ui-buttons', 'btn-start')
+        // Start Adventure button (clean wood sprite or fallback)
+        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
+            const btnImg = this.add.image(width / 2, height - 44, 'ui-all', 'btn-wood')
                 .setScale(2.8).setOrigin(0.5).setInteractive({ useHandCursor: true });
-            btnImg.on('pointerover', () => btnImg.setFrame('btn-start-hover'));
-            btnImg.on('pointerout', () => btnImg.setFrame('btn-start'));
+            btnImg.on('pointerover', () => btnImg.setTint(0xdddddd));
+            btnImg.on('pointerout', () => btnImg.clearTint());
             btnImg.on('pointerdown', () => this._startGame());
             this.add.text(width / 2, height - 46, 'START', {
                 font: 'bold 16px monospace', fill: '#fff8e0',

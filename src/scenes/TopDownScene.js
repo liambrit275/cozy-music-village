@@ -607,11 +607,11 @@ export class TopDownScene extends Phaser.Scene {
         // "Got it!" button (wood button or fallback)
         const btnY = panelY + panelH / 2 - 28;
         let btnBg;
-        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('btn-start')) {
-            btnBg = this.add.image(panelX, btnY, 'ui-buttons', 'btn-start')
-                .setScale(1.8).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
-            btnBg.on('pointerover', () => btnBg.setFrame('btn-start-hover'));
-            btnBg.on('pointerout', () => btnBg.setFrame('btn-start'));
+        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
+            btnBg = this.add.image(panelX, btnY, 'ui-all', 'btn-wood')
+                .setScale(1.6).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+            btnBg.on('pointerover', () => btnBg.setTint(0xdddddd));
+            btnBg.on('pointerout', () => btnBg.clearTint());
         } else {
             btnBg = this.add.rectangle(panelX, btnY, 100, 30, 0x225522)
                 .setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
@@ -769,13 +769,13 @@ export class TopDownScene extends Phaser.Scene {
         ui.push(pageText);
 
         // Navigation buttons (wood sprites or fallback text)
-        const hasWoodBtns = this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('btn-back');
+        const hasWoodBtns = this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood');
         const navBtnY = panelY + panelH / 2 - 50;
 
         let prevBtn, nextBtn;
         if (hasWoodBtns) {
-            prevBtn = this.add.image(panelX - 100, navBtnY, 'ui-buttons', 'btn-back')
-                .setScale(1.6).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+            prevBtn = this.add.image(panelX - 100, navBtnY, 'ui-all', 'btn-wood')
+                .setScale(1.4).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
             prevBtn.on('pointerover', () => prevBtn.setTint(0xdddddd));
             prevBtn.on('pointerout', () => prevBtn.clearTint());
             const prevLabel = this.add.text(panelX - 100, navBtnY - 2, 'Prev', {
@@ -783,8 +783,8 @@ export class TopDownScene extends Phaser.Scene {
             }).setOrigin(0.5).setScrollFactor(0).setDepth(53);
             ui.push(prevLabel);
 
-            nextBtn = this.add.image(panelX + 100, navBtnY, 'ui-buttons', 'btn-start')
-                .setScale(1.6).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+            nextBtn = this.add.image(panelX + 100, navBtnY, 'ui-all', 'btn-wood')
+                .setScale(1.4).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
             nextBtn.on('pointerover', () => nextBtn.setTint(0xdddddd));
             nextBtn.on('pointerout', () => nextBtn.clearTint());
         } else {

@@ -577,24 +577,32 @@ export class BootScene extends Phaser.Scene {
      * Register named frames on UI sprite sheets so all scenes can reference them.
      */
     _registerUIFrames() {
-        // ── ui-buttons (256×224) — wooden buttons ──
+        // ── ui-buttons (256×224) — wooden buttons (have icons baked in) ──
         if (this.textures.exists('ui-buttons')) {
             const tex = this.textures.get('ui-buttons');
-            if (!tex.has('btn-start')) {
-                // Row 0 (y=16): normal state, each 53×41
-                tex.add('btn-start',       0,   6, 16, 53, 41);
-                tex.add('btn-exit',        0,  70, 16, 53, 41);
-                tex.add('btn-new',         0, 134, 16, 53, 41);
-                tex.add('btn-save',        0, 198, 16, 53, 41);
-                // Row 1 (y=64): hover/pressed state
-                tex.add('btn-start-hover', 0,   6, 64, 53, 41);
-                tex.add('btn-exit-hover',  0,  70, 64, 53, 41);
-                tex.add('btn-new-hover',   0, 134, 64, 53, 41);
-                tex.add('btn-save-hover',  0, 198, 64, 53, 41);
-                // Back button (y=112)
-                tex.add('btn-back',        0,   6, 112, 53, 41);
-                // Large wood panel sign (y=163)
-                tex.add('wood-panel',      0,   2, 163, 103, 56);
+            if (!tex.has('wood-panel')) {
+                // Large wood panel sign (y=163) — clean, no icons
+                tex.add('wood-panel', 0, 2, 163, 103, 56);
+            }
+        }
+
+        // ── ui-all (848×480) — clean wood buttons and panels (no icons) ──
+        if (this.textures.exists('ui-all')) {
+            const tex = this.textures.get('ui-all');
+            if (!tex.has('btn-wood')) {
+                // Clean wood button (no icons) — dark panel at (16,296) 64×52
+                tex.add('btn-wood',      0,  16, 296, 64, 52);
+                // Clean wood bar — medium bar at (128,245) 60×22
+                tex.add('btn-bar',       0, 128, 245, 60, 22);
+                // Clean smaller bar at (128,276) 48×18
+                tex.add('btn-bar-sm',    0, 128, 276, 48, 18);
+                // Small square panels at (2,228) and (66,228) 60×57
+                tex.add('panel-sq',      0,   2, 228, 60, 57);
+                tex.add('panel-sq2',     0,  66, 228, 60, 57);
+                // Large sign/board at (1,356) 149×98
+                tex.add('panel-lg',      0,   1, 356, 149, 98);
+                // Medium sign at (97,311) 206×40
+                tex.add('panel-banner',  0,  97, 311, 206, 40);
             }
         }
 

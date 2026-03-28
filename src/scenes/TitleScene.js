@@ -107,26 +107,23 @@ export class TitleScene extends Phaser.Scene {
         } catch (e) { /* ignore */ }
     }
 
-    _createWoodButton(x, y, label, normalFrame, hoverFrame, callback) {
-        if (!this.textures.exists('ui-buttons') || !this.textures.get('ui-buttons').has(normalFrame)) {
-            // Fallback to text button
-            return this.createButton(x, y, label, callback);
+    _createWoodButton(x, y, label, _normalFrame, _hoverFrame, callback) {
+        // Use clean wood button from ui-all (no baked-in icons)
+        if (this.textures.exists('ui-all') && this.textures.get('ui-all').has('btn-wood')) {
+            const btn = this.add.image(x, y, 'ui-all', 'btn-wood')
+                .setScale(2.2).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            const text = this.add.text(x, y - 2, label, {
+                font: 'bold 14px monospace', fill: '#fff8e0',
+                stroke: '#5a3a0a', strokeThickness: 3,
+            }).setOrigin(0.5);
+            btn.on('pointerover', () => btn.setTint(0xdddddd));
+            btn.on('pointerout', () => btn.clearTint());
+            btn.on('pointerdown', callback);
+            text.on('pointerdown', callback);
+            return btn;
         }
-
-        const btn = this.add.image(x, y, 'ui-buttons', normalFrame)
-            .setScale(2.5).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-        const text = this.add.text(x, y - 2, label, {
-            font: 'bold 14px monospace', fill: '#fff8e0',
-            stroke: '#5a3a0a', strokeThickness: 3,
-        }).setOrigin(0.5);
-
-        btn.on('pointerover', () => btn.setFrame(hoverFrame));
-        btn.on('pointerout', () => btn.setFrame(normalFrame));
-        btn.on('pointerdown', callback);
-        text.on('pointerdown', callback); // clickable text too
-
-        return btn;
+        // Fallback to text button
+        return this.createButton(x, y, label, callback);
     }
 
     goToPractice() {
