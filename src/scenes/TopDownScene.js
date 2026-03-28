@@ -91,7 +91,7 @@ export class TopDownScene extends Phaser.Scene {
 
         // Settings gear button (top-right, camera-fixed)
         const settingsBtn = this.add.text(
-            this.cameras.main.width - 12, 10, '⚙',
+            this.cameras.main.width - 12, 10, '\u2699',
             { font: 'bold 28px monospace', fill: '#687880', padding: { x: 4, y: 2 } }
         ).setOrigin(1, 0).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
         settingsBtn.on('pointerover', () => settingsBtn.setStyle({ fill: '#e8d098' }));
@@ -100,6 +100,15 @@ export class TopDownScene extends Phaser.Scene {
             this.scene.launch('SettingsScene', { callerKey: 'TopDownScene', pauseCaller: true });
             this.scene.pause('TopDownScene');
         });
+
+        // Help / Tutorial button
+        const helpBtn = this.add.text(
+            this.cameras.main.width - 44, 14, '?',
+            { font: 'bold 20px monospace', fill: '#687880', backgroundColor: '#00000066', padding: { x: 8, y: 3 } }
+        ).setOrigin(1, 0).setScrollFactor(0).setDepth(20).setInteractive({ useHandCursor: true });
+        helpBtn.on('pointerover', () => helpBtn.setStyle({ fill: '#e8d098' }));
+        helpBtn.on('pointerout',  () => helpBtn.setStyle({ fill: '#687880' }));
+        helpBtn.on('pointerdown', () => this._showTutorial());
 
         // Save button
         const saveBtn = this.add.text(
@@ -679,6 +688,174 @@ export class TopDownScene extends Phaser.Scene {
             this.input.keyboard.off('keydown', this._dialogueKeyHandler);
             this._dialogueKeyHandler = null;
         }
+    }
+
+    // ── TUTORIAL OVERLAY ──────────────────────────────────────────────────
+
+    _showTutorial(startPage = 0) {
+        if (this._tutorialOpen) return;
+        this._tutorialOpen = true;
+        this._inDialogue = true; // freeze player movement
+
+        const { width, height } = this.cameras.main;
+        const PAGES = [
+            {
+                title: 'Welcome to the Farm!',
+                lines: [
+                    'Walk around with WASD or Arrow keys.',
+                    'Approach an animal to start a music challenge.',
+                    'Rescue all 9 animals to complete each level!',
+                    'Talk to the Farmer for tips on each level.',
+                ],
+            },
+            {
+                title: 'Tone Identification',
+                lines: [
+                    'You will hear a drone note and a melody note.',
+                    'Listen carefully to the interval between them.',
+                    'Choose the correct solfege syllable:',
+                    'Do Re Mi Fa Sol La Ti (and chromatic ones).',
+                    'The octave does not matter - just the note name.',
+                ],
+            },
+            {
+                title: 'Note Reading',
+                lines: [
+                    'A note appears on the staff (treble or bass clef).',
+                    'Identify the note name using the keyboard below.',
+                    'Watch for sharps and flats!',
+                    'Ledger lines appear in later levels.',
+                    'Your instrument setting affects the clef and range.',
+                ],
+            },
+            {
+                title: 'Rhythm Ear Training',
+                lines: [
+                    'Listen to a rhythm pattern, then recreate it.',
+                    'Click cells on the grid to place notes.',
+                    'Click and drag to create longer notes.',
+                    'Use number keys 3-7 to set note duration.',
+                    'Press 0 for rests and T to tie notes.',
+                    'Hit SUBMIT when you think it matches!',
+                ],
+            },
+            {
+                title: 'Rhythm Reading',
+                lines: [
+                    'You will see rhythm notation on the staff.',
+                    'Tap SPACE (or your MIDI pad) in time with it.',
+                    'A count-in plays first so you know the tempo.',
+                    'Try to tap exactly when each note starts.',
+                    'Hold longer notes - don\'t double-tap!',
+                    '80% accuracy is needed to pass.',
+                ],
+            },
+            {
+                title: 'Tips & Controls',
+                lines: [
+                    'SAVE button: saves your progress.',
+                    'Gear icon: opens settings (latency, volume).',
+                    'The Farmer gives tips at each new level.',
+                    'Animals need multiple correct answers to rescue.',
+                    'Wrong answers cost energy (from Level 3 on).',
+                    'Have fun and keep practicing!',
+                ],
+            },
+        ];
+
+        let page = Math.max(0, Math.min(startPage, PAGES.length - 1));
+        const ui = [];
+
+        // Dark overlay
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+            .setScrollFactor(0).setDepth(50).setInteractive();
+        ui.push(overlay);
+
+        // Panel background
+        const panelW = 500, panelH = 340;
+        const panelX = width / 2, panelY = height / 2;
+        const panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0x1a2838, 0.95)
+            .setScrollFactor(0).setDepth(51).setStrokeStyle(2, 0xc8a060);
+        ui.push(panel);
+
+        // Title text
+        const titleText = this.add.text(panelX, panelY - panelH / 2 + 28, '', {
+            font: 'bold 20px monospace', fill: '#e8d098',
+            stroke: '#000', strokeThickness: 2,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(52);
+        ui.push(titleText);
+
+        // Body text
+        const bodyText = this.add.text(panelX - panelW / 2 + 30, panelY - panelH / 2 + 60, '', {
+            font: '14px monospace', fill: '#c8d8d8',
+            lineSpacing: 8, wordWrap: { width: panelW - 60 },
+        }).setScrollFactor(0).setDepth(52);
+        ui.push(bodyText);
+
+        // Page indicator
+        const pageText = this.add.text(panelX, panelY + panelH / 2 - 25, '', {
+            font: '12px monospace', fill: '#687880',
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(52);
+        ui.push(pageText);
+
+        // Navigation buttons
+        const btnStyle = {
+            font: 'bold 16px monospace', fill: '#e8f0f0',
+            backgroundColor: '#335566', padding: { x: 16, y: 8 },
+        };
+
+        const prevBtn = this.add.text(panelX - 100, panelY + panelH / 2 - 50, '\u25C0 Prev', btnStyle)
+            .setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+        ui.push(prevBtn);
+
+        const nextBtn = this.add.text(panelX + 100, panelY + panelH / 2 - 50, 'Next \u25B6', btnStyle)
+            .setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+        ui.push(nextBtn);
+
+        const closeBtn = this.add.text(panelX + panelW / 2 - 12, panelY - panelH / 2 + 12, 'X', {
+            font: 'bold 18px monospace', fill: '#e08868',
+            stroke: '#000', strokeThickness: 2,
+        }).setOrigin(0.5).setScrollFactor(0).setDepth(52).setInteractive({ useHandCursor: true });
+        ui.push(closeBtn);
+
+        const render = () => {
+            const p = PAGES[page];
+            titleText.setText(p.title);
+            bodyText.setText(p.lines.map(l => '\u2022  ' + l).join('\n'));
+            pageText.setText(`${page + 1} / ${PAGES.length}`);
+            prevBtn.setVisible(page > 0);
+            nextBtn.setText(page < PAGES.length - 1 ? 'Next \u25B6' : 'Got it!');
+        };
+
+        prevBtn.on('pointerdown', () => { if (page > 0) { page--; render(); } });
+        nextBtn.on('pointerdown', () => {
+            if (page < PAGES.length - 1) { page++; render(); }
+            else closeTutorial();
+        });
+        closeBtn.on('pointerdown', () => closeTutorial());
+
+        // Keyboard navigation
+        const keyHandler = (event) => {
+            if (event.key === 'ArrowRight' || event.key === ' ') {
+                if (page < PAGES.length - 1) { page++; render(); }
+                else closeTutorial();
+            } else if (event.key === 'ArrowLeft') {
+                if (page > 0) { page--; render(); }
+            } else if (event.key === 'Escape') {
+                closeTutorial();
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
+
+        const closeTutorial = () => {
+            document.removeEventListener('keydown', keyHandler);
+            ui.forEach(o => o.destroy());
+            this._tutorialOpen = false;
+            this._inDialogue = false;
+        };
+
+        this._tutorialUI = ui;
+        render();
     }
 
     // ── ANIMALS ───────────────────────────────────────────────────────────
