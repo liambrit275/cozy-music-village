@@ -224,11 +224,17 @@ export class TopDownScene extends Phaser.Scene {
 
         // Create layers from the Tiled JSON — names must match layer names in the map
         const layerNames = ['ground', 'paths', 'fences', 'decorations'];
+        this._fenceLayer = null;
         for (const name of layerNames) {
             const layer = map.createLayer(name, tilesets);
             if (layer) {
                 layer.setScale(scale);
                 layer.setDepth(name === 'decorations' ? 2 : name === 'fences' ? 1 : 0);
+                if (name === 'fences') {
+                    // All non-empty fence tiles are collidable
+                    layer.setCollisionByExclusion([-1, 0]);
+                    this._fenceLayer = layer;
+                }
             }
         }
 
@@ -272,6 +278,10 @@ export class TopDownScene extends Phaser.Scene {
         // Collide player with map objects (buildings, lake, etc.)
         if (this._collisionBodies) {
             this.physics.add.collider(this.player, this._collisionBodies);
+        }
+        // Collide player with fence tiles
+        if (this._fenceLayer) {
+            this.physics.add.collider(this.player, this._fenceLayer);
         }
     }
 
