@@ -181,7 +181,14 @@ export class TopDownScene extends Phaser.Scene {
 
         // ── Load Tiled JSON map ──
         if (this.cache.tilemap.has('farm-map')) {
-            this._loadTiledMap(SCALE);
+            try {
+                this._loadTiledMap(SCALE);
+            } catch (e) {
+                console.error('Failed to load Tiled map:', e);
+                const g = this.add.graphics();
+                g.fillStyle(0x3d7a3d);
+                g.fillRect(0, 0, WORLD_W, WORLD_H);
+            }
         } else {
             // Fallback: solid green background
             const g = this.add.graphics();
