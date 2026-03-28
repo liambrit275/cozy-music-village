@@ -176,304 +176,22 @@ export class TopDownScene extends Phaser.Scene {
         this.cameras.main.setBackgroundColor('#3d7a3d');
         this.cameras.main.roundPixels = true;
 
-        // outdoor-tiles.png: 448×432, 16×16 tiles → 28 cols × 27 rows
-        const TILE_COLS = 28;
+        const SCALE = 2;
         const TILE_SIZE = 16;
-        const SCALE = 2; // Each 16px tile renders at 32px
 
-        // Map dimensions (in tiles at native 16px)
-        const MAP_W = Math.ceil(WORLD_W / (TILE_SIZE * SCALE)); // 50
-        const MAP_H = Math.ceil(WORLD_H / (TILE_SIZE * SCALE)); // 44
-
-        // ── Tile index helpers (row * 28 + col) ──
-        const T = (col, row) => row * TILE_COLS + col;
-
-        // Key tile indices from outdoor-tiles.png
-        // Auto-tile layout (5 cols × 3 rows pattern):
-        //   Row 0: TL(0,0) T(1,0) TR(2,0) ...
-        //   Row 1: L(0,1)  F(1,1) R(2,1)  ...  (F = solid fill)
-        //   Row 2: BL(0,2) B(1,2) BR(2,2) ...
-        // Second terrain set starts at col 5 (same pattern)
-        const GRASS = {
-            fill:   T(1, 1),   // Solid grass fill (center of auto-tile)
-            fill2:  T(5, 1),   // Grass variation (second set fill)
-            tl:     T(0, 0),   // Top-left corner
-            t:      T(1, 0),   // Top edge
-            tr:     T(2, 0),   // Top-right corner
-            l:      T(0, 1),   // Left edge
-            r:      T(2, 1),   // Right edge
-            bl:     T(0, 2),   // Bottom-left corner
-            b:      T(1, 2),   // Bottom edge
-            br:     T(2, 2),   // Bottom-right corner
-        };
-        const DIRT = {
-            fill:   T(1, 4),   // Solid dirt/path fill
-            fill2:  T(5, 4),   // Dirt variation fill
-        };
-        const WATER = {
-            fill:   T(5, 7),   // Water center
-        };
-        const FENCE = {
-            h:      T(9, 3),   // Horizontal fence rail
-            v:      T(8, 4),   // Vertical fence rail
-            post:   T(8, 3),   // Fence post
-        };
-
-        // Create procedural tilemap
-        const map = this.make.tilemap({
-            tileWidth: TILE_SIZE,
-            tileHeight: TILE_SIZE,
-            width: MAP_W,
-            height: MAP_H,
-        });
-        const tileset = map.addTilesetImage('outdoor-tiles', 'outdoor-tiles', TILE_SIZE, TILE_SIZE, 0, 0);
-
-        // ── Ground layer ──
-        const ground = map.createBlankLayer('ground', tileset);
-        ground.setScale(SCALE);
-        ground.setDepth(0);
-
-        // Fill all with grass
-        ground.fill(GRASS.fill, 0, 0, MAP_W, MAP_H);
-
-        // Scatter grass variations
-        for (let i = 0; i < 200; i++) {
-            const gx = Phaser.Math.Between(2, MAP_W - 3);
-            const gy = Phaser.Math.Between(2, MAP_H - 3);
-            ground.putTileAt(GRASS.fill2, gx, gy);
+        // ── Load Tiled JSON map ──
+        if (this.cache.tilemap.has('farm-map')) {
+            this._loadTiledMap(SCALE);
+        } else {
+            // Fallback: solid green background
+            const g = this.add.graphics();
+            g.fillStyle(0x3d7a3d);
+            g.fillRect(0, 0, WORLD_W, WORLD_H);
         }
 
-        // ── Dirt paths ──
-        const pathLayer = map.createBlankLayer('paths', tileset);
-        pathLayer.setScale(SCALE);
-        pathLayer.setDepth(1);
-
-        // Vertical path (center)
-        const pathCX = Math.floor(MAP_W / 2);
-        for (let y = 0; y < MAP_H; y++) {
-            pathLayer.putTileAt(DIRT.fill, pathCX - 1, y);
-            pathLayer.putTileAt(DIRT.fill2, pathCX, y);
-        }
-
-        // Horizontal path (center)
-        const pathCY = Math.floor(MAP_H / 2);
-        for (let x = 0; x < MAP_W; x++) {
-            pathLayer.putTileAt(DIRT.fill, x, pathCY - 1);
-            pathLayer.putTileAt(DIRT.fill2, x, pathCY);
-        }
-
-        // Path to enclosure (top right)
-        const encPathY = 5;
-        for (let x = pathCX; x < MAP_W - 4; x++) {
-            pathLayer.putTileAt(DIRT.fill, x, encPathY);
-            pathLayer.putTileAt(DIRT.fill2, x, encPathY + 1);
-        }
-
-        // ── Border (dark grass edge around world) ──
-        for (let x = 0; x < MAP_W; x++) {
-            ground.putTileAt(GRASS.t, x, 0);
-            ground.putTileAt(GRASS.b, x, MAP_H - 1);
-        }
-        for (let y = 0; y < MAP_H; y++) {
-            ground.putTileAt(GRASS.l, 0, y);
-            ground.putTileAt(GRASS.r, MAP_W - 1, y);
-        }
-        ground.putTileAt(GRASS.tl, 0, 0);
-        ground.putTileAt(GRASS.tr, MAP_W - 1, 0);
-        ground.putTileAt(GRASS.bl, 0, MAP_H - 1);
-        ground.putTileAt(GRASS.br, MAP_W - 1, MAP_H - 1);
-
-        // ── Small pond ──
-        const pondX = 12, pondY = 30;
-        for (let py = 0; py < 3; py++) {
-            for (let px = 0; px < 4; px++) {
-                pathLayer.putTileAt(WATER.fill, pondX + px, pondY + py);
-            }
-        }
-
-        // ── Enclosure (top-right) ──
+        // Enclosure coordinates (used by rescue logic)
         const ex = WORLD_W - 340, ey = 50, ew = 290, eh = 240;
         this._enc = { x: ex, y: ey, w: ew, h: eh, cx: ex + ew / 2, cy: ey + eh / 2 };
-
-        // Enclosure grass floor (lighter)
-        const encTX = Math.floor(ex / (TILE_SIZE * SCALE));
-        const encTY = Math.floor(ey / (TILE_SIZE * SCALE));
-        const encTW = Math.ceil(ew / (TILE_SIZE * SCALE));
-        const encTH = Math.ceil(eh / (TILE_SIZE * SCALE));
-        for (let ty = encTY; ty < encTY + encTH; ty++) {
-            for (let tx = encTX; tx < encTX + encTW; tx++) {
-                ground.putTileAt(GRASS.fill2, tx, ty);
-            }
-        }
-
-        // Enclosure fence (graphics overlay — tiles don't have exact fence shape)
-        const fenceG = this.add.graphics().setDepth(2);
-        fenceG.lineStyle(5, 0xc8a060, 1);
-        fenceG.strokeRect(ex, ey, ew, eh);
-        fenceG.fillStyle(0xc8a060);
-        for (let x = ex; x <= ex + ew; x += 40) {
-            fenceG.fillRect(x - 3, ey - 8, 6, 18);
-            fenceG.fillRect(x - 3, ey + eh - 8, 6, 18);
-        }
-        for (let y = ey + 40; y < ey + eh; y += 40) {
-            fenceG.fillRect(ex - 5, y - 3, 12, 6);
-            fenceG.fillRect(ex + ew - 7, y - 3, 12, 6);
-        }
-        // Gate gap
-        fenceG.fillStyle(0x55aa55);
-        fenceG.fillRect(ex + ew / 2 - 22, ey + eh - 3, 44, 14);
-
-        // ── Border fence rails (graphics) ──
-        const borderG = this.add.graphics().setDepth(2);
-        borderG.lineStyle(6, 0xc8a060, 1);
-        borderG.strokeRect(10, 10, WORLD_W - 20, WORLD_H - 20);
-        borderG.lineStyle(3, 0xb89050, 0.8);
-        borderG.strokeRect(17, 17, WORLD_W - 34, WORLD_H - 34);
-
-        // Fence posts
-        borderG.fillStyle(0xc8a060);
-        for (let x = 10; x <= WORLD_W - 10; x += 120) {
-            borderG.fillRect(x - 4, 4, 8, 28);
-            borderG.fillRect(x - 4, WORLD_H - 32, 8, 28);
-        }
-        for (let y = 130; y < WORLD_H - 10; y += 120) {
-            borderG.fillRect(4, y - 4, 28, 8);
-            borderG.fillRect(WORLD_W - 32, y - 4, 28, 8);
-        }
-
-        // ── Decorations from nature-global.png ──
-        // The spritesheet has VARIABLE sized items:
-        //   Trees: ~32×48 each (top 3 rows)
-        //   Small items (leaves, flowers, rocks, bugs): 16×16 each (rows 3+)
-        // We define custom frames with exact pixel regions.
-        const natTex = this.textures.get('nature-global');
-        if (!natTex.has('tree0')) {
-            // Tree bounding boxes measured with pixel scanning:
-            // Sprite 4+6: x=1,y=2 30×30 + x=1,y=34 30×30 = round green tree (full: 1,2,30,62)
-            // Sprite 0:   x=33,y=0 31×64 = bushy green tree
-            // Sprite 1+7: x=68,y=0 23×32 + x=68,y=34 27×30 = medium tree (full: 68,0,27,64)
-            // Sprite 2:   x=96,y=0 32×64 = grey/dead tree
-            // Sprite 3:   x=130,y=1 30×31 = pink blossom (top)
-            // Sprite 5:   x=128,y=33 32×31 = autumn/pink tree (bottom)
-            natTex.add('tree0', 0,   1,  2, 30, 62);  // Round green tree (full height)
-            natTex.add('tree1', 0,  33,  0, 31, 64);  // Bushy green tree (full height)
-            natTex.add('tree2', 0,  68,  0, 27, 64);  // Medium tree (full height)
-            natTex.add('tree3', 0,  96,  0, 32, 64);  // Grey/dead tree (full height)
-            natTex.add('tree4', 0, 128, 33, 32, 31);  // Autumn/pink tree
-
-            // Small items from lower rows (measured via flood-fill scan)
-            // Leaves (y≈65-79, ~12×14 each)
-            natTex.add('leaf0', 0,  51, 65, 11, 14);
-            natTex.add('leaf1', 0,  83, 67, 10, 10);
-            natTex.add('leaf2', 0, 113, 65, 12, 14);
-            natTex.add('leaf3', 0, 146, 65, 11, 12);
-
-            // Flowers (y≈82-94, ~12×12 each)
-            natTex.add('flower0', 0,  18, 82, 12, 12);
-            natTex.add('flower1', 0,  67, 83, 10, 10);
-            natTex.add('flower2', 0,  82, 82, 13, 13);
-            natTex.add('flower3', 0, 100, 81, 9, 13);
-            natTex.add('flower4', 0, 114, 82, 10, 12);
-            natTex.add('flower5', 0, 130, 82, 12, 12);
-
-            // Mushrooms/small plants (y≈96-110)
-            natTex.add('mush0', 0,  17, 113, 14, 15);
-            natTex.add('mush1', 0,  98, 114, 12, 14);
-            natTex.add('mush2', 0, 114, 99, 12, 13);
-            natTex.add('mush3', 0, 112, 112, 15, 16);
-
-            // Rocks (y≈130-144, ~10-12px)
-            natTex.add('rock0', 0,   0, 130, 10, 12);
-            natTex.add('rock1', 0,  18, 131, 12, 13);
-            natTex.add('rock2', 0,  34, 130, 10, 14);
-            natTex.add('rock3', 0,  98, 132, 12, 12);
-
-            // Bushes (y≈146-160, ~16-31px wide)
-            natTex.add('bush0', 0,   0, 146, 31, 14);
-            natTex.add('bush1', 0,  96, 145, 16, 15);
-            natTex.add('bush2', 0, 129, 146, 31, 14);
-        }
-
-        const TREE_KEYS = ['tree0', 'tree1', 'tree2', 'tree3', 'tree4'];
-        const FLOWER_KEYS = ['flower0', 'flower1', 'flower2', 'flower3', 'flower4', 'flower5'];
-        const BUSH_KEYS = ['bush0', 'bush1', 'bush2'];
-        const ROCK_KEYS = ['rock0', 'rock1', 'rock2', 'rock3'];
-        const MUSH_KEYS = ['mush0', 'mush1', 'mush2', 'mush3'];
-
-        // Place trees around border and scattered
-        const treePts = [
-            ...this._borderTreePositions(140),
-            { x: 500, y: 350 }, { x: 750, y: 250 }, { x: 1100, y: 700 },
-            { x: 350, y: 950 }, { x: 800, y: 1050 }, { x: 200, y: 1200 },
-            { x: 1300, y: 1100 }, { x: 550, y: 1300 }, { x: 1000, y: 200 },
-            { x: 400, y: 500 }, { x: 150, y: 750 }, { x: 1400, y: 600 },
-        ];
-        treePts.forEach((p, i) => {
-            const key = TREE_KEYS[i % TREE_KEYS.length];
-            this.add.image(p.x, p.y, 'nature-global', key)
-                .setScale(2.5 + Math.random()).setDepth(3).setOrigin(0.5, 0.85);
-        });
-
-        // Scatter bushes
-        const bushPts = [
-            { x: 300, y: 400 }, { x: 650, y: 600 }, { x: 1000, y: 500 },
-            { x: 450, y: 1100 }, { x: 900, y: 900 }, { x: 1200, y: 300 },
-            { x: 180, y: 300 }, { x: 1350, y: 950 }, { x: 700, y: 1250 },
-        ];
-        bushPts.forEach((p, i) => {
-            const key = BUSH_KEYS[i % BUSH_KEYS.length];
-            this.add.image(p.x, p.y, 'nature-global', key)
-                .setScale(2.5).setDepth(2);
-        });
-
-        // Scatter flowers
-        const flowerPts = [
-            { x: 250, y: 200 }, { x: 320, y: 180 }, { x: 420, y: 230 },
-            { x: 600, y: 400 }, { x: 680, y: 380 }, { x: 720, y: 450 },
-            { x: 900, y: 300 }, { x: 950, y: 350 }, { x: 1050, y: 320 },
-            { x: 300, y: 800 }, { x: 400, y: 850 }, { x: 500, y: 780 },
-            { x: 1100, y: 1000 }, { x: 1200, y: 950 }, { x: 1150, y: 1050 },
-            { x: 200, y: 1100 }, { x: 350, y: 1150 }, { x: 450, y: 1050 },
-        ];
-        flowerPts.forEach((p, i) => {
-            const key = FLOWER_KEYS[i % FLOWER_KEYS.length];
-            this.add.image(p.x, p.y, 'nature-global', key)
-                .setScale(2).setDepth(1);
-        });
-
-        // Scatter rocks
-        const rockPts = [
-            { x: 550, y: 550 }, { x: 850, y: 800 }, { x: 1250, y: 450 },
-            { x: 380, y: 1250 }, { x: 1050, y: 1200 }, { x: 150, y: 600 },
-        ];
-        rockPts.forEach((p, i) => {
-            const key = ROCK_KEYS[i % ROCK_KEYS.length];
-            this.add.image(p.x, p.y, 'nature-global', key)
-                .setScale(2.5).setDepth(1);
-        });
-
-        // Scatter mushrooms
-        const mushPts = [
-            { x: 480, y: 400 }, { x: 820, y: 280 }, { x: 1150, y: 750 },
-            { x: 270, y: 1050 },
-        ];
-        mushPts.forEach((p, i) => {
-            const key = MUSH_KEYS[i % MUSH_KEYS.length];
-            this.add.image(p.x, p.y, 'nature-global', key)
-                .setScale(2).setDepth(1);
-        });
-
-        // Enclosure flowers
-        const encFlowers = [
-            [ex+30, ey+40], [ex+80, ey+60], [ex+140, ey+35], [ex+200, ey+55],
-            [ex+250, ey+45], [ex+50, ey+100], [ex+120, ey+120], [ex+180, ey+100],
-            [ex+240, ey+130], [ex+70, ey+170], [ex+160, ey+180], [ex+220, ey+160],
-        ];
-        encFlowers.forEach(([fx, fy], i) => {
-            const key = FLOWER_KEYS[i % FLOWER_KEYS.length];
-            this.add.image(fx, fy, 'nature-global', key)
-                .setScale(1.8).setDepth(1);
-        });
 
         // Enclosure label
         this.add.text(ex + ew / 2, ey + 18, 'Animal Home', {
@@ -481,19 +199,49 @@ export class TopDownScene extends Phaser.Scene {
         }).setOrigin(0.5).setDepth(3);
     }
 
-    _borderTreePositions(spacing) {
-        const pts = [];
-        const pad = 45;
-        for (let x = pad + spacing; x < WORLD_W - pad; x += spacing) {
-            pts.push({ x, y: pad });
-            pts.push({ x, y: WORLD_H - pad });
+    _loadTiledMap(scale) {
+        const map = this.make.tilemap({ key: 'farm-map' });
+
+        // Add each tileset image — name must match the tileset name in the .tsx files
+        const tilesets = [];
+        for (const tsData of map.tilesets) {
+            const name = tsData.name;
+            // Map tileset names to loaded texture keys
+            const textureKey = {
+                'outdoor-tiles': 'outdoor-tiles',
+                'full-tiles':    'full-tiles',
+                'nature-global': 'nature-global',
+                'fishing-tiles': 'fishing-tiles',
+                'buildings':     'buildings',
+                'items':         'items',
+            }[name];
+            if (textureKey && this.textures.exists(textureKey)) {
+                const ts = map.addTilesetImage(name, textureKey, 16, 16, 0, 0);
+                if (ts) tilesets.push(ts);
+            }
         }
-        for (let y = pad + spacing * 1.5; y < WORLD_H - pad; y += spacing) {
-            pts.push({ x: pad, y });
-            pts.push({ x: WORLD_W - pad, y });
+
+        if (tilesets.length === 0) return;
+
+        // Create layers from the Tiled JSON — names must match layer names in the map
+        const layerNames = ['ground', 'paths', 'fences', 'decorations'];
+        for (const name of layerNames) {
+            const layer = map.createLayer(name, tilesets);
+            if (layer) {
+                layer.setScale(scale);
+                layer.setDepth(name === 'decorations' ? 2 : name === 'fences' ? 1 : 0);
+            }
         }
-        return pts;
+
+        // Update world size to match map
+        const mapW = map.widthInPixels * scale;
+        const mapH = map.heightInPixels * scale;
+        this.physics.world.setBounds(70, 70, mapW - 140, mapH - 140);
+        this.cameras.main.setBounds(0, 0, mapW, mapH);
     }
+
+    // ── Dummy to avoid errors if old code references it ──
+    _borderTreePositions() { return []; }
 
     // ── PLAYER ────────────────────────────────────────────────────────────
 

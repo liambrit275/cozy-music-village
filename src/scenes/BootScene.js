@@ -262,6 +262,12 @@ export class BootScene extends Phaser.Scene {
         // ── ENVIRONMENT / TOP-DOWN WORLD ─────────────────────────────────────
         this.load.image('nature-global',  'assets/cozy/environment/nature-global.png');
         this.load.image('outdoor-tiles',  'assets/cozy/environment/outdoor-tiles.png');
+        // Tiled tilemap + tileset images used in farm.json
+        this.load.tilemapTiledJSON('farm-map', 'tilemaps/farm.json');
+        this.load.image('full-tiles',     'tilemaps/tilesets/full-tiles.png');
+        this.load.image('fishing-tiles',  'tilemaps/tilesets/fishing-tiles.png');
+        this.load.image('buildings',      'tilemaps/tilesets/buildings.png');
+        this.load.image('items',          'tilemaps/tilesets/items.png');
 
         // ── MUSIC NOTATION SYMBOLS ──────────────────────────────────────────
         this.load.image('note-quarter',   'assets/symbols/note_quarter.png');
