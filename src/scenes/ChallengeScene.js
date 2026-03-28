@@ -457,6 +457,7 @@ export class ChallengeScene extends Phaser.Scene {
         const pal = COZY_PALETTES[(this.session?.round || 0) % COZY_PALETTES.length];
         const g = this.add.graphics().setDepth(0);
 
+        // ── Sky gradient (keep procedural — looks great) ──
         const bands = 10;
         const bandH = GROUND_Y / bands;
         for (let i = 0; i < bands; i++) {
@@ -468,57 +469,118 @@ export class ChallengeScene extends Phaser.Scene {
             g.fillRect(0, i * bandH, width, bandH + 1);
         }
 
-        g.fillStyle(pal.ground);
-        g.fillRect(0, GROUND_Y, width, height - GROUND_Y);
-        g.fillStyle(pal.ground, 0.5);
-        g.fillRect(0, GROUND_Y - 4, width, 8);
-
-        g.fillStyle(pal.ground, 0.25);
-        for (let x = 0; x < width; x += 3) {
-            const h = 20 + Math.sin(x * 0.012) * 12 + Math.sin(x * 0.03) * 6;
-            g.fillRect(x, GROUND_Y - h, 3, h);
-        }
-
-        g.fillStyle(0x2e7d32, 0.4);
-        for (let i = 0; i < 18; i++) {
-            const gx = 40 + i * 44 + ((i * 17) % 20);
-            const gy = GROUND_Y + 8 + (i % 3) * 15;
-            g.fillRect(gx, gy, 2, 6);
-            g.fillRect(gx + 3, gy - 2, 2, 8);
-            g.fillRect(gx + 6, gy + 1, 2, 5);
-        }
-
-        pal.flowers.forEach((color, fi) => {
-            for (let i = 0; i < 5; i++) {
-                const fx = 30 + fi * 230 + i * 48 + ((fi + i) * 37) % 60;
-                const fy = GROUND_Y + 10 + ((fi + i) * 13) % 30;
-                g.fillStyle(color, 0.7);
-                g.fillCircle(fx, fy, 3);
-                g.fillStyle(pal.accent, 0.6);
-                g.fillCircle(fx, fy, 1.5);
-            }
-        });
-
+        // Clouds
         g.fillStyle(0xffffff, 0.15);
         [[120, 60], [340, 40], [560, 70], [700, 35]].forEach(([cx, cy]) => {
             g.fillEllipse(cx, cy, 60, 20);
             g.fillEllipse(cx + 20, cy - 8, 40, 16);
         });
 
-        const treeColor = (pal.ground & 0xfefefe) >> 1;
-        [[50, 0.6], [180, 0.8], [680, 0.7], [760, 0.5]].forEach(([tx, ts]) => {
-            const th = 50 * ts;
-            const ty = GROUND_Y;
-            g.fillStyle(0x4a3520, 0.4);
-            g.fillRect(tx - 2, ty - th * 0.4, 4, th * 0.4);
-            g.fillStyle(treeColor, 0.35);
-            g.fillCircle(tx, ty - th * 0.55, 16 * ts);
-            g.fillCircle(tx - 8 * ts, ty - th * 0.65, 12 * ts);
-            g.fillCircle(tx + 8 * ts, ty - th * 0.65, 12 * ts);
-        });
-
         const hexStr = '#' + pal.sky[0].toString(16).padStart(6, '0');
         this.cameras.main.setBackgroundColor(hexStr);
+
+        // ── Ground from outdoor-tiles ──
+        if (this.textures.exists('outdoor-tiles')) {
+            // Tile the ground area with grass tiles
+            const tileSize = 16;
+            const scale = 2;
+            const tileW = tileSize * scale; // 32px rendered
+
+            // outdoor-tiles: 28 cols × 27 rows, 16×16
+            const TILE_COLS = 28;
+            const T = (col, row) => row * TILE_COLS + col;
+            const grassTile = T(2, 1);
+            const grassTile2 = T(3, 1);
+            const dirtTile = T(2, 4);
+
+            // Add frames to outdoor-tiles if needed
+            const otTex = this.textures.get('outdoor-tiles');
+            if (!otTex.has(grassTile)) {
+                for (let r = 0; r < 27; r++) {
+                    for (let c = 0; c < TILE_COLS; c++) {
+                        otTex.add(r * TILE_COLS + c, 0, c * 16, r * 16, 16, 16);
+                    }
+                }
+            }
+
+            // Fill ground with grass tiles
+            for (let x = 0; x < width; x += tileW) {
+                for (let y = GROUND_Y; y < height; y += tileW) {
+                    const tile = (x + y) % (tileW * 3) === 0 ? grassTile2 : grassTile;
+                    this.add.image(x + tileW / 2, y + tileW / 2, 'outdoor-tiles', tile)
+                        .setScale(scale).setDepth(0);
+                }
+            }
+
+            // Dirt path strip along the bottom
+            for (let x = 0; x < width; x += tileW) {
+                this.add.image(x + tileW / 2, height - tileW / 2, 'outdoor-tiles', dirtTile)
+                    .setScale(scale).setDepth(0);
+            }
+        } else {
+            // Fallback: solid color ground
+            g.fillStyle(pal.ground);
+            g.fillRect(0, GROUND_Y, width, height - GROUND_Y);
+        }
+
+        // ── Grass fringe at ground line ──
+        g.fillStyle(0x3d7a3d, 0.4);
+        for (let x = 0; x < width; x += 3) {
+            const h = 12 + Math.sin(x * 0.015) * 8;
+            g.fillRect(x, GROUND_Y - h, 3, h);
+        }
+
+        // ── Trees and decorations from nature-global ──
+        if (this.textures.exists('nature-global')) {
+            const natTex = this.textures.get('nature-global');
+            // Ensure frames are defined (same as TopDownScene)
+            if (!natTex.has('tree0')) {
+                natTex.add('tree0', 0,   0,  0, 32, 48);
+                natTex.add('tree1', 0,  32,  0, 32, 48);
+                natTex.add('tree2', 0,  64,  0, 32, 48);
+                natTex.add('tree3', 0,  96,  0, 32, 32);
+                natTex.add('tree4', 0, 128,  0, 32, 32);
+                natTex.add('flower0', 0,   0, 96, 16, 16);
+                natTex.add('flower1', 0,  16, 96, 16, 16);
+                natTex.add('flower2', 0,  32, 96, 16, 16);
+                natTex.add('flower3', 0,  48, 96, 16, 16);
+                natTex.add('flower4', 0,  64, 96, 16, 16);
+                natTex.add('bush0', 0,   0, 144, 16, 16);
+                natTex.add('bush1', 0,  16, 144, 16, 16);
+                natTex.add('bush2', 0,  32, 144, 16, 16);
+            }
+
+            // Background trees (behind characters)
+            const treeDefs = [
+                { x: 50,  s: 2.2, k: 'tree0' },
+                { x: 170, s: 2.8, k: 'tree1' },
+                { x: 650, s: 2.5, k: 'tree0' },
+                { x: 760, s: 2.0, k: 'tree3' },
+            ];
+            treeDefs.forEach(({ x, s, k }) => {
+                this.add.image(x, GROUND_Y, 'nature-global', k)
+                    .setScale(s).setOrigin(0.5, 0.9).setDepth(0).setAlpha(0.85);
+            });
+
+            // Bushes on ground
+            const bushDefs = [
+                { x: 110, k: 'bush0' }, { x: 320, k: 'bush1' },
+                { x: 520, k: 'bush2' }, { x: 710, k: 'bush0' },
+            ];
+            bushDefs.forEach(({ x, k }) => {
+                this.add.image(x, GROUND_Y + 12, 'nature-global', k)
+                    .setScale(2).setDepth(0).setAlpha(0.7);
+            });
+
+            // Flowers scattered on ground
+            for (let i = 0; i < 12; i++) {
+                const fx = 30 + i * 68 + ((i * 37) % 30);
+                const fy = GROUND_Y + 10 + ((i * 13) % 25);
+                const fk = `flower${i % 5}`;
+                this.add.image(fx, fy, 'nature-global', fk)
+                    .setScale(1.5).setDepth(0).setAlpha(0.8);
+            }
+        }
     }
 
     // ===================== PLAYER SPRITE =====================
