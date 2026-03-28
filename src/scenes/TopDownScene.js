@@ -189,21 +189,26 @@ export class TopDownScene extends Phaser.Scene {
         const T = (col, row) => row * TILE_COLS + col;
 
         // Key tile indices from outdoor-tiles.png
+        // Auto-tile layout (5 cols × 3 rows pattern):
+        //   Row 0: TL(0,0) T(1,0) TR(2,0) ...
+        //   Row 1: L(0,1)  F(1,1) R(2,1)  ...  (F = solid fill)
+        //   Row 2: BL(0,2) B(1,2) BR(2,2) ...
+        // Second terrain set starts at col 5 (same pattern)
         const GRASS = {
-            fill:   T(2, 1),   // Solid grass fill
-            fill2:  T(3, 1),   // Grass variation
+            fill:   T(1, 1),   // Solid grass fill (center of auto-tile)
+            fill2:  T(5, 1),   // Grass variation (second set fill)
             tl:     T(0, 0),   // Top-left corner
             t:      T(1, 0),   // Top edge
-            tr:     T(3, 0),   // Top-right corner
+            tr:     T(2, 0),   // Top-right corner
             l:      T(0, 1),   // Left edge
-            r:      T(3, 1),   // Right edge
+            r:      T(2, 1),   // Right edge
             bl:     T(0, 2),   // Bottom-left corner
             b:      T(1, 2),   // Bottom edge
-            br:     T(3, 2),   // Bottom-right corner
+            br:     T(2, 2),   // Bottom-right corner
         };
         const DIRT = {
-            fill:   T(2, 4),   // Solid dirt/path
-            fill2:  T(3, 4),   // Dirt variation
+            fill:   T(1, 4),   // Solid dirt/path fill
+            fill2:  T(5, 4),   // Dirt variation fill
         };
         const WATER = {
             fill:   T(5, 7),   // Water center
