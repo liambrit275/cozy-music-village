@@ -334,49 +334,50 @@ export class TopDownScene extends Phaser.Scene {
         // We define custom frames with exact pixel regions.
         const natTex = this.textures.get('nature-global');
         if (!natTex.has('tree0')) {
-            // Large trees (manually measured from the 160×208 sheet)
-            natTex.add('tree0', 0,   0,  0, 32, 48);  // Big round green tree
-            natTex.add('tree1', 0,  32,  0, 32, 48);  // Bushy green tree
-            natTex.add('tree2', 0,  64,  0, 32, 48);  // Grey/dead tree
-            natTex.add('tree3', 0,  96,  0, 32, 32);  // Pink blossom tree
-            natTex.add('tree4', 0, 128,  0, 32, 32);  // Small autumn tree
+            // Tree bounding boxes measured with pixel scanning:
+            // Sprite 4+6: x=1,y=2 30×30 + x=1,y=34 30×30 = round green tree (full: 1,2,30,62)
+            // Sprite 0:   x=33,y=0 31×64 = bushy green tree
+            // Sprite 1+7: x=68,y=0 23×32 + x=68,y=34 27×30 = medium tree (full: 68,0,27,64)
+            // Sprite 2:   x=96,y=0 32×64 = grey/dead tree
+            // Sprite 3:   x=130,y=1 30×31 = pink blossom (top)
+            // Sprite 5:   x=128,y=33 32×31 = autumn/pink tree (bottom)
+            natTex.add('tree0', 0,   1,  2, 30, 62);  // Round green tree (full height)
+            natTex.add('tree1', 0,  33,  0, 31, 64);  // Bushy green tree (full height)
+            natTex.add('tree2', 0,  68,  0, 27, 64);  // Medium tree (full height)
+            natTex.add('tree3', 0,  96,  0, 32, 64);  // Grey/dead tree (full height)
+            natTex.add('tree4', 0, 128, 33, 32, 31);  // Autumn/pink tree
 
-            // Small trees / saplings (row 2-3 area, ~16×32)
-            natTex.add('sapling0', 0,  0, 48, 16, 32);
-            natTex.add('sapling1', 0, 16, 48, 16, 32);
-            natTex.add('sapling2', 0, 32, 48, 16, 32);
-            natTex.add('sapling3', 0, 48, 48, 16, 32);
+            // Small items from lower rows (measured via flood-fill scan)
+            // Leaves (y≈65-79, ~12×14 each)
+            natTex.add('leaf0', 0,  51, 65, 11, 14);
+            natTex.add('leaf1', 0,  83, 67, 10, 10);
+            natTex.add('leaf2', 0, 113, 65, 12, 14);
+            natTex.add('leaf3', 0, 146, 65, 11, 12);
 
-            // Leaves / small foliage (16×16 items, row ~5 area, y≈80)
-            natTex.add('leaf0', 0,   0, 80, 16, 16);
-            natTex.add('leaf1', 0,  16, 80, 16, 16);
-            natTex.add('leaf2', 0,  32, 80, 16, 16);
-            natTex.add('leaf3', 0,  48, 80, 16, 16);
+            // Flowers (y≈82-94, ~12×12 each)
+            natTex.add('flower0', 0,  18, 82, 12, 12);
+            natTex.add('flower1', 0,  67, 83, 10, 10);
+            natTex.add('flower2', 0,  82, 82, 13, 13);
+            natTex.add('flower3', 0, 100, 81, 9, 13);
+            natTex.add('flower4', 0, 114, 82, 10, 12);
+            natTex.add('flower5', 0, 130, 82, 12, 12);
 
-            // Flowers (16×16, y≈96)
-            natTex.add('flower0', 0,   0, 96, 16, 16);
-            natTex.add('flower1', 0,  16, 96, 16, 16);
-            natTex.add('flower2', 0,  32, 96, 16, 16);
-            natTex.add('flower3', 0,  48, 96, 16, 16);
-            natTex.add('flower4', 0,  64, 96, 16, 16);
-            natTex.add('flower5', 0,  80, 96, 16, 16);
+            // Mushrooms/small plants (y≈96-110)
+            natTex.add('mush0', 0,  17, 113, 14, 15);
+            natTex.add('mush1', 0,  98, 114, 12, 14);
+            natTex.add('mush2', 0, 114, 99, 12, 13);
+            natTex.add('mush3', 0, 112, 112, 15, 16);
 
-            // Mushrooms (16×16, y≈112)
-            natTex.add('mush0', 0,   0, 112, 16, 16);
-            natTex.add('mush1', 0,  16, 112, 16, 16);
-            natTex.add('mush2', 0,  32, 112, 16, 16);
-            natTex.add('mush3', 0,  48, 112, 16, 16);
+            // Rocks (y≈130-144, ~10-12px)
+            natTex.add('rock0', 0,   0, 130, 10, 12);
+            natTex.add('rock1', 0,  18, 131, 12, 13);
+            natTex.add('rock2', 0,  34, 130, 10, 14);
+            natTex.add('rock3', 0,  98, 132, 12, 12);
 
-            // Rocks (16×16, y≈128)
-            natTex.add('rock0', 0,   0, 128, 16, 16);
-            natTex.add('rock1', 0,  16, 128, 16, 16);
-            natTex.add('rock2', 0,  32, 128, 16, 16);
-            natTex.add('rock3', 0,  48, 128, 16, 16);
-
-            // Bushes (16×16, y≈144)
-            natTex.add('bush0', 0,   0, 144, 16, 16);
-            natTex.add('bush1', 0,  16, 144, 16, 16);
-            natTex.add('bush2', 0,  32, 144, 16, 16);
+            // Bushes (y≈146-160, ~16-31px wide)
+            natTex.add('bush0', 0,   0, 146, 31, 14);
+            natTex.add('bush1', 0,  96, 145, 16, 15);
+            natTex.add('bush2', 0, 129, 146, 31, 14);
         }
 
         const TREE_KEYS = ['tree0', 'tree1', 'tree2', 'tree3', 'tree4'];
