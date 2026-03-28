@@ -138,6 +138,12 @@ export class TopDownScene extends Phaser.Scene {
             this.wasd.right.reset();
             this.player.setVelocity(0, 0);
             this._inChallenge = false;
+            // Cooldown: don't re-trigger an animal encounter immediately
+            this._encounterCooldown = 1000; // ms
+            // Reset inChallenge flag on the animal that was just visited
+            if (this._currentAnimalData) {
+                this._currentAnimalData.inChallenge = false;
+            }
         });
 
         // Show initial farmer dialogue automatically for level 1
@@ -542,6 +548,10 @@ export class TopDownScene extends Phaser.Scene {
             this.player.play('avatar-idle', true);
             return;
         }
+        // Tick down encounter cooldown
+        if (this._encounterCooldown > 0) {
+            this._encounterCooldown -= delta;
+        }
         this._movePlayer();
         this._updateAnimals(delta);
         this._updateFarmer(delta);
@@ -611,6 +621,7 @@ export class TopDownScene extends Phaser.Scene {
     }
 
     _checkRescueTrigger() {
+        if (this._encounterCooldown > 0) return;
         const px = this.player.x, py = this.player.y;
         for (const a of this.animals) {
             if (a.rescued || a.inChallenge) continue;
