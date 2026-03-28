@@ -13,9 +13,6 @@ export class TitleScene extends Phaser.Scene {
 
         this.cameras.main.setBackgroundColor('#0c1420');
 
-        // ── Define UI button frames from buttons.png (256×224) ──
-        this._initUIFrames();
-
         // Floating particles
         for (let i = 0; i < 40; i++) {
             const x = Math.random() * width;
@@ -108,27 +105,6 @@ export class TitleScene extends Phaser.Scene {
                 }
             }
         } catch (e) { /* ignore */ }
-    }
-
-    _initUIFrames() {
-        if (!this.textures.exists('ui-buttons')) return;
-        const tex = this.textures.get('ui-buttons');
-        if (tex.has('btn-start')) return; // already defined
-
-        // Row 0 (y=16): normal state buttons, each 53×41
-        tex.add('btn-start',     0,   6, 16, 53, 41);
-        tex.add('btn-exit',      0,  70, 16, 53, 41);
-        tex.add('btn-new',       0, 134, 16, 53, 41);
-        tex.add('btn-save',      0, 198, 16, 53, 41);
-        // Row 1 (y=64): hover/pressed state buttons
-        tex.add('btn-start-hover', 0,   6, 64, 53, 41);
-        tex.add('btn-exit-hover',  0,  70, 64, 53, 41);
-        tex.add('btn-new-hover',   0, 134, 64, 53, 41);
-        tex.add('btn-save-hover',  0, 198, 64, 53, 41);
-        // Row 2 (y=112): back button
-        tex.add('btn-back',       0,   6, 112, 53, 41);
-        // Large panel (y=163)
-        tex.add('wood-panel',     0,   2, 163, 103, 56);
     }
 
     _createWoodButton(x, y, label, normalFrame, hoverFrame, callback) {

@@ -254,6 +254,7 @@ export class BootScene extends Phaser.Scene {
         // ── UI ASSETS ──────────────────────────────────────────────────────
         this.load.image('ui-buttons', 'assets/cozy/ui/buttons.png');
         this.load.image('ui-panels',  'assets/cozy/ui/panels.png');
+        this.load.image('ui-all',     'assets/cozy/ui/ui-all.png');
 
         // ── EFFECTS ─────────────────────────────────────────────────────────
         this.load.image('heart', 'assets/cozy/effects/heart.png');
@@ -441,6 +442,9 @@ export class BootScene extends Phaser.Scene {
         this._createAnimIfNew('adventurer-run',    'adventurer-run',    0, 7, 10, -1);
         this._createAnimIfNew('adventurer-attack', 'adventurer-attack', 0, 7, 12, 0);
 
+        // ── UI FRAME REGISTRATION (global, all scenes can use) ────────────
+        this._registerUIFrames();
+
         // ── TRANSITION ──────────────────────────────────────────────────────
         this.scene.start('LoginScene');
     }
@@ -567,6 +571,71 @@ export class BootScene extends Phaser.Scene {
         }
 
         return canvas;
+    }
+
+    /**
+     * Register named frames on UI sprite sheets so all scenes can reference them.
+     */
+    _registerUIFrames() {
+        // ── ui-buttons (256×224) — wooden buttons ──
+        if (this.textures.exists('ui-buttons')) {
+            const tex = this.textures.get('ui-buttons');
+            if (!tex.has('btn-start')) {
+                // Row 0 (y=16): normal state, each 53×41
+                tex.add('btn-start',       0,   6, 16, 53, 41);
+                tex.add('btn-exit',        0,  70, 16, 53, 41);
+                tex.add('btn-new',         0, 134, 16, 53, 41);
+                tex.add('btn-save',        0, 198, 16, 53, 41);
+                // Row 1 (y=64): hover/pressed state
+                tex.add('btn-start-hover', 0,   6, 64, 53, 41);
+                tex.add('btn-exit-hover',  0,  70, 64, 53, 41);
+                tex.add('btn-new-hover',   0, 134, 64, 53, 41);
+                tex.add('btn-save-hover',  0, 198, 64, 53, 41);
+                // Back button (y=112)
+                tex.add('btn-back',        0,   6, 112, 53, 41);
+                // Large wood panel sign (y=163)
+                tex.add('wood-panel',      0,   2, 163, 103, 56);
+            }
+        }
+
+        // ── nature-global (160×208) — trees, flowers, etc. ──
+        if (this.textures.exists('nature-global')) {
+            const nat = this.textures.get('nature-global');
+            if (!nat.has('tree0')) {
+                // Trees (measured via pixel scan)
+                nat.add('tree0', 0,   1,  2, 30, 62);
+                nat.add('tree1', 0,  33,  0, 31, 64);
+                nat.add('tree2', 0,  68,  0, 27, 64);
+                nat.add('tree3', 0,  96,  0, 32, 64);
+                nat.add('tree4', 0, 128, 33, 32, 31);
+                // Flowers
+                nat.add('flower0', 0,  18, 82, 12, 12);
+                nat.add('flower1', 0,  67, 83, 10, 10);
+                nat.add('flower2', 0,  82, 82, 13, 13);
+                nat.add('flower3', 0, 100, 81,  9, 13);
+                nat.add('flower4', 0, 114, 82, 10, 12);
+                nat.add('flower5', 0, 130, 82, 12, 12);
+                // Mushrooms
+                nat.add('mush0', 0,  17, 113, 14, 15);
+                nat.add('mush1', 0,  98, 114, 12, 14);
+                nat.add('mush2', 0, 114,  99, 12, 13);
+                nat.add('mush3', 0, 112, 112, 15, 16);
+                // Rocks
+                nat.add('rock0', 0,   0, 130, 10, 12);
+                nat.add('rock1', 0,  18, 131, 12, 13);
+                nat.add('rock2', 0,  34, 130, 10, 14);
+                nat.add('rock3', 0,  98, 132, 12, 12);
+                // Bushes
+                nat.add('bush0', 0,   0, 146, 31, 14);
+                nat.add('bush1', 0,  96, 145, 16, 15);
+                nat.add('bush2', 0, 129, 146, 31, 14);
+                // Leaves
+                nat.add('leaf0', 0,  51, 65, 11, 14);
+                nat.add('leaf1', 0,  83, 67, 10, 10);
+                nat.add('leaf2', 0, 113, 65, 12, 14);
+                nat.add('leaf3', 0, 146, 65, 11, 12);
+            }
+        }
     }
 
     /**

@@ -70,15 +70,26 @@ export class CharacterSelectScene extends Phaser.Scene {
             font: '11px monospace', fill: '#687880'
         }).setOrigin(0.5);
 
-        // Start Adventure button
-        const startBtn = this.add.text(width / 2, height - 44, 'START ADVENTURE  ▶', {
-            font: 'bold 20px monospace', fill: '#e8f0f0',
-            backgroundColor: '#142030', padding: { x: 28, y: 12 }
-        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-        startBtn.on('pointerover',  () => startBtn.setStyle({ backgroundColor: '#243848' }));
-        startBtn.on('pointerout',   () => startBtn.setStyle({ backgroundColor: '#142030' }));
-        startBtn.on('pointerdown',  () => this._startGame());
+        // Start Adventure button (wood sprite or fallback)
+        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('btn-start')) {
+            const btnImg = this.add.image(width / 2, height - 44, 'ui-buttons', 'btn-start')
+                .setScale(2.8).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            btnImg.on('pointerover', () => btnImg.setFrame('btn-start-hover'));
+            btnImg.on('pointerout', () => btnImg.setFrame('btn-start'));
+            btnImg.on('pointerdown', () => this._startGame());
+            this.add.text(width / 2, height - 46, 'START', {
+                font: 'bold 16px monospace', fill: '#fff8e0',
+                stroke: '#5a3a0a', strokeThickness: 3,
+            }).setOrigin(0.5);
+        } else {
+            const startBtn = this.add.text(width / 2, height - 44, 'START ADVENTURE', {
+                font: 'bold 20px monospace', fill: '#e8f0f0',
+                backgroundColor: '#142030', padding: { x: 28, y: 12 }
+            }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+            startBtn.on('pointerover', () => startBtn.setStyle({ backgroundColor: '#243848' }));
+            startBtn.on('pointerout', () => startBtn.setStyle({ backgroundColor: '#142030' }));
+            startBtn.on('pointerdown', () => this._startGame());
+        }
     }
 
     _startGame() {

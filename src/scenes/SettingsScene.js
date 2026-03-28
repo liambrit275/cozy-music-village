@@ -55,11 +55,16 @@ export class SettingsScene extends Phaser.Scene {
         this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.65)
             .setInteractive(); // swallows clicks below
 
-        // Panel background
+        // Panel background (wood panel or fallback)
         const px = width / 2 - PANEL_W / 2;
         const py = height / 2 - PANEL_H / 2;
-        this.add.rectangle(width / 2, height / 2, PANEL_W, PANEL_H, BG_COLOR, 0.98)
-            .setStrokeStyle(2, BORDER_COLOR);
+        if (this.textures.exists('ui-buttons') && this.textures.get('ui-buttons').has('wood-panel')) {
+            this.add.image(width / 2, height / 2, 'ui-buttons', 'wood-panel')
+                .setDisplaySize(PANEL_W, PANEL_H);
+        } else {
+            this.add.rectangle(width / 2, height / 2, PANEL_W, PANEL_H, BG_COLOR, 0.98)
+                .setStrokeStyle(2, BORDER_COLOR);
+        }
 
         // Title
         this.add.text(width / 2, py + 20, '⚙  SETTINGS', {
