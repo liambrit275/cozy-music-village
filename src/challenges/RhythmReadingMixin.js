@@ -138,8 +138,8 @@ export const RhythmReadingMixin = {
         let spelled = [];
         try {
             spelled = spellPattern(groupGrid, subKey, tsInfoAug);
-            // Show counting labels if enabled in settings or practice mode
-            const showCounting = this.practiceMode || this._showCounting || false;
+            // Show counting labels in practice/story mode or if enabled in settings
+            const showCounting = this.practiceMode || this.storyBattle || this._showCounting || false;
             const countOpts = showCounting && sub ? {
                 showCounting: true,
                 cellLabels: sub.cells,
