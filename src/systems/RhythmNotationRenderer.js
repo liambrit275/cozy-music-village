@@ -232,21 +232,46 @@ export class RhythmNotationRenderer {
             }
         }
 
-        // Draw evenly-spaced counting labels below the staff like a number line
+        // Draw counting labels below the staff, aligned to note positions.
+        // Uses the actual VexFlow x-positions of notes to interpolate where
+        // each cell label should go, so they stay in sync with the notation.
         if (_countingOpts) {
             const labels = _countingOpts.cellLabels;
             const totalCells = labels.length;
-            // Get the usable note area: from first note x to end of stave
-            const noteStartX = stave.getNoteStartX();
-            const noteEndX = stave.getX() + stave.getWidth() - 10;
-            const noteAreaW = noteEndX - noteStartX;
-            const cellW = noteAreaW / totalCells;
-            const labelY = NAT_TOP_LINE_Y + NAT_STAFF_H + 18; // below staff
+            const tpc = _countingOpts.ticksPerCell || 1;
+            const totalTicks = totalCells * tpc;
+            const labelY = NAT_TOP_LINE_Y + NAT_STAFF_H + 18;
 
             const svgEl = wrapper.querySelector('svg');
             if (svgEl) {
-                // Find which cells are note onsets vs sustained/rest
-                const tpc = _countingOpts.ticksPerCell || 1;
+                // Build a tick→x mapping from the positioned VexFlow notes
+                const tickXPoints = [];
+                for (let i = 0; i < vfNotes.length; i++) {
+                    try {
+                        const noteX = vfNotes[i].getAbsoluteX();
+                        tickXPoints.push({ tick: notes[i].startTick, x: noteX });
+                    } catch (e) { /* skip */ }
+                }
+                // Add end point
+                const endX = stave.getX() + stave.getWidth() - 10;
+                tickXPoints.push({ tick: totalTicks, x: endX });
+
+                // Interpolate: for a given tick, find x between the two surrounding notes
+                const tickToX = (tick) => {
+                    if (tickXPoints.length === 0) return stave.getNoteStartX();
+                    if (tick <= tickXPoints[0].tick) return tickXPoints[0].x;
+                    for (let i = 1; i < tickXPoints.length; i++) {
+                        if (tick <= tickXPoints[i].tick) {
+                            const prev = tickXPoints[i - 1];
+                            const next = tickXPoints[i];
+                            const t = (tick - prev.tick) / (next.tick - prev.tick);
+                            return prev.x + t * (next.x - prev.x);
+                        }
+                    }
+                    return tickXPoints[tickXPoints.length - 1].x;
+                };
+
+                // Classify cells as onset or rest
                 const onsetCells = new Set();
                 const restCells = new Set();
                 for (const n of notes) {
@@ -258,7 +283,8 @@ export class RhythmNotationRenderer {
                 for (let i = 0; i < totalCells; i++) {
                     const label = labels[i];
                     if (!label) continue;
-                    const x = noteStartX + i * cellW + cellW / 2;
+                    const tick = i * tpc;
+                    const x = tickToX(tick);
                     const isOnset = onsetCells.has(i);
                     const isRest = restCells.has(i);
 
