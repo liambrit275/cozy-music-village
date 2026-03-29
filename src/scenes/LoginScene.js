@@ -7,31 +7,36 @@ export class LoginScene extends Phaser.Scene {
     constructor() { super({ key: 'LoginScene' }); }
 
     create() {
-        // Load saves from server files into localStorage on startup
-        SaveManager.syncFromServer().catch(() => {});
-
         const { width, height } = this.cameras.main;
         this.cameras.main.setBackgroundColor('#0c1420');
 
-        // Auto-login if already signed in — MUST use delayedCall,
-        // calling scene.start() inside create() corrupts Phaser's scene manager
-        try {
-            const active = UserProfileManager.getActiveUser();
-            if (active) {
-                const profile = UserProfileManager._loadProfile(active);
-                if (profile) {
-                    this.time.delayedCall(1, () => this._onLoginSuccess(active, profile));
-                    return;
+        // Load saves from server, THEN try auto-login
+        SaveManager.syncFromServer().catch(() => {}).then(() => {
+            try {
+                const active = UserProfileManager.getActiveUser();
+                if (active) {
+                    const profile = UserProfileManager._loadProfile(active);
+                    if (profile) {
+                        this.time.delayedCall(1, () => this._onLoginSuccess(active, profile));
+                        return;
+                    }
                 }
+            } catch (e) {
+                console.warn('Auto-login failed:', e);
             }
-        } catch (e) {
-            console.warn('Auto-login failed:', e);
-        }
+            // No auto-login — show the login UI
+            if (!this._uiBuilt) this._buildUI(width, height);
+        });
 
-        this._buildUI(width, height);
+        // Show "Loading..." while syncing
+        this._loadingText = this.add.text(width / 2, height / 2 + 120, 'Loading saves...', {
+            font: '12px monospace', fill: '#687880'
+        }).setOrigin(0.5);
     }
 
     _buildUI(width, height) {
+        this._uiBuilt = true;
+        if (this._loadingText) { this._loadingText.destroy(); this._loadingText = null; }
         // Title
         this.add.text(width / 2, height * 0.12, 'MUSIC THEORY\nVILLAGE', {
             font: 'bold 40px monospace', fill: '#e8d098',
