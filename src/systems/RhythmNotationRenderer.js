@@ -17,7 +17,7 @@ const NAT_STAVE_X    = 20;
 const NAT_STAVE_W    = 680;
 const NAT_TOP_LINE_Y = 30;
 const NAT_STAVE_Y    = NAT_TOP_LINE_Y - 40;
-const NAT_BOT_PAD    = 48;  // Extra room for counting labels below staff
+const NAT_BOT_PAD    = 58;  // Extra room for counting labels below staff
 const NAT_SPACING    = 10;
 const NAT_STAFF_H    = NAT_SPACING * 4;
 
@@ -240,7 +240,7 @@ export class RhythmNotationRenderer {
             const totalCells = labels.length;
             const tpc = _countingOpts.ticksPerCell || 1;
             const totalTicks = totalCells * tpc;
-            const labelY = NAT_TOP_LINE_Y + NAT_STAFF_H + 18;
+            const labelY = NAT_TOP_LINE_Y + NAT_STAFF_H + 32;
 
             const svgEl = wrapper.querySelector('svg');
             if (svgEl) {
@@ -293,7 +293,7 @@ export class RhythmNotationRenderer {
                     text.setAttribute('y', labelY);
                     text.setAttribute('text-anchor', 'middle');
                     text.setAttribute('font-family', 'monospace');
-                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-size', '14');
                     text.setAttribute('font-weight', isOnset ? 'bold' : 'normal');
                     text.setAttribute('fill', isRest ? '#999999' : isOnset ? '#000000' : '#666666');
                     text.setAttribute('class', 'counting-label');
