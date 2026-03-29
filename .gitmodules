@@ -1,0 +1,3 @@
+[submodule "src/engines"]
+	path = src/engines
+	url = https://github.com/liambrit275/music-engines.git
