@@ -1,0 +1,16 @@
+{
+  "body": 1,
+  "eyeColor": "#7a5030",
+  "hairStyle": "bob",
+  "hairColor": "#6b4226",
+  "outfit": "basic",
+  "outfitColor": "#3060b0",
+  "bottom": "pants",
+  "bottomColor": "#2a2a3a",
+  "shoesColor": "#2a2a3a",
+  "blush": false,
+  "blushIdx": 0,
+  "lipstick": false,
+  "lipstickIdx": 0,
+  "accessory": "none"
+}

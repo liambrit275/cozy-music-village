@@ -64,7 +64,15 @@ export class UserProfileManager {
     }
 
     static logout() { SaveManager.delete(ACTIVE_KEY); }
-    static getActiveUser() { try { return localStorage.getItem(ACTIVE_KEY) || null; } catch { return null; } }
+    static getActiveUser() {
+        try {
+            const raw = localStorage.getItem(ACTIVE_KEY);
+            if (!raw) return null;
+            // SaveManager stores as JSON, so the value might be quoted: '"liam"'
+            try { const parsed = JSON.parse(raw); return typeof parsed === 'string' ? parsed : raw; }
+            catch { return raw; }
+        } catch { return null; }
+    }
     static getUserList() { return Object.keys(this._loadUsers()); }
 
     static getRole(username) {

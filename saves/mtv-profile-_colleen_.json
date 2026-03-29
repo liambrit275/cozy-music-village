@@ -1,0 +1,41 @@
+{
+  "instrument": "piano",
+  "arcadeSettings": {
+    "instrument": "piano"
+  },
+  "storyProgress": {
+    "totalSessions": 21,
+    "totalCorrect": 154,
+    "storyLevel": 3,
+    "storyLevelEncounters": 3,
+    "player": {
+      "hp": 81,
+      "maxHp": 100,
+      "attack": 10,
+      "defense": 3,
+      "level": 1,
+      "xp": 32,
+      "xpToNext": 100,
+      "gold": 16,
+      "characterKey": "avatar"
+    },
+    "timestamp": 1774749941289
+  },
+  "arcadeScores": null,
+  "avatar": {
+    "body": 1,
+    "eyeColor": "#68a8e0",
+    "hairStyle": "braids",
+    "hairColor": "#6b4226",
+    "outfit": "overalls",
+    "outfitColor": "#68a0d0",
+    "bottom": "pants",
+    "bottomColor": "#2a2a3a",
+    "shoesColor": "#2a2a3a",
+    "blush": true,
+    "blushIdx": 0,
+    "lipstick": true,
+    "lipstickIdx": 0,
+    "accessory": "glasses"
+  }
+}
