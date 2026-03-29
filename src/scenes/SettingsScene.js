@@ -12,7 +12,7 @@ import {
 } from '../systems/AudioEngine.js';
 
 const PANEL_W = 640;
-const PANEL_H = 550;
+const PANEL_H = 580;
 const BG_COLOR     = 0x0c1420;
 const BORDER_COLOR = 0x243848;
 const TITLE_COLOR  = '#e8d098';
@@ -87,6 +87,18 @@ export class SettingsScene extends Phaser.Scene {
         this._gridBtn = this._makeToggle(px + 160, cy, gridOn, () => {
             this.settings.showGrid = !this.settings.showGrid;
             this._updateToggle(this._gridBtn, this.settings.showGrid);
+            this._save();
+        });
+
+        // Show counting labels under rhythm notation
+        cy += 28;
+        this.add.text(px + 24, cy, 'Show Counting', {
+            font: '12px monospace', fill: LABEL_COLOR,
+        }).setOrigin(0, 0.5);
+        const countOn = this.settings.showCounting || false;
+        this._countBtn = this._makeToggle(px + 160, cy, countOn, () => {
+            this.settings.showCounting = !this.settings.showCounting;
+            this._updateToggle(this._countBtn, this.settings.showCounting);
             this._save();
         });
 

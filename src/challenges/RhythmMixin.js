@@ -400,7 +400,13 @@ export const RhythmMixin = {
                 spelled = splitRestsAtCursor(spelled, cursorTick, selectedTicks, this._rhythmSubKey, tsInfo);
             }
             const notationY = this._rNotationY || (this._rGridY - 108);
-            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, width / 2, notationY, width - 100, cursorTick, tsInfo);
+            const showCounting = this.practiceMode || this._showCounting || false;
+            const countOpts = showCounting && this._rhythmSub ? {
+                showCounting: true,
+                cellLabels: this._rhythmSub.cells,
+                ticksPerCell: this._rhythmSub.ticksPerCell || 1,
+            } : {};
+            this.rhythmNotationRenderer.render(spelled, this._rhythmSubKey, width / 2, notationY, width - 100, cursorTick, tsInfo, countOpts);
         } catch (err) {
             console.error('_renderRhythmNotation error:', err);
         }

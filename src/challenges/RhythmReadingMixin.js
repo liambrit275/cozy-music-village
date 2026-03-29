@@ -138,7 +138,14 @@ export const RhythmReadingMixin = {
         let spelled = [];
         try {
             spelled = spellPattern(groupGrid, subKey, tsInfoAug);
-            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80, -1, tsInfoAug);
+            // Show counting labels if enabled in settings or practice mode
+            const showCounting = this.practiceMode || this._showCounting || false;
+            const countOpts = showCounting && sub ? {
+                showCounting: true,
+                cellLabels: sub.cells,
+                ticksPerCell: sub.ticksPerCell || 1,
+            } : {};
+            this.rhythmNotationRenderer.render(spelled, subKey, width / 2, height * 0.22, width - 80, -1, tsInfoAug, countOpts);
         } catch (err) {
             console.error('RhythmReading notation error:', err);
         }

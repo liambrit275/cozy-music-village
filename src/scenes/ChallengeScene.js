@@ -114,6 +114,11 @@ export class ChallengeScene extends Phaser.Scene {
         this.practiceMode = s.practice  === true;
         this.soundSettings = s.sounds || null;
         this.tapLatencyMs = s.tapLatencyMs || 0;
+        // Show counting labels under rhythm notation (from arcade-settings)
+        try {
+            const arcSettings = JSON.parse(localStorage.getItem('arcade-settings') || '{}');
+            this._showCounting = arcSettings.showCounting || false;
+        } catch { this._showCounting = false; }
 
         // Story level system
         this.storyLevelId = data.storyLevel || null;

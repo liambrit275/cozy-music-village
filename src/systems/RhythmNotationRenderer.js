@@ -51,8 +51,9 @@ export class RhythmNotationRenderer {
      * @param {number} width - desired width in game coordinates (unused, we use NAT_STAVE_W)
      * @param {number} [cursorTick=-1] - tick position of keyboard cursor (-1 = none)
      * @param {object} [timeSigInfo] - optional { numBeats, vexBeatValue, compound, beatTicks }
+     * @param {object} [options] - { showCounting: bool, cellLabels: string[] }
      */
-    render(notes, subdivision, cx, cy, width, cursorTick = -1, timeSigInfo = null) {
+    render(notes, subdivision, cx, cy, width, cursorTick = -1, timeSigInfo = null, options = {}) {
         this.clear();
 
         if (typeof Vex === 'undefined') {
@@ -61,7 +62,7 @@ export class RhythmNotationRenderer {
         }
 
         try {
-            this._render(notes, subdivision, cx, cy, cursorTick, timeSigInfo);
+            this._render(notes, subdivision, cx, cy, cursorTick, timeSigInfo, options);
         } catch (err) {
             console.error('RhythmNotationRenderer error:', err);
         }
@@ -86,7 +87,7 @@ export class RhythmNotationRenderer {
         return { rect, sx, sy, cssScale };
     }
 
-    _render(notes, subdivision, cx, cy, cursorTick, timeSigInfo) {
+    _render(notes, subdivision, cx, cy, cursorTick, timeSigInfo, options = {}) {
         const VF = Vex.Flow;
         const { rect, sx, sy, cssScale } = this._screenScale();
 
@@ -183,6 +184,26 @@ export class RhythmNotationRenderer {
         });
 
         if (vfNotes.length === 0) return;
+
+        // Add counting labels below notes if requested
+        if (options.showCounting && options.cellLabels) {
+            const labels = options.cellLabels;
+            const ticksPerCell = options.ticksPerCell || 1;
+            notes.forEach((n, idx) => {
+                if (idx >= vfNotes.length) return;
+                // Find the cell index for this note's start tick
+                const cellIdx = Math.round(n.startTick / ticksPerCell);
+                const label = cellIdx < labels.length ? labels[cellIdx] : '';
+                if (label) {
+                    try {
+                        const ann = new VF.Annotation(label)
+                            .setFont('monospace', 11, 'bold')
+                            .setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+                        vfNotes[idx].addModifier(ann);
+                    } catch (e) { /* skip */ }
+                }
+            });
+        }
 
         // Auto-beam before drawing
         let beams = [];
