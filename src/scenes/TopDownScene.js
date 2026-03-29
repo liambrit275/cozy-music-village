@@ -323,8 +323,8 @@ export class TopDownScene extends Phaser.Scene {
     _createPlayer() {
         this.player = this.physics.add.sprite(WORLD_W / 2, WORLD_H / 2, safeTex(this, 'player-avatar', 0), 0);
         this.player.setScale(2.5);
-        this.player.body.setSize(18, 16);
-        this.player.body.setOffset(7, 14);
+        this.player.body.setSize(10, 8);
+        this.player.body.setOffset(11, 22);
         this.player.setCollideWorldBounds(true);
         this.player.setDepth(5);
         this._facing = 'down';
