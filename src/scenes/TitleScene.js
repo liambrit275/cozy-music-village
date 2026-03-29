@@ -106,6 +106,8 @@ export class TitleScene extends Phaser.Scene {
                 }
             }
         } catch (e) { /* ignore - user features just won't show */ }
+
+        this.events.on('shutdown', () => this.tweens.killAll());
     }
 
     goToPractice() {

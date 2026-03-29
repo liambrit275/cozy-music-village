@@ -181,27 +181,6 @@ export class LatencyTestScene extends Phaser.Scene {
         }
 
         // Greedy nearest-match: for each click, find the closest unused tap within MATCH_WINDOW
-        const usedTaps = new Set();
-        const offsets  = [];
-
-        for (const clickT of this._clickTimes) {
-            let bestIdx = -1, bestDiff = Infinity;
-            this._rawTaps.forEach((tapT, ti) => {
-                if (usedTaps.has(ti)) return;
-                const diff = tapT - clickT;
-                if (Math.abs(diff) < MATCH_WINDOW && Math.abs(diff) < Math.abs(bestDiff)) {
-                    bestDiff = diff;
-                    bestIdx = ti;
-                }
-            });
-            if (bestIdx >= 0) {
-                usedTaps.add(bestIdx);
-                offsets.push(Math.round(this._rawTaps[bestIdx] - this._clickTimes[offsets.length === 0 ? 0 : offsets.length]));
-                // Re-compute with correct index
-            }
-        }
-
-        // Simpler: re-do with correct matched index tracking
         const offsets2 = [];
         const used2    = new Set();
         this._clickTimes.forEach((clickT, ci) => {

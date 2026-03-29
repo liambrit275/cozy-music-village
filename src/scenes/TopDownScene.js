@@ -55,6 +55,8 @@ export class TopDownScene extends Phaser.Scene {
         this._dialogueUI = [];
         this._farmerTalkedThisLevel = false;
         this._wasNearFarmer = false;
+        this._encounterCooldown = 0;
+        this._blockedTiles = new Set();
         this.playerData = data.playerData || {
             hp: 100, maxHp: 100, attack: 10, defense: 3, level: 1, xp: 0,
             characterKey: 'avatar'
@@ -137,6 +139,14 @@ export class TopDownScene extends Phaser.Scene {
             if (this.textures.exists('player-avatar')) {
                 this.player.setTexture('player-avatar', 0);
             }
+            // Clean up any open dialogue/tutorial state
+            if (this._inDialogue) this._dismissFarmerDialogue();
+            if (this._tutorialOpen && this._tutorialUI) {
+                this._tutorialUI.forEach(o => o.destroy());
+                this._tutorialUI = [];
+                this._tutorialOpen = false;
+                this._inDialogue = false;
+            }
             // Reset stuck keys from before pause
             this.cursors.left.reset();
             this.cursors.right.reset();
@@ -153,6 +163,20 @@ export class TopDownScene extends Phaser.Scene {
             // Reset inChallenge flag on the animal that was just visited
             if (this._currentAnimalData) {
                 this._currentAnimalData.inChallenge = false;
+            }
+        });
+
+        // Shutdown handler — clean up tweens, timers, and document listeners
+        this.events.on('shutdown', () => {
+            this.tweens.killAll();
+            this.time.removeAllEvents();
+            if (this._dialogueKeyHandler) {
+                this.input.keyboard.off('keydown', this._dialogueKeyHandler);
+                this._dialogueKeyHandler = null;
+            }
+            if (this._tutorialOpen) {
+                document.removeEventListener('keydown', this._tutorialKeyHandler);
+                this._tutorialKeyHandler = null;
             }
         });
 
@@ -313,6 +337,8 @@ export class TopDownScene extends Phaser.Scene {
         this.farmer.setScale(2.8);
         this.farmer.setDepth(5);
         this.farmer.body.setImmovable(true); // player can't push farmer
+        this.farmer.body.setSize(16, 16);
+        this.farmer.body.setOffset(7, 10);
         this.farmer.setCollideWorldBounds(true);
         this.farmer.play('farmer-idle', true);
 
@@ -641,7 +667,7 @@ export class TopDownScene extends Phaser.Scene {
         closeBtn.on('pointerdown', () => closeTutorial());
 
         // Keyboard navigation
-        const keyHandler = (event) => {
+        this._tutorialKeyHandler = (event) => {
             if (event.key === 'ArrowRight' || event.key === ' ') {
                 if (page < PAGES.length - 1) { page++; render(); }
                 else closeTutorial();
@@ -651,10 +677,11 @@ export class TopDownScene extends Phaser.Scene {
                 closeTutorial();
             }
         };
-        document.addEventListener('keydown', keyHandler);
+        document.addEventListener('keydown', this._tutorialKeyHandler);
 
         const closeTutorial = () => {
-            document.removeEventListener('keydown', keyHandler);
+            document.removeEventListener('keydown', this._tutorialKeyHandler);
+            this._tutorialKeyHandler = null;
             ui.forEach(o => o.destroy());
             this._tutorialOpen = false;
             this._inDialogue = false;

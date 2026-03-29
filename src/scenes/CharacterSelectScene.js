@@ -79,6 +79,8 @@ export class CharacterSelectScene extends Phaser.Scene {
         startBtn.on('pointerover',  () => startBtn.setStyle({ backgroundColor: '#243848' }));
         startBtn.on('pointerout',   () => startBtn.setStyle({ backgroundColor: '#142030' }));
         startBtn.on('pointerdown',  () => this._startGame());
+
+        this.events.on('shutdown', () => this.tweens.killAll());
     }
 
     _startGame() {

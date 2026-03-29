@@ -372,7 +372,9 @@ export class AvatarBuilderScene extends Phaser.Scene {
         btn.on('pointerover', () => btn.setStyle({ backgroundColor: TAB_ACTIVE }));
         btn.on('pointerout',  () => btn.setStyle({ backgroundColor: TAB_COLOR }));
         btn.on('pointerdown', () => {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(this.avatar));
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify(this.avatar));
+            } catch (e) { /* quota exceeded or private browsing */ }
 
             // Recompose player-avatar in place so other scenes stay valid
             if (this.textures.exists('player-avatar')) {

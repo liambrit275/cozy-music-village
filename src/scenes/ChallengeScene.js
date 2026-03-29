@@ -244,6 +244,7 @@ export class ChallengeScene extends Phaser.Scene {
 
         // Cleanup
         this.events.on('shutdown', () => {
+            this.tweens.killAll();
             this.audioEngine.dispose();
             this.staffRenderer.clear();
             this.rhythmNotationRenderer.clear();

@@ -464,6 +464,7 @@ export const RhythmReadingMixin = {
     },
 
     _clearRhythmReadingUI() {
+        this._cancelEscapeTimer();
         if (this._rrKeyHandler) {
             document.removeEventListener('keydown', this._rrKeyHandler);
             this._rrKeyHandler = null;
