@@ -69,9 +69,8 @@ export class TopDownScene extends Phaser.Scene {
         this._progression.load();
         this._storyLevel = this._progression.getStoryLevel();
 
-        // Inset physics bounds so animals/player can't reach the border fence area
-        const FENCE_PAD = 70;
-        this.physics.world.setBounds(FENCE_PAD, FENCE_PAD, WORLD_W - FENCE_PAD * 2, WORLD_H - FENCE_PAD * 2);
+        // Physics bounds match full map — fences handle collision via tile layer
+        this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
 
         this._drawWorld();
         this._createPlayer();
@@ -268,7 +267,7 @@ export class TopDownScene extends Phaser.Scene {
         // Update world size to match map
         const mapW = map.widthInPixels * scale;
         const mapH = map.heightInPixels * scale;
-        this.physics.world.setBounds(70, 70, mapW - 140, mapH - 140);
+        this.physics.world.setBounds(0, 0, mapW, mapH);
         this.cameras.main.setBounds(0, 0, mapW, mapH);
 
         // Build a set of blocked tile positions (for spawn validation)
