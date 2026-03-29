@@ -30,16 +30,17 @@ const RESCUE_ANIMALS = [
 
 // All positions kept well inside the safe zone (x: 90–1200, y: 90–1310)
 // and away from the enclosure (top-right corner ~x>1260, y<290)
+// Spawn positions validated against farm.json — clear of fences and decorations
 const SPAWN_POSITIONS = [
-    { x: 300,  y: 300  },
-    { x: 650,  y: 200  },
-    { x: 200,  y: 750  },
-    { x: 850,  y: 650  },
-    { x: 450,  y: 1100 },
-    { x: 1050, y: 950  },
-    { x: 600,  y: 850  },
-    { x: 900,  y: 400  },
-    { x: 380,  y: 550  },
+    { x: 1296, y:  432 },
+    { x: 1040, y:  624 },
+    { x:  112, y:  848 },
+    { x:  336, y:  880 },
+    { x:  336, y: 1040 },
+    { x:  656, y: 1104 },
+    { x:  304, y: 1264 },
+    { x:  496, y: 1296 },
+    { x:  112, y: 1296 },
 ];
 
 export class TopDownScene extends Phaser.Scene {
@@ -736,6 +737,7 @@ export class TopDownScene extends Phaser.Scene {
                 rescued: false, inChallenge: false,
                 wanderTimer: Phaser.Math.Between(500, 2500),
                 vx: 0, vy: 0,
+                spawnX: x, spawnY: y,
             };
             this.animals.push(animal);
             this.animalGroup.add(sp);
@@ -804,11 +806,21 @@ export class TopDownScene extends Phaser.Scene {
                 a.wanderTimer = Phaser.Math.Between(800, 3000);
             }
 
-            // Steer away from edges of safe zone
-            if (sp.x < SAFE_X1)          { a.vx =  Math.abs(a.vx || 30) + 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
-            else if (sp.x > SAFE_X2)     { a.vx = -Math.abs(a.vx || 30) - 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
-            if (sp.y < SAFE_Y1)          { a.vy =  Math.abs(a.vy || 30) + 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
-            else if (sp.y > SAFE_Y2)     { a.vy = -Math.abs(a.vy || 30) - 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
+            // Steer back toward spawn position if too far away (max 120px)
+            const dx = a.spawnX - sp.x, dy = a.spawnY - sp.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist > 120) {
+                const ang = Math.atan2(dy, dx);
+                a.vx = Math.cos(ang) * 35;
+                a.vy = Math.sin(ang) * 35;
+                a.wanderTimer = Math.min(a.wanderTimer, 400);
+            }
+
+            // Also steer away from world edges
+            if (sp.x < SAFE_X1)      { a.vx =  Math.abs(a.vx || 30) + 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
+            else if (sp.x > SAFE_X2) { a.vx = -Math.abs(a.vx || 30) - 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
+            if (sp.y < SAFE_Y1)      { a.vy =  Math.abs(a.vy || 30) + 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
+            else if (sp.y > SAFE_Y2) { a.vy = -Math.abs(a.vy || 30) - 15; a.wanderTimer = Math.min(a.wanderTimer, 600); }
 
             sp.setVelocity(a.vx, a.vy);
 
