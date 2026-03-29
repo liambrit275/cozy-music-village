@@ -17,7 +17,7 @@ const NAT_STAVE_X    = 20;
 const NAT_STAVE_W    = 680;
 const NAT_TOP_LINE_Y = 30;
 const NAT_STAVE_Y    = NAT_TOP_LINE_Y - 40;
-const NAT_BOT_PAD    = 30;
+const NAT_BOT_PAD    = 48;  // Extra room for counting labels below staff
 const NAT_SPACING    = 10;
 const NAT_STAFF_H    = NAT_SPACING * 4;
 
@@ -185,35 +185,9 @@ export class RhythmNotationRenderer {
 
         if (vfNotes.length === 0) return;
 
-        // Add counting labels below notes/rests if requested.
-        // Shows ALL beats that fall within each note's duration, e.g.:
-        //   quarter on beat 1 → "1"
-        //   half note on beat 2 → "2  3" (spans two beats)
-        //   rest on beat 4 → "(4)"
-        if (options.showCounting && options.cellLabels) {
-            const labels = options.cellLabels;
-            const tpc = options.ticksPerCell || 1;
-            notes.forEach((n, idx) => {
-                if (idx >= vfNotes.length) return;
-                const startCell = Math.round(n.startTick / tpc);
-                const endCell = Math.round((n.startTick + n.durationTicks) / tpc);
-                // Collect all cell labels that fall within this note
-                const parts = [];
-                for (let c = startCell; c < endCell && c < labels.length; c++) {
-                    parts.push(labels[c]);
-                }
-                if (parts.length === 0) return;
-                // For rests, wrap in parentheses
-                const isRest = n.type === 'rest';
-                const text = isRest ? `(${parts.join(' ')})` : parts.join('  ');
-                try {
-                    const ann = new VF.Annotation(text)
-                        .setFont('monospace', 10, isRest ? 'normal' : 'bold')
-                        .setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-                    vfNotes[idx].addModifier(ann);
-                } catch (e) { /* skip */ }
-            });
-        }
+        // Counting labels are drawn after the voice (see below) so we can
+        // position them evenly across the stave width like a number line.
+        const _countingOpts = (options.showCounting && options.cellLabels) ? options : null;
 
         // Auto-beam before drawing
         let beams = [];
@@ -255,6 +229,51 @@ export class RhythmNotationRenderer {
                     });
                     tie.setContext(ctx).draw();
                 } catch (e) { /* skip */ }
+            }
+        }
+
+        // Draw evenly-spaced counting labels below the staff like a number line
+        if (_countingOpts) {
+            const labels = _countingOpts.cellLabels;
+            const totalCells = labels.length;
+            // Get the usable note area: from first note x to end of stave
+            const noteStartX = stave.getNoteStartX();
+            const noteEndX = stave.getX() + stave.getWidth() - 10;
+            const noteAreaW = noteEndX - noteStartX;
+            const cellW = noteAreaW / totalCells;
+            const labelY = NAT_TOP_LINE_Y + NAT_STAFF_H + 18; // below staff
+
+            const svgEl = wrapper.querySelector('svg');
+            if (svgEl) {
+                // Find which cells are note onsets vs sustained/rest
+                const tpc = _countingOpts.ticksPerCell || 1;
+                const onsetCells = new Set();
+                const restCells = new Set();
+                for (const n of notes) {
+                    const c = Math.round(n.startTick / tpc);
+                    if (n.type === 'rest') restCells.add(c);
+                    else onsetCells.add(c);
+                }
+
+                for (let i = 0; i < totalCells; i++) {
+                    const label = labels[i];
+                    if (!label) continue;
+                    const x = noteStartX + i * cellW + cellW / 2;
+                    const isOnset = onsetCells.has(i);
+                    const isRest = restCells.has(i);
+
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', labelY);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('font-family', 'monospace');
+                    text.setAttribute('font-size', '11');
+                    text.setAttribute('font-weight', isOnset ? 'bold' : 'normal');
+                    text.setAttribute('fill', isRest ? '#999999' : isOnset ? '#000000' : '#666666');
+                    text.setAttribute('class', 'counting-label');
+                    text.textContent = isRest ? `(${label})` : label;
+                    svgEl.appendChild(text);
+                }
             }
         }
 
@@ -347,7 +366,10 @@ export class RhythmNotationRenderer {
             }
         });
         svg.querySelectorAll('text').forEach(el => {
-            el.setAttribute('fill', TEXT_COLOR);
+            // Don't override counting label colors — they use their own color scheme
+            if (!el.classList.contains('counting-label')) {
+                el.setAttribute('fill', TEXT_COLOR);
+            }
         });
     }
 }
