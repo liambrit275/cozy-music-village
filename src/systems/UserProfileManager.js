@@ -162,10 +162,16 @@ export class UserProfileManager {
         const username = this.getActiveUser();
         if (!username) return;
         const profile = this._loadProfile(username) || {};
-        try { profile.storyProgress = JSON.parse(localStorage.getItem('music-theory-rpg-save')); } catch { /* keep existing */ }
-        try { profile.arcadeScores = JSON.parse(localStorage.getItem('arcade-highscores')); } catch {}
-        try { profile.arcadeSettings = JSON.parse(localStorage.getItem('arcade-settings')); } catch {}
-        try { profile.avatar = JSON.parse(localStorage.getItem('avatar-settings')); } catch {}
+        // Only overwrite profile fields if localStorage actually has data
+        // (prevents wiping saved progress when localStorage is empty after browser clear)
+        const story = localStorage.getItem('music-theory-rpg-save');
+        if (story) try { profile.storyProgress = JSON.parse(story); } catch {}
+        const scores = localStorage.getItem('arcade-highscores');
+        if (scores) try { profile.arcadeScores = JSON.parse(scores); } catch {}
+        const settings = localStorage.getItem('arcade-settings');
+        if (settings) try { profile.arcadeSettings = JSON.parse(settings); } catch {}
+        const avatar = localStorage.getItem('avatar-settings');
+        if (avatar) try { profile.avatar = JSON.parse(avatar); } catch {}
         // Also sync instrument from arcadeSettings
         if (profile.arcadeSettings?.instrument) profile.instrument = profile.arcadeSettings.instrument;
         this._saveProfile(username, profile);
