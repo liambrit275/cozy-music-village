@@ -1,5 +1,7 @@
 // Manages game progression: story levels, player stats persistence, save/load
 
+import { SaveManager } from './SaveManager.js';
+
 const SAVE_KEY = 'music-theory-rpg-save';
 
 export class ProgressionManager {
@@ -44,13 +46,8 @@ export class ProgressionManager {
             player: playerData,
             timestamp: Date.now()
         };
-        try {
-            localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
-            return true;
-        } catch (e) {
-            console.warn('Failed to save:', e);
-            return false;
-        }
+        SaveManager.save(SAVE_KEY, saveData);
+        return true;
     }
 
     load() {
@@ -70,7 +67,7 @@ export class ProgressionManager {
     }
 
     deleteSave() {
-        localStorage.removeItem(SAVE_KEY);
+        SaveManager.delete(SAVE_KEY);
     }
 
     loadArcadeScores() {
@@ -88,7 +85,7 @@ export class ProgressionManager {
         scores[mode].push(score);
         scores[mode].sort((a, b) => b - a);
         scores[mode] = scores[mode].slice(0, 5);
-        try { localStorage.setItem('arcade-highscores', JSON.stringify(scores)); } catch (e) {}
+        SaveManager.save('arcade-highscores', scores);
     }
 
     loadArcadeSettings() {
@@ -101,11 +98,8 @@ export class ProgressionManager {
     }
 
     saveArcadeSettings(settings) {
-        try {
-            // Merge with existing to preserve fields not in the current save
-            const existing = this.loadArcadeSettings();
-            const merged = { ...existing, ...settings };
-            localStorage.setItem('arcade-settings', JSON.stringify(merged));
-        } catch (e) {}
+        const existing = this.loadArcadeSettings();
+        const merged = { ...existing, ...settings };
+        SaveManager.save('arcade-settings', merged);
     }
 }

@@ -1,10 +1,12 @@
 // UserProfileManager: Multi-user profile system.
-// Uses localStorage. Designed so methods can later become fetch() calls to a server.
+// Uses SaveManager for persistent server-backed storage.
 //
 // KEY DESIGN: This system does NOT touch ProgressionManager or any existing scene code.
 // Instead it uses a "sync bridge":
 //   - On login:  profile data → legacy localStorage keys (so existing code reads it)
 //   - On save:   legacy localStorage keys → profile data (so profile stays current)
+
+import { SaveManager } from './SaveManager.js';
 
 const USERS_KEY = 'mtv-users';
 const PROFILE_PREFIX = 'mtv-profile-';
@@ -29,7 +31,7 @@ export class UserProfileManager {
     }
 
     static _saveUsers(users) {
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        SaveManager.save(USERS_KEY, users);
     }
 
     static registerSync(username, password, role = 'student') {
@@ -41,11 +43,11 @@ export class UserProfileManager {
         users[clean] = { hash: simpleHash(password), role, createdAt: Date.now() };
         this._saveUsers(users);
         // Create empty profile
-        localStorage.setItem(PROFILE_PREFIX + clean, JSON.stringify({
+        SaveManager.save(PROFILE_PREFIX + clean, {
             avatar: null, storyProgress: null, arcadeScores: null,
             arcadeSettings: null, instrument: null,
             createdAt: Date.now(), lastLogin: Date.now(),
-        }));
+        });
         return { ok: true, username: clean };
     }
 
@@ -55,14 +57,14 @@ export class UserProfileManager {
         const user = users[clean];
         if (!user) return { ok: false, error: 'User not found' };
         if (user.hash !== simpleHash(password)) return { ok: false, error: 'Wrong password' };
-        localStorage.setItem(ACTIVE_KEY, clean);
+        SaveManager.save(ACTIVE_KEY, clean);
         const profile = this._loadProfile(clean);
         if (profile) { profile.lastLogin = Date.now(); this._saveProfile(clean, profile); }
         return { ok: true, username: clean, profile };
     }
 
-    static logout() { localStorage.removeItem(ACTIVE_KEY); }
-    static getActiveUser() { return localStorage.getItem(ACTIVE_KEY) || null; }
+    static logout() { SaveManager.delete(ACTIVE_KEY); }
+    static getActiveUser() { try { return localStorage.getItem(ACTIVE_KEY) || null; } catch { return null; } }
     static getUserList() { return Object.keys(this._loadUsers()); }
 
     static getRole(username) {
@@ -79,7 +81,7 @@ export class UserProfileManager {
         if (!users[username]) return false;
         delete users[username];
         this._saveUsers(users);
-        localStorage.removeItem(PROFILE_PREFIX + username);
+        SaveManager.delete(PROFILE_PREFIX + username);
         return true;
     }
 
@@ -120,7 +122,7 @@ export class UserProfileManager {
     }
 
     static _saveProfile(username, profile) {
-        if (username) localStorage.setItem(PROFILE_PREFIX + username, JSON.stringify(profile));
+        if (username) SaveManager.save(PROFILE_PREFIX + username, profile);
     }
 
     // ── Sync bridge: profile ↔ legacy localStorage keys ──────
@@ -130,20 +132,20 @@ export class UserProfileManager {
         const profile = this._loadProfile(username);
         if (!profile) return;
         if (profile.storyProgress) {
-            localStorage.setItem('music-theory-rpg-save', JSON.stringify(profile.storyProgress));
+            SaveManager.save('music-theory-rpg-save', profile.storyProgress);
         } else {
-            localStorage.removeItem('music-theory-rpg-save');
+            SaveManager.delete('music-theory-rpg-save');
         }
         if (profile.arcadeScores) {
-            localStorage.setItem('arcade-highscores', JSON.stringify(profile.arcadeScores));
+            SaveManager.save('arcade-highscores', profile.arcadeScores);
         } else {
-            localStorage.removeItem('arcade-highscores');
+            SaveManager.delete('arcade-highscores');
         }
         if (profile.arcadeSettings) {
-            localStorage.setItem('arcade-settings', JSON.stringify(profile.arcadeSettings));
+            SaveManager.save('arcade-settings', profile.arcadeSettings);
         }
         if (profile.avatar) {
-            localStorage.setItem('avatar-settings', JSON.stringify(profile.avatar));
+            SaveManager.save('avatar-settings', profile.avatar);
         }
     }
 
@@ -182,8 +184,7 @@ export class UserProfileManager {
         profile.arcadeSettings.instrument = instrument;
         this._saveProfile(username, profile);
         // Also write to legacy key so existing code picks it up
-        const settings = profile.arcadeSettings;
-        localStorage.setItem('arcade-settings', JSON.stringify(settings));
+        SaveManager.save('arcade-settings', profile.arcadeSettings);
     }
 
     // ── Leaderboard ──────────────────────────────────────────

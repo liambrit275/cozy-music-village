@@ -1,11 +1,15 @@
 // LoginScene: Username + password login. Pure Phaser UI.
 
 import { UserProfileManager } from '../systems/UserProfileManager.js';
+import { SaveManager } from '../systems/SaveManager.js';
 
 export class LoginScene extends Phaser.Scene {
     constructor() { super({ key: 'LoginScene' }); }
 
     create() {
+        // Load saves from server files into localStorage on startup
+        SaveManager.syncFromServer().catch(() => {});
+
         const { width, height } = this.cameras.main;
         this.cameras.main.setBackgroundColor('#0c1420');
 
