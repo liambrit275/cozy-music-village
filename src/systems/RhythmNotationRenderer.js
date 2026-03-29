@@ -185,23 +185,33 @@ export class RhythmNotationRenderer {
 
         if (vfNotes.length === 0) return;
 
-        // Add counting labels below notes if requested
+        // Add counting labels below notes/rests if requested.
+        // Shows ALL beats that fall within each note's duration, e.g.:
+        //   quarter on beat 1 → "1"
+        //   half note on beat 2 → "2  3" (spans two beats)
+        //   rest on beat 4 → "(4)"
         if (options.showCounting && options.cellLabels) {
             const labels = options.cellLabels;
-            const ticksPerCell = options.ticksPerCell || 1;
+            const tpc = options.ticksPerCell || 1;
             notes.forEach((n, idx) => {
                 if (idx >= vfNotes.length) return;
-                // Find the cell index for this note's start tick
-                const cellIdx = Math.round(n.startTick / ticksPerCell);
-                const label = cellIdx < labels.length ? labels[cellIdx] : '';
-                if (label) {
-                    try {
-                        const ann = new VF.Annotation(label)
-                            .setFont('monospace', 11, 'bold')
-                            .setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
-                        vfNotes[idx].addModifier(ann);
-                    } catch (e) { /* skip */ }
+                const startCell = Math.round(n.startTick / tpc);
+                const endCell = Math.round((n.startTick + n.durationTicks) / tpc);
+                // Collect all cell labels that fall within this note
+                const parts = [];
+                for (let c = startCell; c < endCell && c < labels.length; c++) {
+                    parts.push(labels[c]);
                 }
+                if (parts.length === 0) return;
+                // For rests, wrap in parentheses
+                const isRest = n.type === 'rest';
+                const text = isRest ? `(${parts.join(' ')})` : parts.join('  ');
+                try {
+                    const ann = new VF.Annotation(text)
+                        .setFont('monospace', 10, isRest ? 'normal' : 'bold')
+                        .setVerticalJustification(VF.Annotation.VerticalJustify.BOTTOM);
+                    vfNotes[idx].addModifier(ann);
+                } catch (e) { /* skip */ }
             });
         }
 
