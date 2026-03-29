@@ -8861,19 +8861,6 @@
    "name": "objects",
    "objects": [
     {
-     "ellipse": true,
-     "height": 0,
-     "id": 9,
-     "name": "",
-     "opacity": 1,
-     "rotation": 0,
-     "type": "",
-     "visible": true,
-     "width": 0,
-     "x": 149.468632156325,
-     "y": 320.19197805965
-    },
-    {
      "height": 0,
      "id": 15,
      "name": "farmers house door",
